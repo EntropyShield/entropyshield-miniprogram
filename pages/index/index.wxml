@@ -1,0 +1,11 @@
+<view class="container">
+  <view class="section">
+    <button class="button" bindtap="goToRiskCalculator">风控计算器</button>
+  </view>
+  <view class="section">
+    <button class="button" bindtap="goToSentiment">市场情绪</button>
+  </view>
+  <view class="section">
+    <button class="button" bindtap="goToClub">控局者俱乐部</button>
+  </view>
+</view>

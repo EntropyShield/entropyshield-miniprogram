@@ -1,0 +1,11 @@
+<view class="container">
+  <input class="input" bindinput="onBalanceInput" placeholder="请输入资金" />
+  <input class="input" bindinput="onPriceInput" placeholder="请输入买入价格" />
+  <input class="input" bindinput="onCodeInput" placeholder="请输入股票代码" />
+  <button class="button" bindtap="onCalculate">计算</button>
+  <view class="result">
+    <text>分批买入价格：{{batchPrice}}</text>
+    <text>最大亏损：{{maxLoss}}</text>
+    <text>目标收益：{{targetProfit}}</text>
+  </view>
+</view>
