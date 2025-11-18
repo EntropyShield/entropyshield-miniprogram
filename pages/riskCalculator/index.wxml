@@ -1,11 +1,47 @@
-<view class="container">
-  <input class="input" bindinput="onBalanceInput" placeholder="请输入资金" />
-  <input class="input" bindinput="onPriceInput" placeholder="请输入买入价格" />
-  <input class="input" bindinput="onCodeInput" placeholder="请输入股票代码" />
-  <button class="button" bindtap="onCalculate">计算</button>
-  <view class="result">
-    <text>分批买入价格：{{batchPrice}}</text>
-    <text>最大亏损：{{maxLoss}}</text>
-    <text>目标收益：{{targetProfit}}</text>
+<view class="page risk-calculator">
+
+<!-- 标题 -->
+<view class="title-container">
+  <text class="title"></text>
+  <text class="sub-title">根据自己的资金与买入价生成风控方案（演示版）</text>
+</view>
+
+<!-- 输入区域 -->
+<view class="input-container">
+
+  <view class="input-field">
+    <text class="input-label">可用资金（元）</text>
+    <input class="input" type="number" placeholder="请输入可用资金" bindinput="onInputBalance" value="{{balance}}" />
   </view>
+
+  <view class="input-field">
+    <text class="input-label">首次买入价格</text>
+    <input class="input" type="number" placeholder="请输入拟建仓价格" bindinput="onInputPrice" value="{{price}}" />
+  </view>
+
+  <view class="input-field">
+    <text class="input-label">标的代码（或名称）</text>
+    <input class="input" placeholder="请输入标的代码（可自动从首页带入）" bindinput="onInputCode" value="{{code}}" />
+  </view>
+
+</view>
+
+<!-- 两个主按钮 -->
+<view class="button-container">
+  <view class="btn-primary" bindtap="onSteadyPlan">
+    <text class="btn-text">生成风控方案稳健版</text>
+    <text class="btn-icon">➜</text>
+  </view>
+
+  <view class="btn-primary" bindtap="onAdvancedPlan">
+    <text class="btn-text">生成风控方案加强版</text>
+    <text class="btn-icon">➜</text>
+  </view>
+</view>
+
+<!-- 返回首页 -->
+<view class="btn-back" bindtap="goHome">
+  返回首页
+</view>
+
 </view>

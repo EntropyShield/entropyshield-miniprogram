@@ -1,11 +1,87 @@
-<view class="container">
-  <view class="section">
-    <button class="button" bindtap="goToRiskCalculator">风控计算器</button>
-  </view>
-  <view class="section">
-    <button class="button" bindtap="goToSentiment">市场情绪</button>
-  </view>
-  <view class="section">
-    <button class="button" bindtap="goToClub">控局者俱乐部</button>
+<view class="page tech-container">
+  <!-- 背景层 -->
+  <view class="bg-grid"></view>
+  <view class="bg-glow"></view>
+
+  <!-- 内容主体 -->
+  <view class="content col">
+
+    <!-- 顶部品牌区：LOGO + 标语 + 按钮 -->
+    <view class="card brand-block">
+      <view class="brand-row-center">
+        <!-- LOGO 画布：绿色六边形 + 蓝色空心 ∞ -->
+        <canvas
+          type="2d"
+          id="entropyLogo"
+          class="logo-canvas"
+          style="width:40px;height:40px;"
+        ></canvas>
+        <text class="brand-line">熵盾 — 让您从从容容，游刃有余</text>
+      </view>
+
+      <!-- 宽版按钮：带指示图标 -->
+      <view class="btn-primary brand-button-wide" bindtap="goCalc">
+        <text class="btn-text-main">立即使用风控计算器</text>
+        <view class="btn-icon-circle">
+          <text class="btn-icon-arrow">➜</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 熵盾市场情绪指数 -->
+    <view class="card section-card">
+      <view class="section-head">
+        <view class="title-dot"></view>
+        <text class="h2">熵盾市场情绪指数</text>
+        <text class="sentiment-tag" style="color:{{sentimentColor}};">
+          {{sentimentLabel}}
+        </text>
+      </view>
+
+      <!-- 情绪折线图画布 -->
+      <canvas type="2d" id="sentChart" class="chart"></canvas>
+
+      <view class="text-secondary sub-note">近 7 日 · 情绪走势</view>
+    </view>
+
+    <!-- 熵盾财讯 -->
+    <view class="card section-card">
+      <view class="section-head">
+        <view class="title-dot"></view>
+        <text class="h2">熵盾财讯</text>
+      </view>
+
+      <block wx:for="{{news}}" wx:key="id">
+        <view class="news-row" hover-class="row-active">
+          <text class="news-title">{{item.title}}</text>
+          <text class="news-time text-secondary">{{item.time}}</text>
+        </view>
+      </block>
+    </view>
+
+    <!-- 熵盾风险测评 -->
+    <view class="card section-card">
+      <view class="section-head">
+        <view class="title-dot"></view>
+        <text class="h2">熵盾风险测评</text>
+      </view>
+
+      <view class="row">
+        <input
+          class="input"
+          placeholder="请输入代码"
+          bindinput="onCode"
+        />
+        <view class="btn-primary neon-btn" bindtap="goEval">
+          熵盾测评
+        </view>
+      </view>
+
+      <view class="p current-line">
+        当前风险：
+        <text class="text-secondary">{{currentRisk}}</text>
+      </view>
+    </view>
+
   </view>
 </view>

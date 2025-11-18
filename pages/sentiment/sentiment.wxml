@@ -1,0 +1,6 @@
+<!-- 使用 ECharts 展示市场情绪 -->
+<view class="container">
+  <view class="chart-container">
+    <chart canvas-id="sentimentChart" type="line" series="{{sentimentData}}" categories="{{categories}}"></chart>
+  </view>
+</view>

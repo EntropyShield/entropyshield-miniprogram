@@ -1,0 +1,7 @@
+<!-- 同层 2D Canvas，尺寸由 props 控制 -->
+<canvas
+  type="2d"
+  id="logo"
+  class="logo-canvas"
+  style="width: {{size}}px; height: {{size}}px;">
+</canvas>

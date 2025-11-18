@@ -2,50 +2,66 @@ Page({
   data: {
     balance: '',
     price: '',
-    code: '',
-    batchPrice: '',
-    maxLoss: '',
-    targetProfit: ''
+    code: ''
   },
 
-  onBalanceInput(e) {
-    this.setData({
-      balance: e.detail.value
-    });
+  // 输入资金
+  onInputBalance(e) {
+    this.setData({ balance: e.detail.value });
   },
-  
-  onPriceInput(e) {
-    this.setData({
-      price: e.detail.value
-    });
+
+  // 输入价格
+  onInputPrice(e) {
+    this.setData({ price: e.detail.value });
   },
-  
-  onCodeInput(e) {
-    this.setData({
-      code: e.detail.value
-    });
+
+  // 输入代码
+  onInputCode(e) {
+    this.setData({ code: e.detail.value });
   },
-  
-  onCalculate() {
-    const { balance, price } = this.data;
-    
-    if (!balance || !price) {
+
+  // 跳转：稳健版
+  onSteadyPlan() {
+    console.log("生成稳健版点击");
+
+    const { balance, price, code } = this.data;
+
+    if (!balance || !price || !code) {
       wx.showToast({
-        title: '请输入资金和买入价格',
+        title: '请填写完整参数',
         icon: 'none'
       });
       return;
     }
 
-    // 假设的简单计算逻辑
-    const batchPrice = (balance / 4) / price;  // 分四次买入
-    const maxLoss = 0.2 * balance;  // 最大亏损20%
-    const targetProfit = 0.2 * balance;  // 目标利润20%
+    wx.navigateTo({
+      url: `/pages/planSteady/index?capital=${balance}&firstPrice=${price}&code=${code}`
+    });
+  },
 
-    this.setData({
-      batchPrice,
-      maxLoss,
-      targetProfit
+  // 跳转：加强版
+  onAdvancedPlan() {
+    console.log("生成加强版点击");
+
+    const { balance, price, code } = this.data;
+
+    if (!balance || !price || !code) {
+      wx.showToast({
+        title: '请填写完整参数',
+        icon: 'none'
+      });
+      return;
+    }
+
+    wx.navigateTo({
+      url: `/pages/planAdvanced/index?balance=${balance}&price=${price}&code=${code}`
+    });
+  },
+
+  // 返回首页
+  goHome() {
+    wx.switchTab({
+      url: '/pages/index/index'
     });
   }
 });

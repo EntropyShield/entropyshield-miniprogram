@@ -1,0 +1,58 @@
+<view class="page pp-page">
+  <view class="card pp-card">
+    <view class="pp-title">风控方案加强版</view>
+    <view class="pp-sub">
+      无试用期，采用 <text class="pp-highlight">按年 / 半年收费</text> 模式，
+      面向进阶控局者与重度资金管理需求。
+    </view>
+
+    <view class="pp-info">
+      <text class="pp-label">标的代码：</text>
+      <text class="pp-value">{{code || '未填写'}}</text>
+    </view>
+    <view class="pp-info">
+      <text class="pp-label">计划资金：</text>
+      <text class="pp-value">{{balance}} 元</text>
+    </view>
+    <view class="pp-info">
+      <text class="pp-label">首次价格：</text>
+      <text class="pp-value">{{price}} 元</text>
+    </view>
+  </view>
+
+  <view class="card pp-card">
+    <view class="pp-sec-title">加强版风控方案明细</view>
+
+    <block wx:for="{{steps}}" wx:key="label">
+      <view class="pp-step-row">
+        <text class="pp-step-label">{{item.label}}</text>
+        <view class="pp-step-right">
+          <text class="pp-step-text">执行价：{{item.price}} 元</text>
+          <text class="pp-step-text">数量：{{item.qty}} 手</text>
+        </view>
+      </view>
+    </block>
+
+    <view class="pp-divider"></view>
+
+    <view class="pp-info">
+      <text class="pp-label">建议止损价：</text>
+      <text class="pp-highlight">{{stopPrice}} 元</text>
+    </view>
+    <view class="pp-info">
+      <text class="pp-label">目标止盈价：</text>
+      <text class="pp-highlight">{{targetPrice}} 元</text>
+    </view>
+  </view>
+
+  <view class="card pp-card">
+    <view class="pp-sec-title">收费说明</view>
+    <view class="pp-fee-line">· 按年 / 半年一次性收费，无试用期。</view>
+    <view class="pp-fee-line">· 针对大资金、重度交易者设计，提供更严密的风控节奏。</view>
+    <view class="pp-fee-line">· 后续可叠加「熵盾 AI 风控监控」等高阶服务。</view>
+  </view>
+
+  <view class="pp-tip">
+    * 本页为示意方案与示意收费结构，具体价格与风控模型以熵盾正式上线为准。
+  </view>
+</view>

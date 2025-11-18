@@ -1,10 +1,27 @@
-/**app.wxss**/
-.container {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: space-between;
-  padding: 200rpx 0;
-  box-sizing: border-box;
-} 
+/* ===== Brand Tokens ===== */
+:root {
+  --Bg-Dark:#0D0D0D;        /* 深空黑 背景 */
+  --Primary-Green:#2AFF2A;  /* 能量绿 主高亮 */
+  --Accent-Blue:#1E90FF;    /* 科技蓝 链接/图表 */
+  --Gold:#D4AF37;           /* 金色 悬停/强调 */
+  --Text-Main:#EAEAEA;      /* 主文字 */
+  --Text-Secondary:#9AA0A6; /* 次文字 */
+  --Line:#2A2A2A;           /* 分隔线 */
+  --Card:#161616;           /* 卡片底 */
+  --Radius-Card:16px;
+  --Radius-Btn:12px;
+  --Gutter:16px;
+}
+
+/* ===== Global Reset ===== */
+page{background:var(--Bg-Dark);color:var(--Text-Main);font-family:"Noto Sans SC","Source Han Sans CN",system-ui;}
+.text-secondary{color:var(--Text-Secondary);}
+.card{background:var(--Card);border-radius:var(--Radius-Card);padding:var(--Gutter);}
+.h1{font-size:20px;font-weight:600;}
+.h2{font-size:18px;font-weight:600;}
+.p{font-size:14px;line-height:22px;}
+.btn-primary{background:var(--Primary-Green);color:#0B0B0B;height:44px;border-radius:var(--Radius-Btn);display:flex;align-items:center;justify-content:center;font-weight:600;}
+.btn-primary:active{background:var(--Gold);}
+.input{height:44px;border-radius:12px;background:#111;color:var(--Text-Main);border:1px solid var(--Line);padding:0 12px;}
+.row{display:flex;gap:16px;}
+.col{display:flex;flex-direction:column;gap:16px;}

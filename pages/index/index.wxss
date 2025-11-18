@@ -1,17 +1,266 @@
-.container {
-  padding: 20px;
+/* 整体页面底色与文字色 */
+.page {
+  background: #000000;
+  color: #EAEAEA;
 }
 
-.section {
-  margin-bottom: 20px;
+/* 页面容器 */
+.tech-container {
+  position: relative;
+  min-height: 100vh;
+  padding: 16px;
 }
 
-.button {
+/* 通用纵向布局容器 */
+.content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* LOGO 画布 */
+.logo-canvas {
+  display: block;
+}
+
+/* 背景网格和光晕 */
+.bg-grid {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 24px 24px;
+  opacity: 0.6;
+}
+
+.bg-glow {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  background:
+    radial-gradient(600px 300px at 70% 10%, rgba(42, 255, 42, 0.12), transparent 60%),
+    radial-gradient(400px 200px at 20% 40%, rgba(30, 144, 255, 0.12), transparent 60%);
+}
+
+/* 卡片基础样式 */
+.card {
+  background: #111111;
+  border-radius: 16px;
+  padding: 16px;
+  color: #EAEAEA;
+}
+
+/* 顶部品牌卡片：整体居中 */
+.brand-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  box-shadow:
+    0 8px 28px rgba(0, 0, 0, 0.35),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+}
+
+/* LOGO + 标语 一行水平居中 */
+.brand-row-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
   width: 100%;
-  height: 50px;
-  background-color: #2AFF2A;
-  color: #fff;
+  text-align: center;
+}
+
+.brand-line {
   font-size: 16px;
-  border-radius: 8px;
-  border: none;
+  font-weight: 600;
+  color: #EAEAEA;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 通用绿色主按钮底色 */
+.btn-primary {
+  background: #2AFF2A;
+  color: #0D0D0D;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+}
+
+/* 顶部“立即使用风控计算器”大按钮 */
+.brand-button-wide {
+  width: 90%;
+  max-width: 320px;
+  height: 48px;
+  font-size: 16px;
+  font-weight: 700;
+  box-shadow:
+    0 0 20px rgba(42, 255, 42, 0.4),
+    0 0 8px rgba(42, 255, 42, 0.3) inset;
+  transition: all 0.2s ease;
+  padding: 0 14px;
+}
+
+/* 按钮内部：文字 + 小圆形图标 */
+.btn-text-main {
+  flex: 1;
+  text-align: center;
+}
+
+.btn-icon-circle {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  border: 2px solid #0D0D0D;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 8px;
+}
+
+.btn-icon-arrow {
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.brand-button-wide:active {
+  transform: scale(0.98);
+  background: #24E624;
+}
+
+/* 通用 section 卡片 */
+.section-card {
+  position: relative;
+  box-shadow:
+    0 10px 28px rgba(0, 0, 0, 0.35),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+}
+
+/* 模块头部：小绿点 + 标题 + 附加信息 */
+.section-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.h2 {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.title-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #2AFF2A;
+  box-shadow:
+    0 0 10px rgba(42, 255, 42, 0.8),
+    0 0 20px rgba(42, 255, 42, 0.5);
+  animation: blink 2.2s ease-in-out infinite;
+}
+
+.sentiment-tag {
+  font-weight: 700;
+  margin-left: auto;
+}
+
+/* 文本颜色辅助 */
+.text-secondary {
+  color: #9AA0A6;
+}
+
+.sub-note {
+  font-size: 12px;
+  margin-top: 8px;
+}
+
+/* 市场情绪折线图画布 */
+.chart {
+  width: 100%;
+  height: 160px;
+  margin-top: 12px;
+  background: #101010;
+  border: 1px solid #2A2A2A;
+  border-radius: 12px;
+}
+
+/* 财讯列表样式 */
+.news-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px;
+  margin: 6px 0;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
+  transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.row-active {
+  background: rgba(255, 255, 255, 0.05);
+  transform: translateY(-1px);
+}
+
+.news-title {
+  max-width: 78%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 14px;
+}
+
+.news-time {
+  font-size: 12px;
+}
+
+/* 熵盾风险测评区域 */
+.row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.input {
+  flex: 1;
+  height: 40px;
+  border-radius: 12px;
+  background: #0F0F0F;
+  border: 1px solid #2A2A2A;
+  color: #EAEAEA;
+  padding: 0 12px;
+  font-size: 14px;
+}
+
+/* 右侧“熵盾测评”按钮 */
+.neon-btn {
+  min-width: 110px;
+  height: 40px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  box-shadow:
+    0 0 14px rgba(42, 255, 42, 0.35),
+    inset 0 0 0 1px rgba(11, 11, 11, 0.6);
+}
+
+.current-line {
+  margin-top: 8px;
+  font-size: 14px;
+}
+
+/* 小动画：标题绿点闪烁 */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
 }

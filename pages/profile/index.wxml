@@ -1,0 +1,6 @@
+<view class="page" style="padding:16px;">
+  <view class="card">
+    <text class="h2">我的中心</text>
+    <view class="p text-secondary" style="margin-top:8px;">我的方案 / 偏好 / 设置</view>
+  </view>
+</view>

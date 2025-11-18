@@ -1,0 +1,8 @@
+<!-- 活动详情页面 -->
+<view class="container">
+  <view class="activity-info">
+    <text class="activity-name">{{activityName}}</text>
+    <text class="activity-date">{{activityDate}}</text>
+    <text class="activity-description">{{activityDescription}}</text>
+  </view>
+</view>
