@@ -1,0 +1,238 @@
+.page {
+  min-height: 100vh;
+  background-color: #000000;
+  padding: 32rpx 24rpx 40rpx;
+  color: #ffffff;
+  box-sizing: border-box;
+}
+
+.card {
+  background-color: #050505;
+  border-radius: 24rpx;
+  padding: 24rpx;
+  margin-bottom: 24rpx;
+  border: 1px solid #1a1a1a;
+}
+
+/* 顶部结果卡片 */
+.result-card {
+  border-color: #2aff2a33;
+}
+
+.level-tag {
+  display: inline-flex;
+  padding: 6rpx 18rpx;
+  border-radius: 999rpx;
+  font-size: 22rpx;
+  margin-bottom: 16rpx;
+}
+
+.level-beginner {
+  background-color: #272100;
+  color: #ffeb3b;
+  border: 1px solid #ffeb3b;
+}
+
+.level-growing {
+  background-color: #00252f;
+  color: #4fc3f7;
+  border: 1px solid #4fc3f7;
+}
+
+.level-steady {
+  background-color: #002b14;
+  color: #2aff2a;
+  border: 1px solid #2aff2a;
+}
+
+.level-master {
+  background-color: #120048;
+  color: #b388ff;
+  border: 1px solid #b388ff;
+}
+
+.score-row {
+  display: flex;
+  align-items: baseline;
+}
+
+.score-label {
+  font-size: 26rpx;
+  margin-right: 16rpx;
+  color: #9aa0a6;
+}
+
+.score-value {
+  font-size: 52rpx;
+  font-weight: bold;
+}
+
+.score-unit {
+  margin-left: 4rpx;
+  color: #9aa0a6;
+}
+
+.short-comment {
+  margin-top: 12rpx;
+  font-size: 24rpx;
+  color: #e0e0e0;
+}
+
+.divider {
+  height: 1rpx;
+  background-color: #1a1a1a;
+  margin: 20rpx 0;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+}
+
+.summary-label {
+  color: #9aa0a6;
+  font-size: 24rpx;
+}
+
+.summary-value {
+  color: #2aff2a;
+  font-size: 26rpx;
+}
+
+/* 雷达标签 */
+.section-title {
+  font-size: 28rpx;
+  font-weight: bold;
+  margin-bottom: 12rpx;
+}
+
+.tag-group {
+  margin-top: 8rpx;
+}
+
+.tag {
+  display: flex;
+  align-items: center;
+  background-color: #0b0b0b;
+  border-radius: 999rpx;
+  padding: 10rpx 18rpx;
+  margin-top: 12rpx;
+  border: 1px solid #1a1a1a;
+}
+
+.tag-label {
+  font-size: 22rpx;
+  padding: 2rpx 10rpx;
+  border-radius: 999rpx;
+  margin-right: 10rpx;
+}
+
+.tag-label.strong {
+  background-color: #003015;
+  color: #2aff2a;
+}
+
+.tag-label.weak {
+  background-color: #3b0000;
+  color: #ff5252;
+}
+
+.tag-text {
+  font-size: 24rpx;
+  color: #e0e0e0;
+}
+
+/* 分项能力 */
+.ability-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 14rpx 0;
+  border-bottom: 1rpx solid #111111;
+}
+
+.ability-row:last-child {
+  border-bottom-width: 0;
+}
+
+.ability-left {
+  max-width: 70%;
+}
+
+.ability-name {
+  font-size: 26rpx;
+  margin-bottom: 4rpx;
+}
+
+.ability-desc {
+  font-size: 22rpx;
+  color: #9aa0a6;
+  line-height: 1.5;
+}
+
+.ability-score {
+  align-items: baseline;
+  display: flex;
+}
+
+.ability-score-num {
+  font-size: 30rpx;
+  font-weight: bold;
+}
+
+.ability-score-unit {
+  font-size: 22rpx;
+  color: #9aa0a6;
+  margin-left: 4rpx;
+}
+
+/* 建议 */
+.advice-item {
+  display: flex;
+  margin-top: 12rpx;
+}
+
+.advice-index {
+  font-size: 24rpx;
+  color: #9aa0a6;
+  width: 36rpx;
+}
+
+.advice-text {
+  font-size: 24rpx;
+  line-height: 1.6;
+}
+
+/* 行动按钮 */
+.action-card .action-title {
+  font-size: 26rpx;
+  margin-bottom: 16rpx;
+}
+
+.btn-primary {
+  background-color: #2aff2a;
+  color: #000;
+  font-weight: bold;
+  border-radius: 999rpx;
+  height: 80rpx;
+}
+
+.btn-secondary {
+  margin-top: 16rpx;
+  border-radius: 999rpx;
+  border: 1px solid #2aff2a;
+  color: #2aff2a;
+  height: 80rpx;
+  background: transparent;
+}
+
+/* 提示 */
+.notice-card {
+  border-style: dashed;
+  border-color: #333;
+}
+
+.notice-text {
+  font-size: 22rpx;
+  color: #666;
+  line-height: 1.7;
+}

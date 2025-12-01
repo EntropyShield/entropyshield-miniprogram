@@ -1,266 +1,252 @@
-/* 整体页面底色与文字色 */
+/* 整体页面 */
 .page {
-  background: #000000;
-  color: #EAEAEA;
-}
-
-/* 页面容器 */
-.tech-container {
-  position: relative;
   min-height: 100vh;
-  padding: 16px;
+  background-color: #000000;
+  padding: 32rpx 24rpx 40rpx;
+  box-sizing: border-box;
+  color: #ffffff;
 }
 
-/* 通用纵向布局容器 */
-.content {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-/* LOGO 画布 */
-.logo-canvas {
-  display: block;
-}
-
-/* 背景网格和光晕 */
-.bg-grid {
-  pointer-events: none;
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  background-image:
-    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
-  background-size: 24px 24px;
-  opacity: 0.6;
-}
-
-.bg-glow {
-  pointer-events: none;
-  position: fixed;
-  inset: 0;
-  z-index: 1;
-  background:
-    radial-gradient(600px 300px at 70% 10%, rgba(42, 255, 42, 0.12), transparent 60%),
-    radial-gradient(400px 200px at 20% 40%, rgba(30, 144, 255, 0.12), transparent 60%);
-}
-
-/* 卡片基础样式 */
+/* 通用卡片 */
 .card {
-  background: #111111;
-  border-radius: 16px;
-  padding: 16px;
-  color: #EAEAEA;
+  background-color: #050505;
+  border-radius: 24rpx;
+  padding: 24rpx 24rpx 28rpx;
+  margin-bottom: 28rpx;
+  border: 1px solid #1a2a1a;
+  box-shadow: 0 0 24rpx rgba(0, 0, 0, 0.6);
 }
 
-/* 顶部品牌卡片：整体居中 */
-.brand-block {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 14px;
-  box-shadow:
-    0 8px 28px rgba(0, 0, 0, 0.35),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+/* 顶部品牌卡片 */
+.brand-card {
+  border-color: #2aff2a33;
 }
 
-/* LOGO + 标语 一行水平居中 */
-.brand-row-center {
+.brand-header {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 10px;
-  width: 100%;
-  text-align: center;
+  margin-bottom: 24rpx;
 }
 
-.brand-line {
-  font-size: 16px;
-  font-weight: 600;
-  color: #EAEAEA;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.brand-logo {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 24rpx;
+  background-color: #020202;
+  margin-right: 24rpx;
 }
 
-/* 通用绿色主按钮底色 */
-.btn-primary {
-  background: #2AFF2A;
-  color: #0D0D0D;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 600;
-}
-
-/* 顶部“立即使用风控计算器”大按钮 */
-.brand-button-wide {
-  width: 90%;
-  max-width: 320px;
-  height: 48px;
-  font-size: 16px;
-  font-weight: 700;
-  box-shadow:
-    0 0 20px rgba(42, 255, 42, 0.4),
-    0 0 8px rgba(42, 255, 42, 0.3) inset;
-  transition: all 0.2s ease;
-  padding: 0 14px;
-}
-
-/* 按钮内部：文字 + 小圆形图标 */
-.btn-text-main {
+.brand-text {
   flex: 1;
-  text-align: center;
 }
 
-.btn-icon-circle {
-  width: 22px;
-  height: 22px;
-  border-radius: 999px;
-  border: 2px solid #0D0D0D;
+.brand-title text {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+/* 主按钮 */
+.btn-primary {
+  margin-top: 8rpx;
+  margin-bottom: 20rpx;
+  width: 100%;
+  height: 88rpx;
+  border-radius: 999rpx;
+  background-color: #2aff2a;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-left: 8px;
+  color: #000000;
+  font-size: 30rpx;
+  font-weight: 600;
+  border: none;
 }
 
-.btn-icon-arrow {
-  font-size: 14px;
-  font-weight: 800;
+/* 品牌下方标签 */
+.brand-tags {
+  border-top: 1px solid #1a1a1a;
+  padding-top: 16rpx;
 }
 
-.brand-button-wide:active {
-  transform: scale(0.98);
-  background: #24E624;
-}
-
-/* 通用 section 卡片 */
-.section-card {
-  position: relative;
-  box-shadow:
-    0 10px 28px rgba(0, 0, 0, 0.35),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.04);
-}
-
-/* 模块头部：小绿点 + 标题 + 附加信息 */
-.section-head {
+.tag {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 8px;
+  margin-top: 8rpx;
 }
 
-.h2 {
-  font-size: 18px;
-  font-weight: 700;
+.tag-label {
+  font-size: 24rpx;
+  color: #9aa0a6;
+  width: 172rpx;
 }
 
-.title-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 999px;
-  background: #2AFF2A;
-  box-shadow:
-    0 0 10px rgba(42, 255, 42, 0.8),
-    0 0 20px rgba(42, 255, 42, 0.5);
-  animation: blink 2.2s ease-in-out infinite;
+.tag-value {
+  font-size: 24rpx;
+  color: #e0e0e0;
 }
 
-.sentiment-tag {
-  font-weight: 700;
-  margin-left: auto;
+/* 区块标题统一样式 */
+.section-card {
+  padding-top: 4rpx;
 }
 
-/* 文本颜色辅助 */
-.text-secondary {
-  color: #9AA0A6;
+/* 标题栏 */
+.section-header {
+  margin-bottom: 18rpx;
 }
 
-.sub-note {
-  font-size: 12px;
-  margin-top: 8px;
+.section-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #ffffff;
 }
 
-/* 市场情绪折线图画布 */
-.chart {
-  width: 100%;
-  height: 160px;
-  margin-top: 12px;
-  background: #101010;
-  border: 1px solid #2A2A2A;
-  border-radius: 12px;
+.section-sub {
+  margin-top: 4rpx;
+  font-size: 24rpx;
+  color: #9aa0a6;
 }
 
-/* 财讯列表样式 */
-.news-row {
+/* 测试列表 */
+.test-item {
+  margin-top: 16rpx;
+  padding: 14rpx 4rpx;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px;
-  margin: 6px 0;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.02);
-  transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+  border-top: 1px solid #151515;
 }
 
-.row-active {
-  background: rgba(255, 255, 255, 0.05);
-  transform: translateY(-1px);
-}
-
-.news-title {
-  max-width: 78%;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-size: 14px;
-}
-
-.news-time {
-  font-size: 12px;
-}
-
-/* 熵盾风险测评区域 */
-.row {
+.test-left {
   display: flex;
   align-items: center;
-  gap: 10px;
 }
 
-.input {
-  flex: 1;
-  height: 40px;
-  border-radius: 12px;
-  background: #0F0F0F;
-  border: 1px solid #2A2A2A;
-  color: #EAEAEA;
-  padding: 0 12px;
-  font-size: 14px;
+.bullet {
+  width: 18rpx;
+  height: 18rpx;
+  border-radius: 50%;
+  margin-right: 16rpx;
 }
 
-/* 右侧“熵盾测评”按钮 */
-.neon-btn {
-  min-width: 110px;
-  height: 40px;
-  border-radius: 12px;
-  font-size: 14px;
-  font-weight: 700;
-  box-shadow:
-    0 0 14px rgba(42, 255, 42, 0.35),
-    inset 0 0 0 1px rgba(11, 11, 11, 0.6);
+.bullet-red {
+  background-color: #ff5252;
 }
 
-.current-line {
-  margin-top: 8px;
-  font-size: 14px;
+.bullet-green {
+  background-color: #2aff2a;
 }
 
-/* 小动画：标题绿点闪烁 */
-@keyframes blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.45; }
+.test-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.test-title {
+  font-size: 26rpx;
+  color: #ffffff;
+}
+
+.test-desc {
+  margin-top: 2rpx;
+  font-size: 22rpx;
+  color: #9aa0a6;
+}
+
+.test-right .test-action {
+  font-size: 24rpx;
+  color: #2aff2a;
+}
+
+/* chips 行 */
+.chips-row {
+  display: flex;
+  flex-wrap: wrap;
+  margin-bottom: 20rpx;
+}
+
+.chip {
+  padding: 8rpx 18rpx;
+  border-radius: 999rpx;
+  border: 1px solid #2aff2a;
+  color: #2aff2a;
+  font-size: 22rpx;
+  margin-right: 12rpx;
+  margin-top: 8rpx;
+}
+
+/* 次级按钮 */
+.btn-secondary {
+  margin-top: 4rpx;
+  width: 100%;
+  height: 80rpx;
+  border-radius: 999rpx;
+  border: 1px solid #2aff2a;
+  background-color: transparent;
+  color: #2aff2a;
+  font-size: 26rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 裂变权益列表 */
+.benefit-list {
+  margin-top: 8rpx;
+  margin-bottom: 16rpx;
+}
+
+.benefit-item {
+  display: flex;
+  align-items: center;
+  margin-top: 8rpx;
+}
+
+.benefit-tag {
+  font-size: 24rpx;
+  color: #fdd835;
+  padding: 4rpx 16rpx;
+  border-radius: 999rpx;
+  border: 1px solid #fdd83566;
+  margin-right: 12rpx;
+}
+
+.benefit-text {
+  font-size: 24rpx;
+  color: #e0e0e0;
+}
+
+/* 边框按钮 */
+.btn-outline {
+  margin-top: 8rpx;
+  width: 100%;
+  height: 80rpx;
+  border-radius: 999rpx;
+  border: 1px dashed #fbbf24;
+  background-color: #1b1204;
+  color: #fbbf24;
+  font-size: 26rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 合规提示 */
+.notice-card {
+  border-style: dashed;
+  border-color: #333333;
+  background-color: #050505;
+}
+
+.notice-title {
+  font-size: 24rpx;
+  color: #9aa0a6;
+  margin-bottom: 8rpx;
+}
+
+.notice-text text {
+  display: block;
+  font-size: 22rpx;
+  color: #5f6368;
+  line-height: 1.6;
 }

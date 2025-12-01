@@ -1,0 +1,43 @@
+.page {
+  padding: 32rpx;
+  background-color: #000;
+  min-height: 100vh;
+  color: #fff;
+}
+
+.title {
+  font-size: 36rpx;
+  font-weight: 700;
+  margin-bottom: 32rpx;
+  text-align: center;
+}
+
+.card {
+  background-color: #050505;
+  border: 1px solid #1a2a1a;
+  padding: 28rpx;
+  border-radius: 20rpx;
+  margin-bottom: 24rpx;
+}
+
+.card-title {
+  font-size: 30rpx;
+  color: #2aff2a;
+  margin-bottom: 8rpx;
+}
+
+.card-desc {
+  font-size: 24rpx;
+  color: #9aa0a6;
+}
+
+.btn-add {
+  width: 100%;
+  height: 88rpx;
+  border-radius: 999rpx;
+  background-color: #2aff2a;
+  color: #000;
+  font-size: 30rpx;
+  font-weight: 700;
+  margin-top: 40rpx;
+}

@@ -1,0 +1,255 @@
+/* pages/campReport/index.wxss */
+
+/* 整页背景 */
+.page {
+  min-height: 100vh;
+  background-color: #000000;
+  padding: 32rpx 24rpx 40rpx;
+  box-sizing: border-box;
+  color: #ffffff;
+}
+
+/* 通用卡片 */
+.card {
+  background-color: #050505;
+  border-radius: 24rpx;
+  padding: 24rpx 22rpx 28rpx;
+  margin-bottom: 24rpx;
+  border: 1px solid #1a2a1a;
+  box-shadow: 0 0 24rpx rgba(0, 0, 0, 0.7);
+}
+
+/* 顶部结果卡片 */
+.card-result {
+  border-color: rgba(42, 255, 42, 0.35);
+}
+
+.result-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.result-title {
+  font-size: 30rpx;
+  font-weight: 700;
+}
+
+.result-sub {
+  margin-top: 6rpx;
+  font-size: 22rpx;
+  color: #9aa0a6;
+}
+
+/* 顶部徽章 */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4rpx 16rpx;
+  border-radius: 999rpx;
+  border: 1px solid rgba(42, 255, 42, 0.4);
+  color: #2aff2a;
+  font-size: 22rpx;
+}
+
+/* 分数圈 + 标签 */
+.summary-main {
+  margin-top: 18rpx;
+  display: flex;
+  align-items: center;
+}
+
+.score-circle {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 50%;
+  border: 2rpx solid #2aff2a;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-right: 24rpx;
+  background: radial-gradient(circle at 30% 30%, rgba(42, 255, 42, 0.18), #050505);
+}
+
+.score-value {
+  font-size: 40rpx;
+  font-weight: 700;
+}
+
+.score-label {
+  margin-top: 2rpx;
+  font-size: 22rpx;
+  color: #9aa0a6;
+}
+
+.score-tags {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.score-tag {
+  font-size: 20rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 999rpx;
+  border: 1px solid rgba(42, 255, 42, 0.25);
+  color: #c0c0c0;
+  margin-right: 8rpx;
+  margin-bottom: 6rpx;
+}
+
+/* 完成度、小结 */
+.meta-row {
+  margin-top: 12rpx;
+  font-size: 22rpx;
+  color: #9aa0a6;
+}
+
+.meta-row + .meta-row {
+  margin-top: 4rpx;
+}
+
+.meta-strong {
+  color: #2aff2a;
+}
+
+/* 小圆点说明列表 */
+.list-dot {
+  margin-top: 12rpx;
+}
+
+.list-dot-item {
+  display: flex;
+  align-items: flex-start;
+  margin-top: 6rpx;
+}
+
+.list-dot-bullet {
+  width: 10rpx;
+  height: 10rpx;
+  border-radius: 50%;
+  background-color: #2aff2a;
+  margin-right: 8rpx;
+  margin-top: 10rpx;
+}
+
+.list-dot-text {
+  flex: 1;
+  font-size: 22rpx;
+  color: #d0d0d0;
+  line-height: 1.6;
+}
+
+/* 7 日执行明细卡片 */
+.card-detail {
+  border-color: #1a2a1a;
+}
+
+.detail-title {
+  font-size: 26rpx;
+  font-weight: 600;
+  margin-bottom: 8rpx;
+}
+
+.day-row {
+  margin-top: 10rpx;
+  padding: 10rpx 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.day-row:first-child {
+  border-top: none;
+}
+
+.day-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.day-name {
+  font-size: 24rpx;
+  color: #e0e0e0;
+}
+
+.day-score {
+  font-size: 22rpx;
+  color: #2aff2a;
+}
+
+.day-desc {
+  margin-top: 2rpx;
+  font-size: 22rpx;
+  color: #9aa0a6;
+}
+
+/* 建议信 / 下一步卡片 */
+.card-advice {
+  border-color: rgba(42, 255, 42, 0.18);
+}
+
+.section-title {
+  font-size: 24rpx;
+  font-weight: 600;
+  margin-bottom: 4rpx;
+}
+
+.section-text {
+  font-size: 22rpx;
+  color: #d0d0d0;
+  line-height: 1.6;
+  margin-top: 4rpx;
+}
+
+/* 按钮区域 */
+.btn-area {
+  margin-top: 18rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 14rpx;
+}
+
+.btn-primary,
+.btn-secondary,
+.btn-ghost {
+  height: 88rpx;
+  border-radius: 999rpx;
+  font-size: 28rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-primary {
+  background-color: #2aff2a;
+  color: #000000;
+  border: none;
+  font-weight: 600;
+}
+
+.btn-secondary {
+  background-color: transparent;
+  border: 1px solid #2aff2a;
+  color: #2aff2a;
+}
+
+.btn-ghost {
+  background-color: transparent;
+  border: 1px dashed #555555;
+  color: #9aa0a6;
+}
+
+/* 说明文字 */
+.notice-title {
+  font-size: 24rpx;
+  color: #9aa0a6;
+  margin-bottom: 8rpx;
+}
+
+.notice-text text {
+  display: block;
+  font-size: 22rpx;
+  color: #5f6368;
+  line-height: 1.6;
+}

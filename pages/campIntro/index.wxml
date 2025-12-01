@@ -1,0 +1,221 @@
+<view class="page">
+
+<!-- 顶部介绍卡片 -->
+<view class="card intro-card">
+  <view class="badge">7 天风控训练营</view>
+
+  <view class="intro-title">从 “会亏钱” 到 “会控亏” 的第一堂课</view>
+  <view class="intro-sub">
+    通过 7 天系统训练，帮你搭建一套「先控亏，再谈收益」的风控底座。
+    每天只做一件小事，用 7 天建立全新的交易思维。
+  </view>
+
+  <view class="intro-chips">
+    <view class="chip">每日任务</view>
+    <view class="chip">实盘演练</view>
+    <view class="chip">复盘清单</view>
+    <view class="chip">风控作业</view>
+  </view>
+
+  <view class="intro-progress">
+    <text>训练进度：</text>
+    <text class="strong">{{finishedDays}} / 7 天</text>
+  </view>
+</view>
+
+<!-- 你的控局者等级卡片 -->
+<view class="card grade-card">
+  <view class="grade-header">
+    <text class="grade-title">你的控局者等级</text>
+    <text class="grade-level-tag {{grade.levelClass}}">{{grade.levelText}}</text>
+  </view>
+
+  <view wx:if="{{grade.ready}}">
+    <view class="grade-main">
+      <view class="grade-score-box">
+        <image
+          wx:if="{{grade.badge}}"
+          class="grade-badge-icon"
+          src="{{grade.badge}}"
+          mode="aspectFit"
+        />
+        <text class="grade-score">{{grade.score}}</text>
+        <text class="grade-score-label">7 日风控执行总分</text>
+      </view>
+
+      <view class="grade-tags">
+        <block wx:for="{{grade.tags}}" wx:key="*this">
+          <view class="grade-tag">
+            <text>{{item}}</text>
+          </view>
+        </block>
+      </view>
+    </view>
+
+    <view class="grade-desc">
+      <text>{{grade.desc}}</text>
+    </view>
+
+    <view class="grade-actions">
+      <button class="btn-mini" bindtap="goCampReport">
+        查看完整风控报告
+      </button>
+    </view>
+  </view>
+
+  <view wx:else class="grade-empty">
+    <text class="grade-empty-title">尚未生成等级</text>
+    <text class="grade-empty-desc">
+      完成至少 1 次「今日风控打卡」，我们就会为你生成控局者等级与风控画像。
+    </text>
+    <view class="grade-actions">
+      <button class="btn-mini" bindtap="goToday">
+        先去完成今天的打卡
+      </button>
+    </view>
+  </view>
+</view>
+
+<!-- 训练营日历：D1-D7 -->
+<view class="card calendar-card">
+  <view class="calendar-header">
+    <text class="calendar-title">训练营日历</text>
+    <text class="calendar-sub">每天大约 1 小时，7 天建立风控系统</text>
+  </view>
+
+  <scroll-view scroll-x="true" class="day-tabs" enable-flex="true">
+    <block wx:for="{{days}}" wx:key="day">
+      <view
+        class="day-tab {{item.day === activeDay ? 'active' : ''}} {{item.finished ? 'finished' : ''}}"
+        bindtap="onSwitchDay"
+        data-day="{{item.day}}"
+      >
+        <text class="day-label">{{item.day}}</text>
+        <text class="day-name">{{item.name}}</text>
+        <view wx:if="{{item.finished}}" class="dot-finished"></view>
+      </view>
+    </block>
+  </scroll-view>
+</view>
+
+<!-- 当前选中日期的详细内容 -->
+<view class="card detail-card">
+  <view class="detail-header">
+    <text class="detail-day">{{currentTask.day}} · {{currentTask.name}}</text>
+    <text class="detail-title">{{currentTask.title}}</text>
+    <text class="detail-sub">{{currentTask.brief}}</text>
+  </view>
+
+  <!-- 四大模块：每日任务 -->
+  <view class="section">
+    <view class="section-title-row">
+      <text class="section-title">每日任务</text>
+    </view>
+    <view class="bullet-list">
+      <block wx:for="{{currentTask.daily}}" wx:key="index">
+        <view class="bullet-item">
+          <view class="dot"></view>
+          <text class="bullet-text">{{item}}</text>
+        </view>
+      </block>
+    </view>
+  </view>
+
+  <!-- 实盘演练 -->
+  <view class="section">
+    <view class="section-title-row">
+      <text class="section-title">实盘演练</text>
+    </view>
+    <view class="bullet-list">
+      <block wx:for="{{currentTask.practice}}" wx:key="index">
+        <view class="bullet-item">
+          <view class="dot"></view>
+          <text class="bullet-text">{{item}}</text>
+        </view>
+      </block>
+    </view>
+  </view>
+
+  <!-- 复盘清单 -->
+  <view class="section">
+    <view class="section-title-row">
+      <text class="section-title">复盘清单</text>
+    </view>
+    <view class="bullet-list">
+      <block wx:for="{{currentTask.review}}" wx:key="index">
+        <view class="bullet-item">
+          <view class="dot"></view>
+          <text class="bullet-text">{{item}}</text>
+        </view>
+      </block>
+    </view>
+  </view>
+
+  <!-- 风控作业 -->
+  <view class="section">
+    <view class="section-title-row">
+      <text class="section-title">风控作业</text>
+    </view>
+    <view class="bullet-list">
+      <block wx:for="{{currentTask.homework}}" wx:key="index">
+        <view class="bullet-item">
+          <view class="dot"></view>
+          <text class="bullet-text">{{item}}</text>
+        </view>
+      </block>
+    </view>
+  </view>
+</view>
+
+<!-- 底部打卡 / 报告按钮 -->
+<view class="card action-card">
+  <!-- 已完成 7 / 7 天：重新从 D1 开始 -->
+  <button
+    wx:if="{{finishedDays >= 7}}"
+    class="btn-primary"
+    bindtap="goToday"
+  >
+    已完成 7 / 7 天，重新从 D1 开始打卡
+  </button>
+
+  <!-- 当前 Day 已完成：查看 / 修改当前 Day 记录 -->
+  <button
+    wx:elif="{{currentFinished}}"
+    class="btn-primary"
+    bindtap="goCurrentDay"
+  >
+    已完成 {{activeDay}} 任务（查看 / 修改记录）
+  </button>
+
+  <!-- 其它情况：继续当前 Day 打卡 -->
+  <button
+    wx:else
+    class="btn-primary"
+    bindtap="goToday"
+  >
+    继续 {{activeDay}} 打卡
+  </button>
+
+  <button class="btn-secondary" bindtap="goCampReport">
+    查看 7 日风控执行报告
+  </button>
+
+  <button class="btn-ghost" bindtap="goCalc">
+    去使用风控计算器
+  </button>
+
+  <button class="btn-ghost" bindtap="goHome">
+    返回熵盾首页
+  </button>
+</view>
+
+<!-- 合规提示 -->
+<view class="card notice-card">
+  <view class="notice-title">训练营说明</view>
+  <view class="notice-text">
+    <text>本训练营仅用于交易风控能力训练，不构成任何投资建议或收益承诺。</text>
+    <text>请结合自身资金情况与风险承受能力，独立做出交易决策。</text>
+  </view>
+</view>
+
+</view>

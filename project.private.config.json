@@ -4,7 +4,7 @@
   "setting": {
     "compileHotReLoad": true,
     "skylineRenderEnable": true,
-    "urlCheck": true,
+    "urlCheck": false,
     "coverView": true,
     "lazyloadPlaceholderEnable": false,
     "preloadBackgroundData": false,
@@ -19,5 +19,18 @@
     "checkInvalidKey": true,
     "ignoreDevUnusedFiles": true
   },
-  "libVersion": "3.11.1"
+  "libVersion": "3.11.1",
+  "condition": {
+    "miniprogram": {
+      "list": [
+        {
+          "name": "测试结果页",
+          "pathName": "pages/resultCommon/index",
+          "query": "type=loss&score=72&level=high",
+          "scene": null,
+          "launchMode": "default"
+        }
+      ]
+    }
+  }
 }

@@ -1,0 +1,100 @@
+<view class="page">
+
+<!-- 方案 A：1 对 1 风控诊断 -->
+<view class="card plan-card">
+  <view class="plan-header">
+    <text class="plan-title">方案 A · 1 对 1 风控诊断</text>
+    <view class="plan-tag plan-tag-hot">推荐</view>
+  </view>
+
+  <view class="plan-price-row">
+    <text class="plan-price-prefix">￥？</text>
+    <text class="plan-price-unit">/ 次</text>
+    <text class="plan-price-desc">（视频 / 语音，约 60-90 分钟）</text>
+  </view>
+
+  <view class="plan-desc">
+    <text>· 梳理你最近 3-6 个月的关键交易与回撤轨迹。</text>
+    <text>· 针对你的训练营打卡记录，诊断目前风控短板。</text>
+    <text>· 现场给出一份「个人风控执行清单」。</text>
+  </view>
+</view>
+
+<!-- 方案 B：进阶控局者训练营 -->
+<view class="card plan-card">
+  <view class="plan-header">
+    <text class="plan-title">方案 B · 进阶控局者训练营</text>
+    <view class="plan-tag plan-tag-lite">小组陪跑</view>
+  </view>
+
+  <view class="plan-price-row">
+    <text class="plan-price-prefix">￥？</text>
+    <text class="plan-price-unit">/ 期</text>
+    <text class="plan-price-desc">（4-6 周，固定节奏陪跑）</text>
+  </view>
+
+  <view class="plan-desc">
+    <text>· 每周一次小组课堂 + 复盘 / 线上实盘答疑。</text>
+    <text>· 输出你的「仓位规则、止损规则、复盘模板」。</text>
+    <text>· 小组密度陪跑督导，持续修正执行与反馈。</text>
+  </view>
+</view>
+
+<!-- 方案 C：高级风控工具包 -->
+<view class="card plan-card">
+  <view class="plan-header">
+    <text class="plan-title">方案 C · 高级风控工具包</text>
+    <view class="plan-tag plan-tag-tool">工具型</view>
+  </view>
+
+  <view class="plan-price-row">
+    <text class="plan-price-prefix">￥？</text>
+    <text class="plan-price-unit">/ 套</text>
+    <text class="plan-price-desc">（含多套模板与指标）</text>
+  </view>
+
+  <view class="plan-desc">
+    <text>· 扩展版「风控计算器」与资金曲线分析工具。</text>
+    <text>· 针对不同周期风格的风控模板示例库。</text>
+    <text>· 后续新增工具与模块持续升级更新。</text>
+  </view>
+</view>
+
+<!-- 如何开启服务 -->
+<view class="card notice-card">
+  <view class="notice-title">如何开启进阶服务？</view>
+  <view class="notice-text">
+    <text>1. 长按或复制下方微信号，添加熵盾官方顾问。</text>
+    <text>2. 备注「风控训练营 + 昵称」，并发送你的需求简述。</text>
+    <text>3. 顾问会根据你训练营打卡表现推荐适合你的起步方案。</text>
+  </view>
+</view>
+
+<!-- 微信号 + 按钮 -->
+<view class="card action-card">
+  <view class="advisor-row">
+    <text class="advisor-label">顾问微信号</text>
+    <text class="advisor-wechat">{{wechatId}}</text>
+  </view>
+
+  <button class="btn-copy" bindtap="onCopyWechat">
+    复制微信号
+  </button>
+
+  <button class="btn-primary" bindtap="onCopyAndGo">
+    已复制微信号，去微信添加顾问
+  </button>
+
+  <button class="btn-ghost" bindtap="onThinkMore">
+    先继续自己训练一段时间
+  </button>
+</view>
+
+<!-- 开发者隐藏按钮 -->
+<button
+  style="opacity:0.03; height:80rpx;"
+  bindtap="debugShowFunnelLogs">
+  DEV：查看漏斗
+</button>
+
+</view>

@@ -1,94 +1,160 @@
-.page {
-  background: #000000;
-  color: #EAEAEA;
-}
+/* pages/planSteady/index.wxss */
 
+/* 页面整体 */
 .ps-page {
   min-height: 100vh;
-  padding: 16px;
+  padding: 24rpx 24rpx 40rpx;
+  background-color: #000000;
+  box-sizing: border-box;
+  color: #ffffff;
 }
 
+/* 通用卡片 */
 .card {
-  background: #111111;
-  border-radius: 16px;
-  padding: 16px;
-  margin-bottom: 16px;
-  box-shadow:
-    0 10px 28px rgba(0, 0, 0, 0.35),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+  background: #050505;
+  border-radius: 24rpx;
+  padding: 24rpx 26rpx;
+  border: 1rpx solid #2aff2a33;
+  box-shadow: 0 0 24rpx rgba(42, 255, 42, 0.12);
+  margin-bottom: 24rpx;
 }
 
-.ps-title {
-  font-size: 18px;
-  font-weight: 700;
-  margin-bottom: 6px;
+/* 顶部总览卡片 */
+.ps-summary-header {
+  margin-bottom: 16rpx;
 }
 
-.ps-sub {
-  font-size: 12px;
-  color: #9AA0A6;
-  line-height: 1.6;
-}
-
-.ps-highlight {
-  color: #2AFF2A;
-  font-weight: 700;
-}
-
-.ps-info {
-  margin-top: 8px;
-  font-size: 13px;
-}
-
-.ps-label {
-  color: #9AA0A6;
-}
-
-.ps-value {
-  color: #EAEAEA;
-}
-
-.ps-sec-title {
-  font-size: 15px;
+.ps-tag {
+  display: inline-block;
+  padding: 6rpx 16rpx;
+  border-radius: 999rpx;
+  font-size: 22rpx;
+  color: #0c0c0c;
+  background: linear-gradient(90deg, #2aff2a, #63ff8f);
   font-weight: 600;
-  margin-bottom: 8px;
 }
 
-.ps-step-row {
+.ps-summary-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 6px 0;
+  font-size: 26rpx;
+  padding: 6rpx 0;
 }
 
-.ps-step-label {
-  font-size: 14px;
+.ps-label {
+  color: #9aa0a6;
 }
 
-.ps-step-right {
+.ps-value {
+  color: #ffffff;
+}
+
+.ps-value-strong {
+  color: #2aff2a;
+  font-weight: 600;
+}
+
+.ps-summary-split {
+  height: 1rpx;
+  background: linear-gradient(90deg, transparent, #2aff2a33, transparent);
+  margin: 12rpx 0 4rpx;
+}
+
+/* 分批建仓部分 */
+.ps-steps {
+  margin-top: 8rpx;
+}
+
+.ps-section-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  margin-bottom: 12rpx;
+}
+
+.ps-step-block {
+  padding: 18rpx 0 10rpx;
+  border-top: 1rpx solid #1c1c1c;
+}
+
+.ps-step-block:first-child {
+  border-top-width: 0;
+}
+
+.ps-step-header {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
+  align-items: center;
+  margin-bottom: 8rpx;
 }
 
-.ps-step-text {
-  font-size: 12px;
+.ps-step-dot {
+  width: 10rpx;
+  height: 10rpx;
+  border-radius: 50%;
+  background: #2aff2a;
+  margin-right: 10rpx;
 }
 
-.ps-divider {
-  height: 1px;
-  margin: 10px 0;
-  background: #2A2A2A;
+.ps-step-title {
+  font-size: 26rpx;
+  color: #2aff2a;
+  font-weight: 600;
 }
 
-.ps-fee-line {
-  font-size: 12px;
-  color: #EAEAEA;
-  margin-top: 4px;
+/* 每一档细节信息网格展示 */
+.ps-step-grid {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 4rpx;
 }
 
+.ps-step-item {
+  width: 50%;
+  padding: 4rpx 0;
+  font-size: 24rpx;
+}
+
+.ps-value-warning {
+  color: #ff5c5c;
+}
+
+/* 底部提示 */
 .ps-tip {
-  font-size: 11px;
-  color: #9AA0A6;
-  padding: 0 4px;
+  font-size: 22rpx;
+  color: #666c72;
+  line-height: 1.6;
+  margin: 4rpx 8rpx 12rpx;
+}
+
+/* 底部按钮区域 */
+.ps-bottom {
+  margin: 0 24rpx;
+}
+
+.ps-bottom-btn {
+  height: 88rpx;
+  border-radius: 999rpx;
+  border: 1rpx solid #2aff2a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 16rpx;
+}
+
+.ps-bottom-btn text {
+  font-size: 30rpx;
+  color: #2aff2a;
+  font-weight: 600;
+}
+
+/* 次要按钮：空心 + 淡绿色文字 */
+.ps-bottom-btn-secondary {
+  background-color: transparent;
+  border-color: #2aff2a66;
+}
+
+.ps-bottom-btn-secondary text {
+  font-size: 26rpx;
+  font-weight: 500;
+  color: #c0ffc0;
 }

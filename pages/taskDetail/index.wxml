@@ -1,0 +1,15 @@
+<view class="page">
+
+<view class="card intro-card">
+  <view class="intro-title">任务详情</view>
+  <view class="intro-sub">{{task.title}}</view>
+  <view class="intro-meta">{{task.desc}}</view>
+</view>
+
+<view class="card action-card">
+  <button class="btn-primary" bindtap="goBack">
+    返回训练营
+  </button>
+</view>
+
+</view>

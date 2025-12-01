@@ -1,0 +1,108 @@
+/* pages/funnelLogs/index.wxss */
+
+.page {
+  min-height: 100vh;
+  background-color: #000000;
+  padding: 24rpx 24rpx 32rpx;
+  box-sizing: border-box;
+  color: #ffffff;
+}
+
+.card {
+  background-color: #050505;
+  border-radius: 22rpx;
+  padding: 20rpx 22rpx 22rpx;
+  margin-bottom: 20rpx;
+  border: 1px solid #1a2a1a;
+  box-shadow: 0 0 20rpx rgba(0, 0, 0, 0.6);
+}
+
+.header-card {
+  border-color: rgba(42, 255, 42, 0.3);
+}
+
+.header-title-row {
+  margin-bottom: 6rpx;
+}
+
+.header-title {
+  font-size: 30rpx;
+  font-weight: 600;
+}
+
+.header-sub text {
+  display: block;
+  font-size: 22rpx;
+  color: #9aa0a6;
+  margin-top: 4rpx;
+}
+
+.list {
+  margin-top: 8rpx;
+  max-height: calc(100vh - 360rpx);
+}
+
+/* 这里原来有一个空的 .log-item { }，已经移除 */
+
+.log-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6rpx;
+}
+
+.log-step {
+  font-size: 24rpx;
+  font-weight: 600;
+  color: #2aff2a;
+}
+
+.log-time {
+  font-size: 20rpx;
+  color: #9aa0a6;
+}
+
+.log-ext {
+  margin-top: 4rpx;
+  font-size: 22rpx;
+  color: #e0e0e0;
+  white-space: pre-wrap;
+  line-height: 1.5;
+}
+
+.empty-card {
+  align-items: flex-start;
+}
+
+.empty-text {
+  display: block;
+  font-size: 22rpx;
+  color: #9aa0a6;
+  margin-top: 4rpx;
+}
+
+.footer {
+  margin-top: 16rpx;
+  display: flex;
+  justify-content: space-between;
+}
+
+.footer button {
+  flex: 1;
+  height: 80rpx;
+  border-radius: 999rpx;
+  font-size: 26rpx;
+}
+
+.btn-refresh {
+  margin-right: 16rpx;
+  background-color: #2aff2a;
+  color: #000000;
+  border: none;
+}
+
+.btn-clear {
+  background-color: transparent;
+  color: #ff5252;
+  border: 1px solid #ff5252;
+}

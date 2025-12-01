@@ -1,0 +1,91 @@
+<view class="page">
+
+<!-- 顶部能力评分卡片 -->
+<view class="card result-card">
+  <view class="result-header">
+    <view class="level-tag {{levelClass}}">
+      <text>{{levelName}}</text>
+    </view>
+
+    <view class="score-row">
+      <text class="score-label">风控能力评分</text>
+      <text class="score-value">{{score}}</text>
+      <text class="score-unit">分</text>
+    </view>
+
+    <view class="short-comment">{{shortComment}}</view>
+  </view>
+
+  <view class="divider"></view>
+
+  <view class="summary-row">
+    <text class="summary-label">综合评价</text>
+    <text class="summary-value">{{summary}}</text>
+  </view>
+</view>
+
+<!-- 能力雷达标签 -->
+<view class="card section-card">
+  <view class="section-title">你的风控能力雷达</view>
+
+  <view class="tag-group">
+    <view class="tag" wx:for="{{tagsStrong}}" wx:key="s">
+      <text class="tag-label strong">优势</text>
+      <text class="tag-text">{{item}}</text>
+    </view>
+
+    <view class="tag" wx:for="{{tagsWeak}}" wx:key="w">
+      <text class="tag-label weak">短板</text>
+      <text class="tag-text">{{item}}</text>
+    </view>
+  </view>
+</view>
+
+<!-- 分项能力说明 -->
+<view class="card section-card">
+  <view class="section-title">四大风控维度评分</view>
+
+  <view class="ability-row" wx:for="{{abilities}}" wx:key="name">
+    <view class="ability-left">
+      <view class="ability-name">{{item.name}}</view>
+      <view class="ability-desc">{{item.desc}}</view>
+    </view>
+    <view class="ability-score">
+      <text class="ability-score-num">{{item.score}}</text>
+      <text class="ability-score-unit">/ 100</text>
+    </view>
+  </view>
+</view>
+
+<!-- 熵盾建议 -->
+<view class="card section-card">
+  <view class="section-title">熵盾给你的升级建议</view>
+
+  <view class="advice-item" wx:for="{{advices}}" wx:key="idx">
+    <view class="advice-index">{{idx + 1}}.</view>
+    <view class="advice-text">{{item}}</view>
+  </view>
+</view>
+
+<!-- 下一步行动 -->
+<view class="card action-card">
+  <view class="action-title">下一步，可以这样用好熵盾</view>
+
+  <button class="btn-primary" bindtap="goCalc">
+    把评分结果带入风控计算器
+  </button>
+
+  <button class="btn-secondary" bindtap="goCamp">
+    按训练营节奏升级风控能力
+  </button>
+</view>
+
+<!-- 合规提示 -->
+<view class="card notice-card">
+  <view class="notice-text">
+    本页面为「风控能力评分」演示结果，仅基于问卷维度进行评估，
+    不构成任何投资建议或收益承诺。
+  </view>
+</view>
+
+</view>

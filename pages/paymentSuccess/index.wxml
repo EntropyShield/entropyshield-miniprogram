@@ -1,0 +1,36 @@
+<view class="page">
+  <!-- 顶部提示卡片 -->
+  <view class="card">
+    <view class="icon-success">✔</view>
+
+    <view class="title">支付成功（演示版）</view>
+
+    <view class="sub">
+      您已开通：
+      <text class="highlight">{{planName}}</text>
+    </view>
+    <view class="sub-small">
+      权限：{{rightsText}}
+    </view>
+    <view class="sub-small">
+      本次入口：风控方案演示结果
+    </view>
+  </view>
+
+  <!-- 按钮区域 -->
+  <view class="btn-primary" bindtap="goPlan">
+    <text>查看本次风控方案</text>
+  </view>
+
+  <view class="btn-secondary" bindtap="goBackCalc">
+    <text>返回风控计算器</text>
+  </view>
+
+  <view class="btn-secondary" bindtap="goHome">
+    <text>返回首页</text>
+  </view>
+
+  <view class="btn-text">
+    * 当前为演示流程，未接入真实支付与实盘风控模型。
+  </view>
+</view>

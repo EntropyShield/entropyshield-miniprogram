@@ -1,0 +1,100 @@
+<view class="page">
+
+<!-- 产品概要卡片 -->
+<view class="card product-card">
+  <view class="product-header">
+    <view class="product-icon"></view>
+    <view class="product-text">
+      <text class="product-title">熵盾·风控计算器</text>
+      <text class="product-subtitle">
+        为控局者生成分批建仓与风险控制方案
+      </text>
+    </view>
+  </view>
+  <view class="tag-row">
+    <text class="tag">实时风控</text>
+    <text class="tag">控局者专用</text>
+    <text class="tag">避免情绪化交易</text>
+  </view>
+</view>
+
+<!-- 套餐选择 -->
+<view class="section">
+  <text class="section-title">选择支付方案</text>
+
+  <!-- 体验版 -->
+  <view class="plan-card {{selectedPlan === 'trial' ? 'plan-selected' : ''}}"
+        bindtap="selectPlan" data-plan="trial">
+    <view class="plan-header">
+      <text class="plan-name">体验版 · 14天</text>
+      <text class="plan-price">¥ 99</text>
+    </view>
+    <text class="plan-desc">适合首次体验控局者风控体系</text>
+    <text class="plan-item">· 支持 10 次完整风控方案生成</text>
+  </view>
+
+  <!-- 月度版（推荐） -->
+  <view class="plan-card {{selectedPlan === 'month' ? 'plan-selected' : ''}}"
+        bindtap="selectPlan" data-plan="month">
+    <view class="plan-header">
+      <text class="plan-name">专业版 · 月度订阅</text>
+      <view class="plan-header-right">
+        <text class="plan-price">¥ 999 / 月</text>
+        <text class="plan-badge">推荐</text>
+      </view>
+    </view>
+    <text class="plan-desc">适合高频控局者，深度实战</text>
+    <text class="plan-item">· 无限次风控方案生成</text>
+    <text class="plan-item">· 优先技术支持 &amp; 策略优化建议</text>
+  </view>
+
+  <!-- 年度版 -->
+  <view class="plan-card {{selectedPlan === 'year' ? 'plan-selected' : ''}}"
+        bindtap="selectPlan" data-plan="year">
+    <view class="plan-header">
+      <text class="plan-name">年度版 · 一次付清</text>
+      <view class="plan-header-right">
+        <text class="plan-price">¥ 9999 / 年</text>
+        <text class="plan-origin">原价 ¥ 11988</text>
+      </view>
+    </view>
+    <text class="plan-desc">适合重度控局者，锁定全年风控成本</text>
+    <text class="plan-item">· 附赠线下控局者沙龙 1 次</text>
+  </view>
+</view>
+
+<!-- 价格汇总 -->
+<view class="card price-card">
+  <view class="price-row">
+    <text class="price-label">应付金额</text>
+    <text class="price-value">¥ {{payAmount}}</text>
+  </view>
+</view>
+
+<!-- 底部支付区 -->
+<view class="pay-bar">
+  <view class="agreement-row">
+    <view class="checkbox {{agreed ? 'checkbox-on' : ''}}"
+          bindtap="toggleAgree"></view>
+    <text class="agreement-text">
+      我已阅读并同意
+      <text class="link" bindtap="openProtocol">《熵盾控局者服务协议》</text>
+      <text class="link" bindtap="openRisk">《风险提示说明》</text>
+    </text>
+  </view>
+
+  <button class="pay-btn" disabled="{{!canPay}}" bindtap="onPay">
+    微信支付
+  </button>
+</view>
+
+<!-- 支付中蒙层 -->
+<view wx:if="{{paying}}" class="paying-mask">
+  <view class="paying-box">
+    <view class="loading"></view>
+    <text class="paying-text">正在为你调起支付…</text>
+    <text class="paying-sub">请在微信弹出的支付窗口中完成操作</text>
+  </view>
+</view>
+
+</view>

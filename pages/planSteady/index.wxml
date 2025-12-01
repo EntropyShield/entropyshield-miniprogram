@@ -1,58 +1,91 @@
+<!-- pages/planSteady/index.wxml -->
 <view class="page ps-page">
-  <view class="card ps-card">
-    <view class="ps-title">风控方案稳健版</view>
-    <view class="ps-sub">
-      免费试用 <text class="ps-highlight">14 天</text>，试用期结束后可按
-      <text class="ps-highlight">天 / 次</text> 灵活续费，适合入门与小额控局者。
+  <!-- 顶部总览卡片 -->
+  <view class="card ps-summary">
+    <view class="ps-summary-header">
+      <text class="ps-tag">稳健版 · 风控方案</text>
     </view>
 
-    <view class="ps-info">
-      <text class="ps-label">标的代码：</text>
-      <text class="ps-value">{{code || '未填写'}}</text>
+    <!-- 账户 & 标的基础信息 -->
+    <view class="ps-summary-row">
+      <text class="ps-label">账户资金</text>
+      <text class="ps-value">{{totalCapital}} 元</text>
     </view>
-    <view class="ps-info">
-      <text class="ps-label">计划资金：</text>
-      <text class="ps-value">{{balance}} 元</text>
+    <view class="ps-summary-row">
+      <text class="ps-label">标的代码</text>
+      <text class="ps-value">{{code || '—'}}</text>
     </view>
-    <view class="ps-info">
-      <text class="ps-label">首次价格：</text>
-      <text class="ps-value">{{price}} 元</text>
+    <view class="ps-summary-row">
+      <text class="ps-label">建仓价格</text>
+      <text class="ps-value">{{firstPrice}} 元</text>
+    </view>
+    <view class="ps-summary-row">
+      <text class="ps-label">会员类型</text>
+      <text class="ps-value">{{membershipType || '稳健策略 · 演示版'}}</text>
+    </view>
+
+    <view class="ps-summary-split"></view>
+
+    <!-- 这一笔交易的“结果感受” -->
+    <view class="ps-summary-row">
+      <text class="ps-label">目标收益价格</text>
+      <text class="ps-value ps-value-strong">{{targetPrice}} 元</text>
+    </view>
+    <view class="ps-summary-row">
+      <text class="ps-label">目标收益利润</text>
+      <text class="ps-value ps-value-strong">{{targetProfit}} 元</text>
     </view>
   </view>
 
-  <view class="card ps-card">
-    <view class="ps-sec-title">稳健版风控方案明细</view>
+  <!-- 分批建仓步骤与止损明细 -->
+  <view class="card ps-steps">
+    <view class="ps-section-title">分批建仓步骤与止损明细</view>
 
     <block wx:for="{{steps}}" wx:key="label">
-      <view class="ps-step-row">
-        <text class="ps-step-label">{{item.label}}</text>
-        <view class="ps-step-right">
-          <text class="ps-step-text">执行价：{{item.price}} 元</text>
-          <text class="ps-step-text">数量：{{item.qty}} 手</text>
+      <view class="ps-step-block">
+        <view class="ps-step-header">
+          <view class="ps-step-dot"></view>
+          <text class="ps-step-title">{{item.label}}</text>
+        </view>
+
+        <view class="ps-step-grid">
+          <view class="ps-step-item">
+            <text class="ps-label">买入价格</text>
+            <text class="ps-value">{{item.buyPrice}} 元</text>
+          </view>
+          <view class="ps-step-item">
+            <text class="ps-label">买入数量</text>
+            <text class="ps-value">{{item.buyShares}} 股</text>
+          </view>
+          <view class="ps-step-item">
+            <text class="ps-label">买入金额</text>
+            <text class="ps-value">{{item.buyAmount}} 元</text>
+          </view>
+          <view class="ps-step-item">
+            <text class="ps-label">止损价格（全出）</text>
+            <text class="ps-value ps-value-warning">{{item.stopPrice}} 元</text>
+          </view>
+          <view class="ps-step-item">
+            <text class="ps-label">止损金额</text>
+            <text class="ps-value ps-value-warning">{{item.stopAmount}} 元</text>
+          </view>
         </view>
       </view>
     </block>
-
-    <view class="ps-divider"></view>
-
-    <view class="ps-info">
-      <text class="ps-label">建议止损价：</text>
-      <text class="ps-highlight">{{stopPrice}} 元</text>
-    </view>
-    <view class="ps-info">
-      <text class="ps-label">目标止盈价：</text>
-      <text class="ps-highlight">{{targetPrice}} 元</text>
-    </view>
   </view>
 
-  <view class="card ps-card">
-    <view class="ps-sec-title">收费说明</view>
-    <view class="ps-fee-line">· 免费试用：开通日起连续 14 个自然日。</view>
-    <view class="ps-fee-line">· 试用结束后：按天 / 按次灵活续费。</view>
-    <view class="ps-fee-line">· 随时可升级至「风控方案加强版」。</view>
-  </view>
-
+  <!-- 底部提示 -->
   <view class="ps-tip">
-    * 本页为示意方案与示意收费结构，具体价格与风控模型以熵盾正式上线为准。
+    * 本页为“稳健版”演示方案，仅基于固定参数推演风控结构，不构成任何买卖建议。
+  </view>
+
+  <!-- 底部按钮区域 -->
+  <view class="ps-bottom">
+    <view class="ps-bottom-btn ps-bottom-btn-secondary" bindtap="goPayIntro">
+      <text>想要更高阶服务 · 查看进阶控局者服务</text>
+    </view>
+    <view class="ps-bottom-btn" bindtap="goHome">
+      <text>返回首页</text>
+    </view>
   </view>
 </view>

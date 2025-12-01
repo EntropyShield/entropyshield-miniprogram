@@ -4,28 +4,34 @@
     "pages/riskCalculator/index",
     "pages/planSteady/index",
     "pages/planAdvanced/index",
-    "pages/club/index",
-    "pages/profile/index"
+
+    "pages/calculator/calculator",
+
+    "pages/testLossPersonality/index",
+    "pages/testEmotionIndex/index",
+    "pages/testMarketRisk/index",
+    "pages/testDangerLevel/index",
+    "pages/testRiskScore/index",
+
+    "pages/campIntro/index",
+    "pages/fissionTask/index",
+    "pages/resultCommon/index",
+    "pages/campDaily/index",
+    "pages/campReport/index",
+
+    "pages/pay/index",
+    "pages/payIntro/index",
+    "pages/paySuccess/index",
+    "pages/payFail/index",
+    "pages/funnelLogs/index",
+
+    "pages/membership/index"
   ],
   "window": {
-    "navigationBarTitleText": "熵盾小程序",
-    "navigationStyle": "default",
-    "backgroundTextStyle": "light",
-    "navigationBarBackgroundColor": "#0D0D0D",
+    "backgroundTextStyle": "dark",
+    "navigationBarBackgroundColor": "#000000",
+    "navigationBarTitleText": "熵盾 · 风控卫士",
     "navigationBarTextStyle": "white",
-    "backgroundColor": "#0D0D0D"
-  },
-  "style": "v2",
-  "sitemapLocation": "sitemap.json",
-  "tabBar": {
-    "color": "#9AA0A6",
-    "selectedColor": "#2AFF2A",
-    "backgroundColor": "#121212",
-    "borderStyle": "black",
-    "list": [
-      { "pagePath": "pages/index/index", "text": "首页" },
-      { "pagePath": "pages/club/index", "text": "控局者俱乐部" },
-      { "pagePath": "pages/profile/index", "text": "我的中心" }
-    ]
+    "backgroundColor": "#000000"
   }
 }

@@ -1,0 +1,289 @@
+/* 整体页面 */
+.page {
+  min-height: 100vh;
+  background-color: #000000;
+  padding: 32rpx 24rpx 40rpx;
+  box-sizing: border-box;
+  color: #ffffff;
+}
+
+/* 通用卡片 */
+.card {
+  background-color: #050505;
+  border-radius: 24rpx;
+  padding: 24rpx 24rpx 28rpx;
+  margin-bottom: 28rpx;
+  border: 1px solid #151515;
+  box-shadow: 0 0 24rpx rgba(0, 0, 0, 0.6);
+}
+
+/* 顶部结果卡片 */
+.header-card {
+  border-color: #2aff2a33;
+}
+
+/* 顶部：类型 + 等级 */
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+.type-tag {
+  padding: 6rpx 18rpx;
+  border-radius: 999rpx;
+  border: 1px solid #2aff2a66;
+  color: #2aff2a;
+  font-size: 22rpx;
+}
+
+.level-tag {
+  padding: 6rpx 22rpx;
+  border-radius: 999rpx;
+  font-size: 22rpx;
+  font-weight: 600;
+}
+
+/* 等级颜色 */
+.level-low {
+  background-color: rgba(46, 204, 113, 0.15);
+  border: 1px solid #2ecc71;
+  color: #2ecc71;
+}
+
+.level-mid {
+  background-color: rgba(241, 196, 15, 0.15);
+  border: 1px solid #f1c40f;
+  color: #f1c40f;
+}
+
+.level-high {
+  background-color: rgba(231, 76, 60, 0.15);
+  border: 1px solid #e74c3c;
+  color: #e74c3c;
+}
+
+/* 分数区 */
+.score-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.score-circle {
+  width: 150rpx;
+  height: 150rpx;
+  border-radius: 50%;
+  border: 2rpx solid #2aff2a80;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-right: 24rpx;
+  background: radial-gradient(circle at 30% 30%, #2aff2a33, #000000);
+}
+
+.score-value {
+  font-size: 40rpx;
+  font-weight: 700;
+  color: #2aff2a;
+}
+
+.score-label {
+  font-size: 22rpx;
+  color: #9aa0a6;
+  margin-top: 4rpx;
+}
+
+.score-desc {
+  flex: 1;
+}
+
+.score-desc .title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.score-desc .subtitle {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  color: #9aa0a6;
+  line-height: 1.6;
+}
+
+/* 标签行 */
+.badge-row {
+  margin-top: 10rpx;
+  flex-wrap: wrap;
+  display: flex;
+}
+
+.badge {
+  padding: 6rpx 18rpx;
+  border-radius: 999rpx;
+  border: 1px solid #2aff2a33;
+  font-size: 22rpx;
+  color: #e0e0e0;
+  margin-right: 10rpx;
+  margin-top: 8rpx;
+}
+
+/* 小节标题区 */
+.section-title-row {
+  margin-bottom: 18rpx;
+}
+
+.section-title {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.section-sub {
+  display: block;
+  margin-top: 6rpx;
+  font-size: 22rpx;
+  color: #9aa0a6;
+}
+
+/* 风控画像列表 */
+.profile-list {
+  margin-top: 4rpx;
+}
+
+.profile-item {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 14rpx;
+}
+
+.dot {
+  width: 10rpx;
+  height: 10rpx;
+  border-radius: 50%;
+  background-color: #2aff2a;
+  margin-top: 10rpx;
+  margin-right: 12rpx;
+}
+
+.profile-text {
+  flex: 1;
+}
+
+.profile-title {
+  font-size: 24rpx;
+  font-weight: 500;
+  color: #ffffff;
+}
+
+.profile-desc {
+  display: block;
+  margin-top: 4rpx;
+  font-size: 22rpx;
+  color: #9aa0a6;
+  line-height: 1.6;
+}
+
+/* 行动计划列表 */
+.plan-list {
+  margin-top: 4rpx;
+}
+
+.plan-item {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 16rpx;
+}
+
+.plan-day {
+  min-width: 80rpx;
+  padding: 6rpx 16rpx;
+  border-radius: 999rpx;
+  border: 1px solid #2aff2a66;
+  color: #2aff2a;
+  font-size: 22rpx;
+  text-align: center;
+  margin-right: 14rpx;
+}
+
+.plan-text {
+  flex: 1;
+}
+
+.plan-title {
+  font-size: 24rpx;
+  font-weight: 500;
+  color: #ffffff;
+}
+
+.plan-desc {
+  display: block;
+  margin-top: 4rpx;
+  font-size: 22rpx;
+  color: #9aa0a6;
+  line-height: 1.6;
+}
+
+/* 行动按钮区 */
+.action-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.btn-primary,
+.btn-secondary,
+.btn-ghost {
+  width: 100%;
+  height: 84rpx;
+  border-radius: 999rpx;
+  font-size: 26rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 12rpx;
+}
+
+/* 主按钮：风控计算器 */
+.btn-primary {
+  background-color: #2aff2a;
+  color: #000000;
+  font-weight: 600;
+  border: none;
+}
+
+/* 次级按钮：训练营 */
+.btn-secondary {
+  border: 1px solid #2aff2a;
+  background-color: transparent;
+  color: #2aff2a;
+}
+
+/* 文字按钮：返回首页 */
+.btn-ghost {
+  border: none;
+  background-color: transparent;
+  color: #9aa0a6;
+}
+
+/* 合规提示 */
+.notice-card {
+  border-style: dashed;
+  border-color: #333333;
+  background-color: #050505;
+}
+
+.notice-title {
+  font-size: 24rpx;
+  color: #9aa0a6;
+  margin-bottom: 8rpx;
+}
+
+.notice-text text {
+  display: block;
+  font-size: 22rpx;
+  color: #5f6368;
+  line-height: 1.6;
+}

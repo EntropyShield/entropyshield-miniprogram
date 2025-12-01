@@ -1,0 +1,53 @@
+.page {
+  min-height: 100vh;
+  background-color: #000000;
+  padding: 32rpx 24rpx 40rpx;
+  box-sizing: border-box;
+  color: #ffffff;
+}
+
+/* 任务详情卡片 */
+.card {
+  background-color: #050505;
+  border-radius: 24rpx;
+  padding: 24rpx;
+  margin-bottom: 28rpx;
+  border: 1px solid #2aff2a;
+}
+
+/* 任务标题 */
+.intro-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #ffffff;
+  margin-bottom: 8rpx;
+}
+
+/* 任务描述 */
+.intro-sub {
+  font-size: 26rpx;
+  color: #9aa0a6;
+  line-height: 1.6;
+  margin-bottom: 16rpx;
+}
+
+.intro-meta {
+  font-size: 24rpx;
+  color: #5f6368;
+  line-height: 1.6;
+}
+
+/* 按钮 */
+.btn-primary {
+  width: 100%;
+  height: 88rpx;
+  border-radius: 999rpx;
+  background-color: #2aff2a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #000000;
+  font-size: 30rpx;
+  font-weight: 600;
+  border: none;
+}

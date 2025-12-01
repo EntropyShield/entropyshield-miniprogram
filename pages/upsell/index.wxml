@@ -1,0 +1,22 @@
+<view class="page">
+
+<view class="title">进阶控局者服务</view>
+
+<view class="card">
+  <view class="card-title">1 对 1 风控诊断（视频 / 语音）</view>
+  <view class="card-desc">顾问根据你的记录输出个性化执行清单与风控策略。</view>
+</view>
+
+<view class="card">
+  <view class="card-title">进阶「控局者训练营」</view>
+  <view class="card-desc">系统化复盘、策略陪跑、执行纠偏，建立长期风控系统。</view>
+</view>
+
+<view class="card">
+  <view class="card-title">高级风控工具包</view>
+  <view class="card-desc">资金曲线分析、风险监控、模板库、智能诊断等完整工具。</view>
+</view>
+
+<button class="btn-add" bindtap="contactService">添加熵盾顾问</button>
+
+</view>

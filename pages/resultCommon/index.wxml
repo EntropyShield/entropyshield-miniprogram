@@ -1,0 +1,90 @@
+<view class="page">
+
+<!-- 顶部结果概览 -->
+<view class="card header-card">
+  <view class="header-top">
+    <view class="type-tag">
+      <text>{{profile.typeLabel}}</text>
+    </view>
+    <view class="level-tag {{profile.levelClass}}">
+      <text>{{profile.levelText}}</text>
+    </view>
+  </view>
+
+  <view class="score-row">
+    <view class="score-circle">
+      <text class="score-value">{{score}}</text>
+      <text class="score-label">综合得分</text>
+    </view>
+    <view class="score-desc">
+      <text class="title">{{profile.title}}</text>
+      <text class="subtitle">{{profile.shortDesc}}</text>
+    </view>
+  </view>
+
+  <view class="badge-row">
+    <block wx:for="{{profile.badges}}" wx:key="text">
+      <view class="badge">
+        <text>{{item}}</text>
+      </view>
+    </block>
+  </view>
+</view>
+
+<!-- 风控画像与诊断 -->
+<view class="card profile-card">
+  <view class="section-title-row">
+    <text class="section-title">风控画像与诊断</text>
+    <text class="section-sub">{{profile.profileHint}}</text>
+  </view>
+
+  <view class="profile-list">
+    <block wx:for="{{profile.profileItems}}" wx:key="index">
+      <view class="profile-item">
+        <view class="dot"></view>
+        <view class="profile-text">
+          <text class="profile-title">{{item.title}}</text>
+          <text class="profile-desc">{{item.desc}}</text>
+        </view>
+      </view>
+    </block>
+  </view>
+</view>
+
+<!-- 接下来 7 天行动建议 -->
+<view class="card plan-card">
+  <view class="section-title-row">
+    <text class="section-title">接下来 7 天行动建议</text>
+    <text class="section-sub">{{profile.planHint}}</text>
+  </view>
+
+  <view class="plan-list">
+    <block wx:for="{{profile.planItems}}" wx:key="index">
+      <view class="plan-item">
+        <view class="plan-day">{{item.day}}</view>
+        <view class="plan-text">
+          <text class="plan-title">{{item.title}}</text>
+          <text class="plan-desc">{{item.desc}}</text>
+        </view>
+      </view>
+    </block>
+  </view>
+</view>
+
+<!-- 行动按钮 -->
+<view class="card action-card">
+  <button class="btn-primary" bindtap="goCalc">去使用风控计算器</button>
+  <button class="btn-secondary" bindtap="goCamp">加入 7 天风控训练营</button>
+  <button class="btn-ghost" bindtap="goHome">返回熵盾首页</button>
+</view>
+
+<!-- 合规提示 -->
+<view class="card notice-card">
+  <view class="notice-title">重要提示</view>
+  <view class="notice-text">
+    <text>本页为「风控诊断示意」结果，仅基于问卷维度进行评估，</text>
+    <text>不代表任何投资建议或收益承诺，请结合自身情况谨慎决策。</text>
+  </view>
+</view>
+
+</view>

@@ -2,8 +2,41 @@
 
 <!-- 标题 -->
 <view class="title-container">
-  <text class="title"></text>
-  <text class="sub-title">根据自己的资金与买入价生成风控方案（演示版）</text>
+  <text class="title">风控计算器</text>
+  <text class="sub-title">
+    根据自己的资金与买入价生成风控方案（演示版）
+  </text>
+</view>
+
+<!-- 当前权益提示：始终展示 -->
+<view class="rights-banner">
+  <text class="rights-label">当前权益：</text>
+
+  <!-- 有次数 -->
+  <block wx:if="{{freeCalcTimes > 0}}">
+    <!-- 有 membershipName 时，展示名称 + 次数 -->
+    <text class="rights-text" wx:if="{{membershipName}}">
+      {{membershipName}} · 剩余完整方案 {{freeCalcTimes}} 次
+    </text>
+
+    <!-- 没有 membershipName 时，只展示次数 -->
+    <text class="rights-text" wx:else>
+      剩余完整方案 {{freeCalcTimes}} 次
+    </text>
+  </block>
+
+  <!-- 没有次数 -->
+  <block wx:else>
+    <!-- 有会员/训练营名称，但次数用完 -->
+    <text class="rights-text" wx:if="{{membershipName}}">
+      {{membershipName}} · 暂无完整方案次数，建议先参加「7 天风控训练营」，完成 7/7 天打卡后可获得 4 次免费完整方案机会。
+    </text>
+
+    <!-- 完全无身份 & 无次数 -->
+    <text class="rights-text" wx:else>
+      暂无完整方案次数，建议先参加「7 天风控训练营」，完成 7/7 天打卡后可获得 4 次免费完整方案机会。
+    </text>
+  </block>
 </view>
 
 <!-- 输入区域 -->
@@ -11,29 +44,46 @@
 
   <view class="input-field">
     <text class="input-label">可用资金（元）</text>
-    <input class="input" type="number" placeholder="请输入可用资金" bindinput="onInputBalance" value="{{balance}}" />
+    <input
+      class="input"
+      type="number"
+      placeholder="请输入可用资金"
+      bindinput="onBalanceInput"
+      value="{{balance}}"
+    />
   </view>
 
   <view class="input-field">
     <text class="input-label">首次买入价格</text>
-    <input class="input" type="number" placeholder="请输入拟建仓价格" bindinput="onInputPrice" value="{{price}}" />
+    <input
+      class="input"
+      type="number"
+      placeholder="请输入拟建仓价格"
+      bindinput="onPriceInput"
+      value="{{price}}"
+    />
   </view>
 
   <view class="input-field">
     <text class="input-label">标的代码（或名称）</text>
-    <input class="input" placeholder="请输入标的代码（可自动从首页带入）" bindinput="onInputCode" value="{{code}}" />
+    <input
+      class="input"
+      placeholder="请输入标的代码（可自动从首页带入）"
+      bindinput="onCodeInput"
+      value="{{code}}"
+    />
   </view>
 
 </view>
 
 <!-- 两个主按钮 -->
 <view class="button-container">
-  <view class="btn-primary" bindtap="onSteadyPlan">
+  <view class="btn-primary" bindtap="onClickSteady">
     <text class="btn-text">生成风控方案稳健版</text>
     <text class="btn-icon">➜</text>
   </view>
 
-  <view class="btn-primary" bindtap="onAdvancedPlan">
+  <view class="btn-primary" bindtap="onClickAdvanced">
     <text class="btn-text">生成风控方案加强版</text>
     <text class="btn-icon">➜</text>
   </view>

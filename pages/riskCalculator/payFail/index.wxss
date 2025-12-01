@@ -1,0 +1,59 @@
+.page {
+  background-color: #0D0D0D;
+  min-height: 100vh;
+  color: #FFFFFF;
+  padding: 80rpx 40rpx 40rpx;
+  box-sizing: border-box;
+}
+
+.icon-wrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 32rpx;
+}
+
+.fail-icon {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 999rpx;
+  border: 8rpx solid #FF5555;
+}
+
+.title {
+  text-align: center;
+  font-size: 40rpx;
+  color: #FF5555;
+  margin-bottom: 12rpx;
+}
+
+.subtitle {
+  text-align: center;
+  font-size: 24rpx;
+  color: #CCCCCC;
+}
+
+.btn-group {
+  margin-top: 80rpx;
+}
+
+.btn-primary {
+  width: 100%;
+  height: 88rpx;
+  line-height: 88rpx;
+  border-radius: 999rpx;
+  background-color: #2AFF2A;
+  color: #000000;
+  font-size: 30rpx;
+  font-weight: 600;
+  margin-bottom: 24rpx;
+}
+
+.btn-secondary {
+  width: 100%;
+  height: 88rpx;
+  line-height: 88rpx;
+  border-radius: 999rpx;
+  background-color: #101010;
+  color: #FFFFFF;
+  font-size: 30rpx;
+}

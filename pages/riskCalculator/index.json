@@ -1,4 +1,9 @@
 {
   "navigationBarTitleText": "风控计算器",
-  "enablePullDownRefresh": false
+  "navigationBarBackgroundColor": "#000000",
+  "navigationBarTextStyle": "white",
+  "backgroundColor": "#000000",
+  "backgroundTextStyle": "dark",
+  "enablePullDownRefresh": false,
+  "usingComponents": {}
 }

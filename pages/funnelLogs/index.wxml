@@ -1,0 +1,40 @@
+<view class="page">
+  <!-- 头部说明 -->
+  <view class="card header-card">
+    <view class="header-title-row">
+      <text class="header-title">转化漏斗数据（本机 DEV）</text>
+    </view>
+    <view class="header-sub">
+      <text>以下数据来自 utils/funnel.js 写入的本地 storage，仅当前设备可见。</text>
+      <text>用于调试 7 日报告 → 付费页 → 复制微信号 的转化路径。</text>
+    </view>
+  </view>
+
+  <!-- 日志列表 -->
+  <scroll-view scroll-y class="list">
+    <block wx:if="{{logs.length}}">
+      <block wx:for="{{logs}}" wx:key="id">
+        <view class="card log-item">
+          <view class="log-row">
+            <text class="log-step">{{item.step}}</text>
+            <text class="log-time">{{item.timeText}}</text>
+          </view>
+          <view class="log-ext">
+            <text selectable="true">{{item.extText}}</text>
+          </view>
+        </view>
+      </block>
+    </block>
+
+    <view wx:else class="card empty-card">
+      <text class="empty-text">当前还没有漏斗埋点数据。</text>
+      <text class="empty-text">请从「7 日风控执行报告」进入「进阶控局者服务」，尝试点击复制微信号等动作。</text>
+    </view>
+  </scroll-view>
+
+  <!-- 底部操作按钮 -->
+  <view class="footer">
+    <button class="btn-refresh" bindtap="refreshLogs">刷新</button>
+    <button class="btn-clear" bindtap="onClearLogs">清空本机数据</button>
+  </view>
+</view>

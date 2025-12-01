@@ -1,0 +1,93 @@
+/* pages/paymentSuccess/index.wxss */
+.page {
+  min-height: 100vh;
+  background: #000000;
+  padding: 40rpx 32rpx;
+  box-sizing: border-box;
+  color: #ffffff;
+}
+
+.card {
+  background: #111111;
+  border-radius: 24rpx;
+  padding: 40rpx 32rpx 32rpx;
+  text-align: center;
+  margin-bottom: 40rpx;
+  border: 1px solid #2aff2a33;
+}
+
+.icon-success {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 60rpx;
+  border-width: 4rpx;
+  border-style: solid;
+  border-color: #2aff2a;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto 20rpx;
+  font-size: 60rpx;
+  color: #2aff2a;
+}
+
+.title {
+  font-size: 36rpx;
+  font-weight: 600;
+  margin-bottom: 10rpx;
+}
+
+.sub {
+  font-size: 26rpx;
+  color: #e0e0e0;
+}
+
+.highlight {
+  color: #2aff2a;
+  font-weight: 600;
+}
+
+.sub-small {
+  margin-top: 6rpx;
+  font-size: 24rpx;
+  color: #9aa0a6;
+}
+
+/* 按钮区域 */
+.btn-primary {
+  background: #2aff2a;
+  border-radius: 999rpx;
+  height: 88rpx;
+  align-items: center;
+  justify-content: center;
+  display: flex;
+  margin-bottom: 20rpx;
+}
+
+.btn-primary text {
+  color: #000;
+  font-size: 30rpx;
+  font-weight: 600;
+}
+
+.btn-secondary {
+  border-radius: 999rpx;
+  height: 80rpx;
+  align-items: center;
+  justify-content: center;
+  display: flex;
+  border: 1px solid #2aff2a;
+  margin-bottom: 16rpx;
+}
+
+.btn-secondary text {
+  color: #2aff2a;
+  font-size: 28rpx;
+}
+
+.btn-text {
+  text-align: center;
+  font-size: 26rpx;
+  color: #9aa0a6;
+  margin-top: 8rpx;
+}

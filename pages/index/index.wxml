@@ -1,87 +1,124 @@
-<view class="page tech-container">
-  <!-- 背景层 -->
-  <view class="bg-grid"></view>
-  <view class="bg-glow"></view>
+<!-- pages/index/index.wxml -->
+<view class="page">
 
-  <!-- 内容主体 -->
-  <view class="content col">
-
-    <!-- 顶部品牌区：LOGO + 标语 + 按钮 -->
-    <view class="card brand-block">
-      <view class="brand-row-center">
-        <!-- LOGO 画布：绿色六边形 + 蓝色空心 ∞ -->
-        <canvas
-          type="2d"
-          id="entropyLogo"
-          class="logo-canvas"
-          style="width:40px;height:40px;"
-        ></canvas>
-        <text class="brand-line">熵盾 — 让您从从容容，游刃有余</text>
-      </view>
-
-      <!-- 宽版按钮：带指示图标 -->
-      <view class="btn-primary brand-button-wide" bindtap="goCalc">
-        <text class="btn-text-main">立即使用风控计算器</text>
-        <view class="btn-icon-circle">
-          <text class="btn-icon-arrow">➜</text>
-        </view>
+<!-- 顶部品牌区 -->
+<view class="card brand-card">
+  <view class="brand-header">
+    <canvas type="2d" id="entropyLogo" class="brand-logo"></canvas>
+    <view class="brand-text">
+      <view class="brand-title">
+        <text>熵盾——让您从容控局，游刃有余。</text>
       </view>
     </view>
-
-    <!-- 熵盾市场情绪指数 -->
-    <view class="card section-card">
-      <view class="section-head">
-        <view class="title-dot"></view>
-        <text class="h2">熵盾市场情绪指数</text>
-        <text class="sentiment-tag" style="color:{{sentimentColor}};">
-          {{sentimentLabel}}
-        </text>
-      </view>
-
-      <!-- 情绪折线图画布 -->
-      <canvas type="2d" id="sentChart" class="chart"></canvas>
-
-      <view class="text-secondary sub-note">近 7 日 · 情绪走势</view>
-    </view>
-
-    <!-- 熵盾财讯 -->
-    <view class="card section-card">
-      <view class="section-head">
-        <view class="title-dot"></view>
-        <text class="h2">熵盾财讯</text>
-      </view>
-
-      <block wx:for="{{news}}" wx:key="id">
-        <view class="news-row" hover-class="row-active">
-          <text class="news-title">{{item.title}}</text>
-          <text class="news-time text-secondary">{{item.time}}</text>
-        </view>
-      </block>
-    </view>
-
-    <!-- 熵盾风险测评 -->
-    <view class="card section-card">
-      <view class="section-head">
-        <view class="title-dot"></view>
-        <text class="h2">熵盾风险测评</text>
-      </view>
-
-      <view class="row">
-        <input
-          class="input"
-          placeholder="请输入代码"
-          bindinput="onCode"
-        />
-        <view class="btn-primary neon-btn" bindtap="goEval">
-          熵盾测评
-        </view>
-      </view>
-
-      <view class="p current-line">
-        当前风险：
-        <text class="text-secondary">{{currentRisk}}</text>
-      </view>
-    </view>
-
   </view>
+
+  <!-- 立即使用风控计算器按钮 -->
+  <button class="btn-primary" bindtap="goCalc">
+    立即使用风控计算器
+  </button>
+
+  <view class="brand-tags">
+    <view class="tag">
+      <text class="tag-label">今日状态</text>
+      <text class="tag-value">适合先构建仓位，再择机出手</text>
+    </view>
+    <view class="tag">
+      <text class="tag-label">控局等级</text>
+      <text class="tag-value">从「亏钱」升级为「会控亏」</text>
+    </view>
+  </view>
+</view>
+
+<!-- 风控测试中心 -->
+<view class="card section-card">
+  <view class="section-header">
+    <text class="section-title">风控测试中心</text>
+    <text class="section-sub">先认识自己，再进入市场</text>
+  </view>
+
+  <view class="test-item" bindtap="goLossTest">
+    <view class="test-left">
+      <view class="bullet bullet-red"></view>
+      <view class="test-text">
+        <text class="test-title">亏损危险等级</text>
+        <text class="test-desc">看清你距离深度回撤还有多远</text>
+      </view>
+    </view>
+    <view class="test-right">
+      <text class="test-action">开始测试</text>
+    </view>
+  </view>
+
+  <view class="test-item" bindtap="goAbilityTest">
+    <view class="test-left">
+      <view class="bullet bullet-green"></view>
+      <view class="test-text">
+        <text class="test-title">风控能力评分</text>
+        <text class="test-desc">你的风控能力现在处在什么阶段</text>
+      </view>
+    </view>
+    <view class="test-right">
+      <text class="test-action">查看评分</text>
+    </view>
+  </view>
+</view>
+
+<!-- 7 天风控训练营 -->
+<view class="card section-card">
+  <view class="section-header">
+    <text class="section-title">7 天风控训练营</text>
+    <text class="section-sub">
+      完成 7/7 天打卡，可获得 4 次完整风控方案免费使用权
+    </text>
+  </view>
+
+  <view class="chips-row">
+    <view class="chip">每日任务</view>
+    <view class="chip">实盘演练</view>
+    <view class="chip">复盘清单</view>
+  </view>
+
+  <button class="btn-secondary" bindtap="goCamp">
+    进入 7 天风控训练营
+  </button>
+</view>
+
+<!-- 控局者专属权益（裂变中心） -->
+<view class="card section-card">
+  <view class="section-header">
+    <text class="section-title">控局者专属权益</text>
+    <text class="section-sub">
+      邀请同频的朋友一起控局，解锁更多完整风控方案次数
+    </text>
+  </view>
+
+  <view class="benefit-list">
+    <view class="benefit-item">
+      <text class="benefit-tag">邀 1 人</text>
+      <text class="benefit-text">解锁完整风控方案体验次数</text>
+    </view>
+    <view class="benefit-item">
+      <text class="benefit-tag">邀 3 人</text>
+      <text class="benefit-text">额外获得多次完整方案使用权</text>
+    </view>
+    <view class="benefit-item">
+      <text class="benefit-tag">邀 10 人</text>
+      <text class="benefit-text">升级为熵盾 VIP 控局者（权益按顾问说明）</text>
+    </view>
+  </view>
+
+  <button class="btn-outline" bindtap="goFission">
+    进入任务中心
+  </button>
+</view>
+
+<!-- 合规提示 -->
+<view class="card notice-card">
+  <view class="notice-title">重要提示</view>
+  <view class="notice-text">
+    <text>本小程序仅用于风险测算和学习，不构成任何投资建议。</text>
+    <text>请根据自身情况审慎决策，必要时请咨询专业机构。</text>
+  </view>
+</view>
+
 </view>

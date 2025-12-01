@@ -1,0 +1,20 @@
+<view class="page">
+  <view class="icon-wrap">
+    <view class="success-icon"></view>
+  </view>
+
+  <text class="title">支付成功</text>
+  <text class="subtitle">你已成为本期控局者，风控计算器已解锁。</text>
+
+  <view class="card order-card">
+    <text class="order-row">套餐：{{planName}}</text>
+    <text class="order-row">金额：¥ {{amount}}</text>
+    <text class="order-row">订单编号：{{orderId}}</text>
+    <text class="order-row">支付时间：{{payTime}}</text>
+  </view>
+
+  <view class="btn-group">
+    <button class="btn-primary" bindtap="goToCalculator">立即使用风控计算器</button>
+    <button class="btn-secondary" bindtap="goHome">返回首页</button>
+  </view>
+</view>

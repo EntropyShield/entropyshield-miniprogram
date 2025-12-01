@@ -1,0 +1,83 @@
+<view class="page membership-page">
+
+<!-- 顶部：本次准备生成的风控方案 -->
+<view class="card summary-card">
+  <view class="summary-tag">{{ planLabel }}</view>
+
+  <view class="summary-title">本次准备生成的风控方案</view>
+
+  <view class="summary-row">
+    <text class="summary-label">账户资金</text>
+    <text class="summary-value">{{ balance }} 元</text>
+  </view>
+
+  <view class="summary-row">
+    <text class="summary-label">首次买入价</text>
+    <text class="summary-value">{{ price }} 元</text>
+  </view>
+
+  <view class="summary-row">
+    <text class="summary-label">标的代码 / 名称</text>
+    <text class="summary-value">{{ code || '—' }}</text>
+  </view>
+
+  <!-- 当前权益展示 -->
+  <view class="summary-row">
+    <text class="summary-label">当前权益</text>
+    <text class="summary-value">
+      {{membershipNameDisplay ? (membershipNameDisplay + ' · ') : ''}}剩余完整方案 {{freeCalcTimes}} 次
+    </text>
+  </view>
+</view>
+
+<!-- 说明：选择开通方式 -->
+<view class="card info-card">
+  <view class="info-title">选择开通方式</view>
+  <view class="info-sub">
+    开通后，在有效期内可以多次生成当前类型的风控方案，用于训练与实战演练。
+  </view>
+</view>
+
+<!-- 会员方案列表 -->
+<block wx:for="{{plans}}" wx:key="id">
+  <view class="card plan-card">
+    <view class="plan-header">
+      <view class="plan-title">{{item.name}}</view>
+      <view class="plan-price">
+        <text class="plan-price-main">{{item.priceText}}</text>
+        <text class="plan-price-unit">{{item.unitText}}</text>
+      </view>
+    </view>
+
+    <view class="plan-desc">
+      {{item.desc}}
+    </view>
+
+    <button
+      class="btn-primary"
+      data-plan-id="{{item.id}}"
+      bindtap="onSelectPlan"
+    >
+      立即开通 {{item.name}}
+    </button>
+  </view>
+</block>
+
+<!-- 底部说明 & 跳转入口 -->
+<view class="card bottom-card">
+  <view class="note-title">说明</view>
+  <view class="note-text">
+    <text>当前为产品演示阶段，暂未接通真实支付，点击任一方案视为模拟开通，用于体验流程。</text>
+    <text>本工具与训练营内容仅用于交易风控能力训练，不构成任何投资建议或收益承诺。</text>
+  </view>
+
+  <button class="btn-secondary" bindtap="goCamp">
+    先参加 7 天风控训练营
+  </button>
+
+  <button class="btn-ghost" bindtap="goBackCalc">
+    先返回风控计算器
+  </button>
+</view>
+
+</view>

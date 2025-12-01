@@ -1,0 +1,4 @@
+<!-- pages/payfail/index.wxml -->
+<view class="page">
+  <text>风控计算器页面加载成功！</text>
+</view>

@@ -1,0 +1,18 @@
+<view class="page">
+  <view class="icon-wrap">
+    <view class="fail-icon"></view>
+  </view>
+
+  <text class="title">支付未完成</text>
+  <text class="subtitle">
+    可能是你取消了支付，或网络异常。
+  </text>
+  <text class="subtitle">
+    若已扣款但未解锁功能，请联系熵盾客服。
+  </text>
+
+  <view class="btn-group">
+    <button class="btn-primary" bindtap="retryPay">重新发起支付</button>
+    <button class="btn-secondary" bindtap="goBack">返回上一页</button>
+  </view>
+</view>

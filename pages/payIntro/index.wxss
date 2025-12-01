@@ -1,0 +1,193 @@
+/* 页面背景 */
+.page {
+  min-height: 100vh;
+  background-color: #000000;
+  padding: 32rpx 24rpx 40rpx;
+  box-sizing: border-box;
+  color: #ffffff;
+}
+
+/* 通用卡片 */
+.card {
+  background-color: #050505;
+  border-radius: 24rpx;
+  padding: 24rpx 24rpx 28rpx;
+  margin-bottom: 28rpx;
+  border: 1px solid #1a2a1a;
+  box-shadow: 0 0 24rpx rgba(0, 0, 0, 0.6);
+}
+
+/* 顶部说明卡 */
+.hero-card {
+  border-color: rgba(42, 255, 42, 0.25);
+}
+
+.hero-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  margin-bottom: 8rpx;
+}
+
+.hero-sub {
+  font-size: 24rpx;
+  color: #9aa0a6;
+  line-height: 1.6;
+}
+
+.hero-tag-row {
+  margin-top: 12rpx;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.hero-tag {
+  font-size: 22rpx;
+  padding: 4rpx 16rpx;
+  border-radius: 999rpx;
+  border: 1px solid rgba(42, 255, 42, 0.4);
+  color: #2aff2a;
+  margin-right: 8rpx;
+  margin-top: 4rpx;
+}
+
+/* 方案卡片 */
+.plan-card {
+  border-color: rgba(42, 255, 42, 0.12);
+}
+
+.plan-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6rpx;
+}
+
+.plan-name {
+  font-size: 26rpx;
+  font-weight: 600;
+}
+
+.plan-tag {
+  font-size: 20rpx;
+  padding: 2rpx 12rpx;
+  border-radius: 999rpx;
+  border: 1px solid #555555;
+  color: #9aa0a6;
+}
+
+.plan-tag-primary {
+  border-color: #2aff2a;
+  color: #2aff2a;
+}
+
+.plan-price-row {
+  margin-top: 4rpx;
+  display: flex;
+  align-items: baseline;
+}
+
+.plan-price {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #2aff2a;
+}
+
+.plan-price-sub {
+  margin-left: 8rpx;
+  font-size: 22rpx;
+  color: #9aa0a6;
+}
+
+.plan-desc {
+  margin-top: 10rpx;
+}
+
+.plan-desc text {
+  display: block;
+  font-size: 22rpx;
+  color: #e0e0e0;
+  line-height: 1.6;
+}
+
+/* 行动区 */
+.action-card {
+  border-color: rgba(42, 255, 42, 0.18);
+}
+
+.contact-title {
+  font-size: 26rpx;
+  font-weight: 600;
+  margin-bottom: 6rpx;
+}
+
+.contact-desc text {
+  display: block;
+  font-size: 22rpx;
+  color: #9aa0a6;
+  line-height: 1.6;
+}
+
+/* 微信号盒子 */
+.wechat-box {
+  margin-top: 16rpx;
+  padding: 16rpx 18rpx;
+  border-radius: 20rpx;
+  border: 1px dashed rgba(42, 255, 42, 0.5);
+  background-color: #020502;
+}
+
+.wechat-label {
+  font-size: 22rpx;
+  color: #9aa0a6;
+}
+
+.wechat-id {
+  margin-top: 6rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #2aff2a;
+}
+
+.btn-copy {
+  margin-top: 10rpx;
+  width: 100%;
+  height: 72rpx;
+  border-radius: 999rpx;
+  border: 1px solid #2aff2a;
+  background-color: transparent;
+  color: #2aff2a;
+  font-size: 26rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 按钮 */
+.btn-primary {
+  margin-top: 18rpx;
+  width: 100%;
+  height: 88rpx;
+  border-radius: 999rpx;
+  background-color: #2aff2a;
+  color: #000000;
+  font-size: 30rpx;
+  font-weight: 600;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-ghost {
+  margin-top: 14rpx;
+  width: 100%;
+  height: 80rpx;
+  border-radius: 999rpx;
+  border: 1px dashed #555555;
+  background-color: transparent;
+  color: #9aa0a6;
+  font-size: 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

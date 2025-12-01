@@ -1,0 +1,403 @@
+/* pages/campIntro/index.wxss */
+
+/* 页面整体 */
+.page {
+  min-height: 100vh;
+  background-color: #000000;
+  padding: 24rpx 24rpx 40rpx;
+  box-sizing: border-box;
+  color: #ffffff;
+}
+
+/* 通用卡片 */
+.card {
+  background-color: #050505;
+  border-radius: 24rpx;
+  padding: 20rpx 22rpx 24rpx;
+  margin-bottom: 20rpx;
+  border: 1px solid #1a2a1a;
+  box-shadow: 0 0 20rpx rgba(0, 0, 0, 0.6);
+}
+
+/* 顶部介绍卡片 */
+.intro-card {
+  border-color: rgba(42, 255, 42, 0.25);
+}
+
+.badge {
+  display: inline-block;
+  padding: 4rpx 18rpx;
+  border-radius: 999rpx;
+  border: 1px solid rgba(42, 255, 42, 0.4);
+  font-size: 22rpx;
+  color: #2aff2a;
+  margin-bottom: 10rpx;
+}
+
+.intro-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  margin-bottom: 4rpx;
+}
+
+.intro-sub {
+  font-size: 24rpx;
+  color: #9aa0a6;
+  line-height: 1.5;
+  margin-bottom: 12rpx;
+}
+
+.intro-chips {
+  display: flex;
+  flex-wrap: wrap;
+  margin-bottom: 8rpx;
+}
+
+.chip {
+  font-size: 22rpx;
+  padding: 2rpx 14rpx;
+  border-radius: 999rpx;
+  border: 1px solid rgba(42, 255, 42, 0.2);
+  color: #c0ffc0;
+  margin-right: 8rpx;
+  margin-top: 4rpx;
+}
+
+.intro-progress {
+  margin-top: 2rpx;
+  font-size: 24rpx;
+  color: #9aa0a6;
+}
+
+.intro-progress .strong {
+  color: #2aff2a;
+  font-weight: 600;
+}
+
+/* 控局者等级卡片：统一一套样式 */
+.grade-card {
+  border-color: rgba(42, 255, 42, 0.18);
+  margin-top: 4rpx;
+}
+
+.grade-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8rpx;
+}
+
+.grade-title {
+  font-size: 26rpx;
+  font-weight: 600;
+}
+
+.grade-level-tag {
+  font-size: 22rpx;
+  padding: 4rpx 16rpx;
+  border-radius: 999rpx;
+}
+
+/* 等级颜色：沿用 resultCommon / campReport */
+.level-low {
+  color: #00e676;
+  background-color: #003314;
+}
+
+.level-mid {
+  color: #ffca28;
+  background-color: #332600;
+}
+
+.level-high {
+  color: #ff5252;
+  background-color: #330000;
+}
+
+.grade-main {
+  margin-top: 6rpx;
+  display: flex;
+  align-items: center;
+}
+
+.grade-score-box {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 50%;
+  border: 2rpx solid #2aff2a;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-right: 24rpx;
+  background: radial-gradient(circle at 30% 30%, rgba(42, 255, 42, 0.18), #050505);
+}
+
+.grade-badge-icon {
+  width: 72rpx;
+  height: 72rpx;
+  margin-bottom: 4rpx;
+}
+
+.grade-score {
+  font-size: 40rpx;
+  font-weight: 700;
+}
+
+.grade-score-label {
+  font-size: 22rpx;
+  color: #9aa0a6;
+}
+
+.grade-tags {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.grade-tag {
+  font-size: 20rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 999rpx;
+  border: 1px solid rgba(42, 255, 42, 0.25);
+  color: #c0c0c0;
+  margin-right: 8rpx;
+  margin-bottom: 6rpx;
+}
+
+.grade-desc {
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  color: #9aa0a6;
+  line-height: 1.5;
+}
+
+.grade-actions {
+  margin-top: 10rpx;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-mini {
+  min-width: 220rpx;
+  height: 60rpx;
+  border-radius: 999rpx;
+  border: 1px solid #2aff2a;
+  background-color: transparent;
+  color: #2aff2a;
+  font-size: 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.grade-empty {
+  margin-top: 6rpx;
+}
+
+.grade-empty-title {
+  font-size: 24rpx;
+  color: #9aa0a6;
+  margin-bottom: 4rpx;
+}
+
+.grade-empty-desc {
+  font-size: 22rpx;
+  color: #9aa0a6;
+  line-height: 1.6;
+}
+
+/* 日历卡片 */
+.calendar-card {
+  border-color: #1a2a1a;
+}
+
+.calendar-header {
+  margin-bottom: 10rpx;
+}
+
+.calendar-title {
+  font-size: 26rpx;
+  font-weight: 600;
+}
+
+.calendar-sub {
+  margin-top: 4rpx;
+  font-size: 24rpx;
+  color: #9aa0a6;
+}
+
+.day-tabs {
+  white-space: nowrap;
+}
+
+.day-tab {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 120rpx;
+  padding: 10rpx 0;
+  margin-right: 10rpx;
+  border-radius: 20rpx;
+  border: 1px solid #1a2a1a;
+  background-color: #050505;
+  position: relative;
+}
+
+.day-tab.active {
+  border-color: #2aff2a;
+}
+
+.day-tab.finished {
+  border-style: solid;
+}
+
+.day-label {
+  font-size: 22rpx;
+  font-weight: 600;
+}
+
+.day-name {
+  margin-top: 2rpx;
+  font-size: 20rpx;
+  color: #9aa0a6;
+}
+
+.dot-finished {
+  position: absolute;
+  right: 10rpx;
+  top: 10rpx;
+  width: 10rpx;
+  height: 10rpx;
+  border-radius: 50%;
+  background-color: #2aff2a;
+}
+
+/* 任务详情卡片 */
+.detail-card {
+  border-color: #1a2a1a;
+}
+
+.detail-header {
+  margin-bottom: 10rpx;
+}
+
+.detail-day {
+  font-size: 24rpx;
+  color: #2aff2a;
+}
+
+.detail-title {
+  margin-top: 4rpx;
+  font-size: 26rpx;
+  font-weight: 600;
+}
+
+.detail-sub {
+  margin-top: 4rpx;
+  font-size: 24rpx;
+  color: #9aa0a6;
+  line-height: 1.6;
+}
+
+.section {
+  margin-top: 10rpx;
+}
+
+.section-title-row {
+  margin-bottom: 2rpx;
+}
+
+.section-title {
+  font-size: 24rpx;
+  font-weight: 600;
+}
+
+.bullet-list {
+  margin-top: 2rpx;
+}
+
+.bullet-item {
+  display: flex;
+  align-items: flex-start;
+  margin-top: 6rpx;
+}
+
+.dot {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+  background-color: #2aff2a;
+  margin-right: 10rpx;
+  margin-top: 8rpx;
+}
+
+.bullet-text {
+  flex: 1;
+  font-size: 22rpx;
+  color: #d0d0d0;
+  line-height: 1.6;
+}
+
+/* 底部按钮区域 */
+.action-card {
+  text-align: center;
+  margin-top: 6rpx;
+}
+
+.btn-primary {
+  width: 100%;
+  height: 84rpx;
+  border-radius: 999rpx;
+  background-color: #2aff2a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #000000;
+  font-size: 30rpx;
+  font-weight: 600;
+  border: none;
+}
+
+.btn-secondary {
+  margin-top: 14rpx;
+  width: 100%;
+  height: 78rpx;
+  border-radius: 999rpx;
+  border: 1px solid #2aff2a;
+  background-color: transparent;
+  color: #2aff2a;
+  font-size: 26rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-ghost {
+  margin-top: 10rpx;
+  width: 100%;
+  height: 76rpx;
+  border-radius: 999rpx;
+  border: 1px dashed #555555;
+  background-color: transparent;
+  color: #9aa0a6;
+  font-size: 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 说明文字 */
+.notice-title {
+  font-size: 24rpx;
+  color: #9aa0a6;
+  margin-bottom: 6rpx;
+}
+
+.notice-text text {
+  display: block;
+  font-size: 22rpx;
+  color: #5f6368;
+  line-height: 1.6;
+}

@@ -1,60 +1,219 @@
+// pages/riskCalculator/index.js
+const funnel = require('../../utils/funnel.js');
+
 Page({
   data: {
-    balance: '',
-    price: '',
-    code: ''
+    balance: '',        // 可用资金
+    price: '',          // 首次买入价格
+    code: '',           // 标的代码或名称
+
+    freeCalcTimes: 0,   // 剩余免费生成完整方案次数（会员 + 训练营奖励）
+    membershipName: ''  // 当前权益名称（例如：14 天体验会员 / 7 天训练营奖励）
   },
 
-  // 输入资金
-  onInputBalance(e) {
-    this.setData({ balance: e.detail.value });
+  onLoad() {
+    this.refreshFreeTimes();
   },
 
-  // 输入价格
-  onInputPrice(e) {
-    this.setData({ price: e.detail.value });
+  onShow() {
+    // 每次回来刷新一下免费次数（防止在别的页面被修改）
+    this.refreshFreeTimes();
   },
 
-  // 输入代码
-  onInputCode(e) {
-    this.setData({ code: e.detail.value });
-  },
+  // 从本地存储读取权益信息
+  refreshFreeTimes() {
+    const userRights = wx.getStorageSync('userRights') || {};
+    const freeCalcTimes = Number(userRights.freeCalcTimes || 0);
 
-  // 跳转：稳健版
-  onSteadyPlan() {
-    console.log("生成稳健版点击");
+    const rawName = userRights.membershipName || '';
+    const expireAt = Number(userRights.membershipExpireAt || 0);
 
-    const { balance, price, code } = this.data;
-
-    if (!balance || !price || !code) {
-      wx.showToast({
-        title: '请填写完整参数',
-        icon: 'none'
-      });
-      return;
+    let membershipName = rawName;
+    if (rawName && expireAt) {
+      const now = Date.now();
+      if (now > expireAt) {
+        // 简单标记一下已到期（次数不清零，方便后面自己定规则）
+        membershipName = rawName + '（已到期）';
+      }
     }
 
-    wx.navigateTo({
-      url: `/pages/planSteady/index?capital=${balance}&firstPrice=${price}&code=${code}`
+    this.setData({
+      freeCalcTimes,
+      membershipName
     });
   },
 
-  // 跳转：加强版
-  onAdvancedPlan() {
-    console.log("生成加强版点击");
+  // 处理输入
+  onBalanceInput(e) {
+    this.setData({ balance: e.detail.value });
+  },
 
-    const { balance, price, code } = this.data;
+  onPriceInput(e) {
+    this.setData({ price: e.detail.value });
+  },
 
-    if (!balance || !price || !code) {
+  onCodeInput(e) {
+    this.setData({ code: e.detail.value });
+  },
+
+  // 校验表单
+  validateForm() {
+    const { balance, price } = this.data;
+
+    if (!balance) {
       wx.showToast({
-        title: '请填写完整参数',
+        title: '请输入可用资金',
         icon: 'none'
       });
+      return false;
+    }
+
+    if (!price) {
+      wx.showToast({
+        title: '请输入首次买入价格',
+        icon: 'none'
+      });
+      return false;
+    }
+
+    return true;
+  },
+
+  // 点击：生成稳健版
+  onClickSteady() {
+    console.log('[riskCalculator] click steady');
+    funnel.log('CALC_CLICK_STEADY', {});
+    this.handleGeneratePlan('steady');
+  },
+
+  // 点击：生成加强版
+  onClickAdvanced() {
+    console.log('[riskCalculator] click advanced');
+    funnel.log('CALC_CLICK_ADVANCED', {});
+    this.handleGeneratePlan('advanced');
+  },
+
+  /**
+   * 统一处理生成方案：
+   * 1）优先消耗免费次数
+   * 2）否则弹出三选一下一步
+   */
+  handleGeneratePlan(planType) {
+    if (!this.validateForm()) return;
+
+    const { balance, price, code, freeCalcTimes } = this.data;
+
+    // 1. 有免费次数：直接跳结果页
+    if (freeCalcTimes > 0) {
+      const userRights = wx.getStorageSync('userRights') || {};
+      const left = freeCalcTimes - 1;
+      userRights.freeCalcTimes = left;
+      wx.setStorageSync('userRights', userRights);
+
+      this.setData({ freeCalcTimes: left });
+
+      funnel.log('CALC_FREE_PLAN', {
+        planType,
+        leftFreeTimes: left
+      });
+
+      wx.showToast({
+        title: `已使用免费次数，剩余 ${left} 次`,
+        icon: 'none',
+        duration: 2000
+      });
+
+      this.gotoPlanResult(planType, {
+        balance,
+        price,
+        code,
+        membershipType: '训练营/会员 · 免费权益使用'
+      });
+
       return;
     }
 
-    wx.navigateTo({
-      url: `/pages/planAdvanced/index?balance=${balance}&price=${price}&code=${code}`
+    // 2. 没有免费次数：弹出下一步选择
+    this.chooseNextStep(planType);
+  },
+
+  // 跳转到对应方案结果页（稳健版 / 加强版）
+  gotoPlanResult(planType, { balance, price, code, membershipType }) {
+    const base =
+      `?balance=${encodeURIComponent(balance)}` +
+      `&price=${encodeURIComponent(price)}` +
+      `&code=${encodeURIComponent(code || '')}`;
+
+    const mt =
+      membershipType
+        ? `&membershipType=${encodeURIComponent(membershipType)}`
+        : '';
+
+    if (planType === 'steady') {
+      wx.navigateTo({
+        url: '/pages/planSteady/index' + base + mt
+      });
+    } else {
+      wx.navigateTo({
+        url: '/pages/planAdvanced/index' + base + mt
+      });
+    }
+  },
+
+  // 弹出下一步选择（会员 / 训练营 / 邀请好友）
+  chooseNextStep(planType) {
+    const { balance, price, code } = this.data;
+
+    funnel.log('CALC_CHOOSE_NEXT', {
+      planType,
+      hasFreeTimes: false
+    });
+
+    wx.showActionSheet({
+      itemList: [
+        '直接开通会员，解锁完整方案',
+        '先参加 7 天风控训练营',
+        '邀请好友，免费获得使用次数'
+      ],
+      success: res => {
+        const idx = res.tapIndex;
+
+        // 记录埋点
+        funnel.log('CALC_CHOOSE_NEXT_RESULT', {
+          planType,
+          choiceIndex: idx
+        });
+
+        // 0: 直接开通会员
+        if (idx === 0) {
+          wx.navigateTo({
+            url:
+              `/pages/membership/index?type=${planType}` +
+              `&balance=${encodeURIComponent(balance)}` +
+              `&price=${encodeURIComponent(price)}` +
+              `&code=${encodeURIComponent(code || '')}`
+          });
+          return;
+        }
+
+        // 1: 先参加 7 天风控训练营
+        if (idx === 1) {
+          wx.navigateTo({
+            url: '/pages/campIntro/index'
+          });
+          return;
+        }
+
+        // 2: 邀请好友，免费获得使用次数 -> 去任务裂变页
+        if (idx === 2) {
+          wx.navigateTo({
+            url: `/pages/fissionTask/index?fromPlan=${planType}`
+          });
+        }
+      },
+      fail: err => {
+        console.log('[riskCalculator] actionSheet canceled or failed', err);
+      }
     });
   },
 

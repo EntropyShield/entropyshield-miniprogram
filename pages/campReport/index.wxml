@@ -1,0 +1,118 @@
+<view class="page">
+
+<!-- 顶部结果卡片 -->
+<view class="card card-result">
+  <view class="result-header">
+    <view>
+      <view class="result-title">测试结果 · 风控执行诊断</view>
+      <view class="result-sub">
+        基于你最近 7 天的打卡记录，生成一份「风控执行报告」。
+      </view>
+    </view>
+    <view class="badge">
+      {{ summary.levelTag || '风控画像' }}
+    </view>
+  </view>
+
+  <view class="summary-main">
+    <view class="score-circle">
+      <text class="score-value">{{ summary.score }}</text>
+      <text class="score-label">7 日风控执行总分</text>
+    </view>
+
+    <view class="score-tags">
+      <text class="score-tag">{{ summary.levelName }}</text>
+      <block wx:for="{{ summary.tags }}" wx:key="*this">
+        <text class="score-tag">{{ item }}</text>
+      </block>
+    </view>
+  </view>
+
+  <view class="meta-row">
+    完成度：
+    <text class="meta-strong">{{ summary.finishedDays }} / 7 天打卡</text>
+    · 优秀执行日
+    <text class="meta-strong">{{ summary.goodDays }}</text> 天
+  </view>
+
+  <view class="meta-row">
+    本周概览：
+    <text class="meta-strong">{{ summary.brief }}</text>
+  </view>
+</view>
+
+<!-- 7 日执行明细 -->
+<view class="card card-detail">
+  <view class="detail-title">7 日执行明细</view>
+  <view class="detail-sub">
+    每天的记录与分数，只对你本人可见，方便回顾自己的执行轨迹。
+  </view>
+
+  <block wx:for="{{ dayStats }}" wx:key="day">
+    <view class="day-row">
+      <view class="day-header">
+        <text class="day-name">{{ item.day }} · {{ item.name }}</text>
+        <text class="day-score">{{ item.scoreText }}</text>
+      </view>
+      <view class="day-desc">
+        {{ item.desc }}
+      </view>
+    </view>
+  </block>
+</view>
+
+<!-- AI 建议 -->
+<view class="card card-advice">
+  <view class="section-title">AI 风控助手给你的重点建议</view>
+  <view class="section-text">
+    <block wx:for="{{ advice.suggestions }}" wx:key="index">
+      <text>• {{ item }}</text>
+    </block>
+  </view>
+</view>
+
+<!-- 下一步 · 进阶控局者服务 -->
+<view class="card card-advice">
+  <view class="section-title">下一步 · 进阶控局者服务</view>
+  <view class="section-text">
+    根据你的 7 日执行表现，可以考虑用以下方式进一步强化风控系统：
+  </view>
+
+  <view class="btn-area">
+    <button
+      class="btn-primary"
+      bindtap="goMembership"
+    >
+      添加熵盾顾问，了解收费方案
+    </button>
+
+    <button
+      class="btn-secondary"
+      bindtap="goCampIntro"
+    >
+      返回训练营日历
+    </button>
+
+    <button
+      class="btn-ghost"
+      bindtap="goCalc"
+    >
+      去使用风控计算器
+    </button>
+  </view>
+</view>
+
+<!-- 说明 -->
+<view class="card card-notice">
+  <view class="notice-title">说明</view>
+  <view class="notice-text">
+    <text>
+      本报告仅用于交易风控能力训练，不构成任何投资建议或收益承诺。
+    </text>
+    <text>
+      请结合自身资金情况与风险承受能力，独立做出交易决策。
+    </text>
+  </view>
+</view>
+
+</view>

@@ -1,58 +1,95 @@
+<!-- pages/planAdvanced/index.wxml -->
 <view class="page pa-page">
-  <view class="card pa-card">
-    <view class="pa-title">风控方案加强版</view>
-    <view class="pa-sub">
-      无试用期，采用 <text class="pa-highlight">按年 / 半年收费</text> 模式，
-      面向进阶控局者与重度资金管理需求。
+  <!-- 顶部总览卡片 -->
+  <view class="card pa-summary">
+    <view class="pa-summary-header">
+      <text class="pa-tag">加强版 · 高阶风控方案</text>
     </view>
 
-    <view class="pa-info">
-      <text class="pa-label">标的代码：</text>
-      <text class="pa-value">{{code || '未填写'}}</text>
+    <view class="pa-summary-row">
+      <text class="pa-label">标的代码</text>
+      <text class="pa-value">{{code || '—'}}</text>
     </view>
-    <view class="pa-info">
-      <text class="pa-label">计划资金：</text>
-      <text class="pa-value">{{balance}} 元</text>
+    <view class="pa-summary-row">
+      <text class="pa-label">账户资金</text>
+      <text class="pa-value">{{totalCapital}} 元</text>
     </view>
-    <view class="pa-info">
-      <text class="pa-label">首次价格：</text>
-      <text class="pa-value">{{price}} 元</text>
+    <view class="pa-summary-row">
+      <text class="pa-label">首次买入价</text>
+      <text class="pa-value">{{firstPrice}} 元</text>
+    </view>
+    <view class="pa-summary-row">
+      <text class="pa-label">会员类型</text>
+      <text class="pa-value">{{membershipType || '高阶策略 · 演示版'}}</text>
+    </view>
+
+    <view class="pa-summary-split"></view>
+
+    <view class="pa-summary-row">
+      <text class="pa-label">目标收益价格</text>
+      <text class="pa-value pa-value-strong">{{targetPrice}} 元</text>
+    </view>
+    <view class="pa-summary-row">
+      <text class="pa-label">目标收益利润</text>
+      <text class="pa-value pa-value-strong">{{targetProfit}} 元</text>
     </view>
   </view>
 
-  <view class="card pa-card">
-    <view class="pa-sec-title">加强版风控方案明细</view>
+  <!-- 高阶分批建仓步骤与止损明细 -->
+  <view class="card pa-steps">
+    <view class="pa-section-title">高阶分批建仓步骤与止损明细</view>
 
     <block wx:for="{{steps}}" wx:key="label">
-      <view class="pa-step-row">
-        <text class="pa-step-label">{{item.label}}</text>
-        <view class="pa-step-right">
-          <text class="pa-step-text">执行价：{{item.price}} 元</text>
-          <text class="pa-step-text">数量：{{item.qty}} 手</text>
+      <view class="pa-step-block">
+        <view class="pa-step-header">
+          <view class="pa-step-dot"></view>
+          <text class="pa-step-title">{{item.label}}</text>
+        </view>
+
+        <view class="pa-step-grid">
+          <view class="pa-step-item">
+            <text class="pa-label">买入价</text>
+            <text class="pa-value">{{item.buyPrice}} 元</text>
+          </view>
+          <view class="pa-step-item">
+            <text class="pa-label">买入数量</text>
+            <text class="pa-value">{{item.buyShares}} 股</text>
+          </view>
+          <view class="pa-step-item">
+            <text class="pa-label">买入金额</text>
+            <text class="pa-value">{{item.buyAmount}} 元</text>
+          </view>
+          <view class="pa-step-item">
+            <text class="pa-label">止损价格（全出）</text>
+            <text class="pa-value pa-value-warning">{{item.stopPrice}} 元</text>
+          </view>
+          <view class="pa-step-item">
+            <text class="pa-label">止损金额</text>
+            <text class="pa-value pa-value-warning">{{item.stopAmount}} 元</text>
+          </view>
         </view>
       </view>
     </block>
-
-    <view class="pa-divider"></view>
-
-    <view class="pa-info">
-      <text class="pa-label">建议止损价：</text>
-      <text class="pa-highlight">{{stopPrice}} 元</text>
-    </view>
-    <view class="pa-info">
-      <text class="pa-label">目标止盈价：</text>
-      <text class="pa-highlight">{{targetPrice}} 元</text>
-    </view>
   </view>
 
-  <view class="card pa-card">
-    <view class="pa-sec-title">收费说明</view>
-    <view class="pa-fee-line">· 按年 / 半年一次性收费，无试用期。</view>
-    <view class="pa-fee-line">· 针对大资金、重度交易者设计，提供更严密的风控节奏。</view>
-    <view class="pa-fee-line">· 后续可叠加「熵盾 AI 风控监控」等高阶服务。</view>
-  </view>
-
+  <!-- 底部提示 -->
   <view class="pa-tip">
-    * 本页为示意方案与示意收费结构，具体价格与风控模型以熵盾正式上线为准。
+    * 本页为“加强版”演示方案，仅基于固定参数推演高阶风控结构，不构成任何买卖建议。
+  </view>
+
+  <!-- 底部按钮区域 -->
+  <view class="pa-bottom">
+    <view class="pa-btn pa-btn-outline" bindtap="goPayIntro">
+      想要更高阶服务 · 查看进阶控局者服务
+    </view>
+
+    <view class="pa-bottom-row">
+      <view class="pa-btn pa-btn-secondary" bindtap="goBackCalc">
+        返回风险计算器
+      </view>
+      <view class="pa-btn pa-btn-primary" bindtap="goHome">
+        返回首页
+      </view>
+    </view>
   </view>
 </view>

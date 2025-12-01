@@ -1,0 +1,150 @@
+<view class="page">
+
+<!-- 顶部提示卡片 -->
+<view class="card header-card">
+  <view class="header-top">
+    <view class="day-pill">
+      <text class="day-pill-text">{{dayLabel}}</text>
+    </view>
+    <text class="header-tip">
+      请按顺序完成今天的 4 个小任务，提交后即可完成今日打卡。
+    </text>
+  </view>
+  <text class="header-sub">
+    以上内容只用于你个人的风控训练与复盘记录，不会上报到任何服务器。
+  </text>
+</view>
+
+<!-- 区块 1：每日任务 -->
+<view class="card section-card">
+  <view class="section-title-row">
+    <text class="section-title">每日任务记录</text>
+    <text class="section-sub">今天你完成了哪些「固定动作」或计划任务？</text>
+  </view>
+
+  <view class="example-chip">
+    <text class="example-label">示例</text>
+    <text class="example-text">
+      按计划执行止损；只看自己可控的部分，不过度开新仓……
+    </text>
+  </view>
+
+  <textarea
+    class="note-input"
+    placeholder="简单写下：今天落实了哪些风控动作 / 计划任务。"
+    placeholder-style="color:#5f6368;"
+    auto-height="true"
+    bindinput="onInput"
+    data-field="dailyNote"
+    value="{{dailyNote}}"
+  />
+</view>
+
+<!-- 区块 2：实盘演练 -->
+<view class="card section-card">
+  <view class="section-title-row">
+    <text class="section-title">实盘演练记录</text>
+    <text class="section-sub">今天在实盘里做了哪些「刻意练习」？</text>
+  </view>
+
+  <view class="example-chip">
+    <text class="example-label">示例</text>
+    <text class="example-text">
+      用小仓位演练一次 4 次分批建仓；按计划执行一笔小止损……
+    </text>
+  </view>
+
+  <textarea
+    class="note-input"
+    placeholder="写下今天刻意练习了哪一条风控动作，例如：分批建仓、严格止损。"
+    placeholder-style="color:#5f6368;"
+    auto-height="true"
+    bindinput="onInput"
+    data-field="practiceNote"
+    value="{{practiceNote}}"
+  />
+</view>
+
+<!-- 区块 3：复盘清单 -->
+<view class="card section-card">
+  <view class="section-title-row">
+    <text class="section-title">复盘清单</text>
+    <text class="section-sub">用 3～5 行话，写下今天最值得记住的收获或踩坑。</text>
+  </view>
+
+  <view class="example-chip">
+    <text class="example-label">示例</text>
+    <text class="example-text">
+      今天最大的教训是 XX；哪一步做得很好，哪一步下次要改进……
+    </text>
+  </view>
+
+  <textarea
+    class="note-input"
+    placeholder="记录 1～3 个今天最重要的收获 / 教训。"
+    placeholder-style="color:#5f6368;"
+    auto-height="true"
+    bindinput="onInput"
+    data-field="reviewNote"
+    value="{{reviewNote}}"
+  />
+</view>
+
+<!-- 区块 4：风控作业 -->
+<view class="card section-card">
+  <view class="section-title-row">
+    <text class="section-title">风控作业</text>
+    <text class="section-sub">把今天最关键的一条「风控制度 / 规则微调」写下来。</text>
+  </view>
+
+  <view class="example-chip">
+    <text class="example-label">示例</text>
+    <text class="example-text">
+      单笔亏损不超过 2%；高风险阶段整体仓位不超过 30%……
+    </text>
+  </view>
+
+  <textarea
+    class="note-input"
+    placeholder="写下你准备长期坚持的一条小规则，比如：单笔亏损上限 / 看盘频率等。"
+    placeholder-style="color:#5f6368;"
+    auto-height="true"
+    bindinput="onInput"
+    data-field="homeworkNote"
+    value="{{homeworkNote}}"
+  />
+</view>
+
+<!-- 底部操作区 -->
+<view class="card action-card">
+  <button class="btn-ghost" bindtap="onSaveDraft">
+    先保存为草稿
+  </button>
+
+  <button class="btn-primary" bindtap="onSubmit">
+    提交并完成今日打卡
+  </button>
+
+  <button class="btn-secondary" bindtap="goBackCamp">
+    返回训练营日历
+  </button>
+
+  <button class="btn-ghost" bindtap="goHome">
+    返回熵盾首页
+  </button>
+</view>
+
+<!-- 底部说明 -->
+<view class="card notice-card">
+  <view class="notice-title">说明</view>
+  <view class="notice-text">
+    <text>
+      以上内容仅用于你个人风控能力训练与复盘记录，不会上报到任何服务器。
+    </text>
+    <text>
+      若你愿意在后期开启深度陪跑服务，可在教练授权后将这些记录导出分析。
+    </text>
+  </view>
+</view>
+
+</view>
