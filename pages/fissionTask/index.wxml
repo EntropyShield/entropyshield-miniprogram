@@ -4,7 +4,7 @@
 <view class="card card-invite">
   <view class="title">熵盾 · 裂变任务</view>
   <view class="subtitle">
-    将邀请码发给好友，让 TA 在训练营中填写你的邀请码，你就能获得完整方案次数奖励。
+    将邀请码发给好友，让 TA 在训练营中填写并绑定你的邀请码。好友从绑定、完成 D1，到首次完成 7 天训练营的关键进度，都会为你带来完整方案次数奖励。
   </view>
 
   <view class="invite-row">
@@ -18,7 +18,7 @@
 
   <view class="tips">
     <text>
-      每位控局者只有一个专属邀请码。好友首次绑定后，系统会记录邀请关系，后续 D1 / 完成 7 天都会算在你名下。
+      每位控局者只有一个专属邀请码。好友首次绑定后，系统会记录邀请关系；之后好友完成 D1 / 完成 7 天训练营，都会按规则计入你的裂变奖励，具体规则见下方「奖励说明」。
     </text>
   </view>
 </view>
@@ -117,4 +117,22 @@
   </button>
 </view>
 
+</view>
+
+<!-- 奖励说明（当前配置） -->
+<view class="card notice-card">
+<view class="notice-title">奖励说明（当前配置）</view>
+<view class="notice-text">
+  <text>· 自己参加训练营：</text>
+  <text>  完整打完一轮 7 天训练营，可获得 4 次完整风控方案次数；</text>
+  <text>  最多奖励 3 轮，共 12 次。</text>
+  <text> </text>
+  <text>· 邀请好友参加训练营（以 1 位好友为例）：</text>
+  <text>  1）好友成功填写并绑定你的邀请码 → 奖励 1 次；</text>
+  <text>  2）好友完成 D1 风控打卡 → 再奖励 1 次；</text>
+  <text>  3）好友首次完整完成 7/7 天训练营 → 再奖励 2 次；</text>
+  <text>  合计：每位完整参与一轮训练营的好友，会为你带来 4 次完整方案奖励。</text>
+  <text> </text>
+  <text>· 所有奖励都会自动累加到「剩余完整方案次数」中，在风控计算器里优先消耗奖励次数。</text>
+</view>
 </view>

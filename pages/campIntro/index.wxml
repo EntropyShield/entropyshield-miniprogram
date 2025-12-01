@@ -23,6 +23,19 @@
   </view>
 </view>
 
+<!-- 邀请码说明：被邀请人视角 -->
+<view class="card camp-invite-tip">
+  <view class="notice-title">关于邀请码与奖励</view>
+  <view class="notice-text">
+    <text class="camp-invite-tip-line">
+      · 如果你是通过好友的邀请码进来的：每完整完成一轮 7 天训练营，你自己可获得 4 次完整风控方案使用次数（最多 3 轮，共 12 次）；
+    </text>
+    <text class="camp-invite-tip-line">
+      · 同时，你也会帮邀请你的好友，再额外获得 4 次完整方案使用次数（绑定邀请码 + 完成 D1 + 完成 7/7 训练营）。
+    </text>
+  </view>
+</view>
+
 <!-- 你的控局者等级卡片 -->
 <view class="card grade-card">
   <view class="grade-header">

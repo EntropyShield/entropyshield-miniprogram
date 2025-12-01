@@ -2,6 +2,9 @@
 const app = getApp();
 const API_BASE = 'http://localhost:3000'; // 本地调试后端地址
 
+// 本地“待绑定的邀请码”的 key
+const PENDING_INVITE_KEY = 'pendingInviteCode';
+
 Page({
   data: {
     loading: true,
@@ -149,6 +152,9 @@ Page({
 
         // 同步“累计奖励次数”到本地 userRights.freeCalcTimes
         this.syncRewardsToUserRights(totalRewardTimes);
+
+        // 尝试用 pendingInviteCode / globalData 邀请码自动填入绑定框
+        this.prefillInviteCode(hasBoundInviter, myInviteCode);
       },
       fail: err => {
         console.error('[fissionTask] profile failed:', err);
@@ -205,6 +211,50 @@ Page({
   },
 
   /**
+   * 从 pendingInviteCode / globalData 中，自动填充绑定邀请码输入框
+   */
+  prefillInviteCode(hasBoundInviter, myInviteCode) {
+    try {
+      // 已经绑定过邀请人，就不需要 pending 了，顺便清理
+      if (hasBoundInviter) {
+        wx.removeStorageSync(PENDING_INVITE_KEY);
+        return;
+      }
+
+      // 1）本地 pendingInviteCode
+      const fromStorage =
+        (wx.getStorageSync(PENDING_INVITE_KEY) || '').toUpperCase().trim();
+
+      // 2）全局 inviteCode（有些入口可能先写在 globalData 里）
+      const appInstance = getApp && getApp();
+      const fromGlobal =
+        (appInstance &&
+          appInstance.globalData &&
+          appInstance.globalData.inviteCode) ||
+        '';
+      const fromGlobalUpper = fromGlobal.toUpperCase().trim();
+
+      // 优先用本地 pending，其次 global
+      let code = fromStorage || fromGlobalUpper;
+      if (!code) return;
+
+      // 防止填成自己的邀请码
+      if (myInviteCode && code === String(myInviteCode).toUpperCase()) {
+        return;
+      }
+
+      // 把 code 写入输入框
+      this.setData({
+        bindInviteCodeInput: code
+      });
+
+      console.log('[fissionTask] prefillInviteCode 使用 code =', code);
+    } catch (e) {
+      console.error('[fissionTask] prefillInviteCode error', e);
+    }
+  },
+
+  /**
    * 获取奖励日志，并生成统计信息 + 展示文案
    */
   fetchRewardLog(clientId) {
@@ -218,12 +268,11 @@ Page({
         console.log('[fissionTask] reward-log:', res.data);
 
         if (!res.data || !res.data.ok) {
+          const emptyStats = this.buildRewardStats([]);
           this.setData({
             rewardLogs: [],
-            rewardStats: this.buildRewardStats([]),
-            rewardSummaryText: this.buildRewardSummary(
-              this.buildRewardStats([])
-            ),
+            rewardStats: emptyStats,
+            rewardSummaryText: this.buildRewardSummary(emptyStats),
             loading: false
           });
           return;
@@ -439,6 +488,9 @@ Page({
           return;
         }
 
+        // 绑定成功后，清理 pendingInviteCode，避免下次再带出来
+        wx.removeStorageSync(PENDING_INVITE_KEY);
+
         wx.showToast({
           title: '绑定成功',
           icon: 'success',
@@ -476,5 +528,20 @@ Page({
     wx.reLaunch({
       url: '/pages/index/index'
     });
+  },
+
+  /**
+   * 顶部右上角“转发”时，自动带上我的邀请码
+   */
+  onShareAppMessage() {
+    const code = (this.data.myInviteCode || '').toUpperCase();
+    const path = code
+      ? `/pages/campIntro/index?inviteCode=${code}`
+      : '/pages/campIntro/index';
+
+    return {
+      title: '7 天风控训练营｜先控亏，再谈收益',
+      path
+    };
   }
 });

@@ -1,13 +1,15 @@
-// pages/campIntro/index.js 
+// pages/campIntro/index.js
 const { getLevelInfo } = require('../../utils/grade.js');
-const app = getApp();
-const API_BASE = 'http://localhost:3000';
 
-// ✅ 完成一轮 7 天训练营，赠送的完整风控方案使用次数（给自己）
+// ✅ 完成一轮 7 天训练营，赠送的完整风控方案使用次数
+// 想改成 3 次 / 5 次，直接改这里就可以
 const CAMP_REWARD_TIMES = 4;
 
 // ✅ 最多奖励的轮次（只奖励前三轮，从第四轮开始不再送）
 const MAX_REWARD_ROUNDS = 3;
+
+// 本地存放“待绑定邀请码”的 key
+const PENDING_INVITE_KEY = 'pendingInviteCode';
 
 Page({
   data: {
@@ -30,7 +32,38 @@ Page({
     }
   },
 
-  onLoad() {
+  /**
+   * 支持带 inviteCode 的分享链接进入：
+   * /pages/campIntro/index?inviteCode=TEST01
+   */
+  onLoad(options) {
+    try {
+      const raw = (options && options.inviteCode) || '';
+      const inviteCode = raw.toUpperCase().trim();
+
+      if (inviteCode) {
+        console.log('[campIntro] onLoad with inviteCode =', inviteCode);
+
+        // 1）写入全局（可选）
+        const app = getApp && getApp();
+        if (app && app.globalData) {
+          app.globalData.inviteCode = inviteCode;
+        }
+
+        // 2）写入本地“待绑定邀请码”
+        const oldPending =
+          (wx.getStorageSync(PENDING_INVITE_KEY) || '').toUpperCase().trim();
+
+        // 只在本地还没有 pending 时写入，避免覆盖用户后来自己填写的
+        if (!oldPending) {
+          wx.setStorageSync(PENDING_INVITE_KEY, inviteCode);
+          console.log('[campIntro] set pendingInviteCode =', inviteCode);
+        }
+      }
+    } catch (e) {
+      console.error('[campIntro] parse inviteCode error:', e);
+    }
+
     this.initCampAndGrade();
   },
 
@@ -136,7 +169,7 @@ Page({
       };
     }
 
-    // ---------- 完成 7/7 天训练营 → 赠送风控计算器完整方案次数（给自己） ----------
+    // ---------- 完成 7/7 天训练营 → 赠送风控计算器完整方案次数 ----------
     try {
       const userRights = wx.getStorageSync('userRights') || {};
       const hasRewarded = !!userRights.campRewardDone;  // 本轮是否已发过奖励
@@ -160,10 +193,6 @@ Page({
           icon: 'none',
           duration: 2500
         });
-
-        // ★ 新增：在此时顺便把“完成 7 天训练营”的奖励上报给后端
-        //      若当前控局者是某人的被邀请人，则为“邀请人”增加裂变奖励次数
-        this.notifyCampFinishReward();
       }
     } catch (e) {
       console.log('[campIntro] reward calc times error', e);
@@ -340,10 +369,7 @@ Page({
   },
 
   /**
-   * 去今日打卡：
-   * - 未完成 7 天：跳到第一个未完成的 Day
-   * - 已完成 7 天：清空本轮打卡记录，从 D1 重新开始；
-   *   如果累计奖励轮次 < MAX_REWARD_ROUNDS，则重置 campRewardDone
+   * 去今日打卡
    */
   goToday() {
     const finishedMap = wx.getStorageSync('campFinishedMap') || {};
@@ -417,20 +443,6 @@ Page({
     });
   },
 
-  /**
-   * ★ 新增：查看 / 修改当前 activeDay 的打卡记录
-   * （用于“已完成 D1 任务（查看 / 修改记录）”按钮）
-   */
-  goCurrentDay() {
-    const activeDay = this.data.activeDay || 'D1';
-    const tasks = this.tasks || this.buildTasks();
-    const task = tasks.find(t => t.day === activeDay) || tasks[0];
-
-    wx.navigateTo({
-      url: `/pages/campDaily/index?day=${activeDay}&dayName=${task.name}`
-    });
-  },
-
   // 查看 7 日风控执行报告
   goCampReport() {
     wx.navigateTo({
@@ -449,38 +461,6 @@ Page({
   goHome() {
     wx.switchTab({
       url: '/pages/index/index'
-    });
-  },
-
-  /**
-   * ★ 完成 7 天训练营时，上报给后端：
-   * 若当前控局者是某人的「被邀请人」，则为邀请人增加裂变奖励次数
-   */
-  notifyCampFinishReward() {
-    const clientId =
-      (app.globalData && app.globalData.clientId) ||
-      wx.getStorageSync('clientId');
-
-    if (!clientId) {
-      console.warn('[campIntro] 缺少 clientId，无法上报 7 天完成奖励');
-      return;
-    }
-
-    wx.request({
-      url: `${API_BASE}/api/fission/camp/finish`,
-      method: 'POST',
-      header: {
-        'content-type': 'application/json'
-      },
-      data: {
-        clientId
-      },
-      success: res => {
-        console.log('[campIntro] camp finish reward result:', res.data);
-      },
-      fail: err => {
-        console.error('[campIntro] camp finish reward request failed:', err);
-      }
     });
   }
 });
