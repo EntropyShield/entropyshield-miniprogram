@@ -1,126 +1,130 @@
 <view class="page">
 
-<!-- 卡片 1：我的邀请码 -->
+<!-- 卡片 1：我的邀请码（复制给好友） -->
 <view class="card">
-  <view class="card-title-row">
-    <text class="card-title">我的邀请码</text>
-    <button class="btn-mini" bindtap="onCopyMyInviteCode">复制</button>
+  <view class="card-title">
+    熵盾 · 风控卫士
   </view>
 
-  <view class="invite-code-box">
-    <text class="invite-code-text">
-      {{myInviteCode || '正在生成中…'}}
-    </text>
+  <view class="card-sub">
+    将邀请码发给好友，让 TA 在训练营中填写你的邀请码，
+    你就能获得完整方案次数奖励。
   </view>
 
-  <view class="card-desc">
-    将邀请码发给好友，让 TA 在训练营中填写你的邀请码，你就能获得完整方案次数奖励。
-  </view>
-</view>
-
-<!-- 卡片 2：绑定好友的邀请码 -->
-<view class="card">
-  <view class="card-title-row">
-    <text class="card-title">绑定好友的邀请码</text>
-  </view>
-
-  <view class="bind-row">
-    <input
-      class="bind-input"
-      placeholder="请输入好友的邀请码（如 TEST01）"
-      placeholder-style="color:#5f6368;"
-      bindinput="onInputBindCode"
-      value="{{bindInviteCodeInput}}"
-    />
-    <button
-      class="btn-bind"
-      bindtap="onBindInviteCode"
-      disabled="{{hasBoundInviter}}"
-    >
-      {{hasBoundInviter ? '已绑定' : '绑定'}}
+  <view class="invite-row">
+    <view class="invite-code-box">
+      <text class="invite-code-text">{{inviteCode || '暂无邀请码'}}</text>
+    </view>
+    <button class="btn-mini" bindtap="onCopyInviteCode">
+      复制
     </button>
   </view>
 
-  <view class="card-desc">
-    提示：每个账号只能绑定 1 位邀请人，绑定后无法修改，请谨慎确认。
-  </view>
-
-  <view wx:if="{{hasBoundInviter}}" class="card-desc-strong">
-    当前已绑定邀请人邀请码：{{invitedByCode}}
+  <view class="card-note">
+    邀请码是你在熵盾体系里的「专属身份码」，后续也可以用于其他活动。
   </view>
 </view>
 
-<!-- 卡片 3：我的裂变奖励汇总 -->
+<!-- 卡片 2：填写好友的邀请码（绑定邀请人） -->
 <view class="card">
-  <view class="card-title-row">
-    <text class="card-title">我的裂变奖励</text>
+  <view class="card-title">
+    填写好友的邀请码（只能绑定一次）
   </view>
 
-  <view class="reward-summary">
-    <text>{{rewardSummaryText}}</text>
+  <view class="card-sub">
+    填写一次即可永久绑定邀请关系，绑定后不可更改，请谨慎确认。
   </view>
 
-  <view wx:if="{{rewardStats.total > 0}}" class="reward-stats">
-    <view class="reward-stat-row" wx:if="{{rewardStats.fromCampD1 > 0}}">
-      <text class="reward-stat-label">好友完成 D1 奖励</text>
-      <text class="reward-stat-value">+{{rewardStats.fromCampD1}}</text>
-    </view>
-    <view class="reward-stat-row" wx:if="{{rewardStats.fromCampFinish > 0}}">
-      <text class="reward-stat-label">好友完成 7 天训练营奖励</text>
-      <text class="reward-stat-value">+{{rewardStats.fromCampFinish}}</text>
-    </view>
-    <view class="reward-stat-row" wx:if="{{rewardStats.fromInviteBind > 0}}">
-      <text class="reward-stat-label">填写邀请码绑定奖励</text>
-      <text class="reward-stat-value">+{{rewardStats.fromInviteBind}}</text>
-    </view>
-    <view class="reward-stat-row" wx:if="{{rewardStats.fromOther > 0}}">
-      <text class="reward-stat-label">其他奖励</text>
-      <text class="reward-stat-value">+{{rewardStats.fromOther}}</text>
-    </view>
+  <input
+    class="input"
+    placeholder="在这里填写好友的邀请码"
+    placeholder-style="color:#5f6368;"
+    bindinput="onInputBindCode"
+    value="{{bindCode}}"
+  />
+
+  <button class="btn-primary" bindtap="onBindInviteCode">
+    {{hasBoundInviter ? '已绑定邀请人' : '绑定'}}
+  </button>
+
+  <view class="card-note">
+    提示：每个账号只允许绑定 1 位邀请人，绑定后无法修改。
+  </view>
+</view>
+
+<!-- 卡片 3：我的裂变奖励统计 -->
+<view class="card">
+  <view class="card-title">
+    我的裂变奖励
   </view>
 
-  <view class="card-desc">
-    每获得 1 次裂变奖励，我们会自动为你在本地增加 1 次「完整风控计算方案」次数，
-    并叠加到风控计算器首页的「剩余完整方案」中。
+  <view class="reward-summary-main">
+    <text class="reward-total">{{totalRewardTimes}}</text>
+    <text class="reward-unit">累计获得完整方案次数（后端统计）</text>
+  </view>
+
+  <view class="reward-summary-sub">
+    <text>已同步到账户：{{syncedRewardTimes}} 次</text>
+    <text wx:if="{{newRewardDelta > 0}}">
+      本次新同步 {{newRewardDelta}} 次，当前「剩余完整方案」约为 {{calcFreeTimes}} 次。
+    </text>
+    <text wx:else>
+      当前「剩余完整方案」约为 {{calcFreeTimes}} 次。
+    </text>
+  </view>
+
+  <view class="card-note">
+    每获得 1 次裂变奖励，我们会自动帮你在本地增加 1 次「完整风险计算方案」次数，
+    并叠加到风控计算器首页看到的「剩余完整方案次数」中。
   </view>
 </view>
 
 <!-- 卡片 4：奖励明细列表 -->
 <view class="card">
-  <view class="card-title-row">
-    <text class="card-title">奖励明细</text>
+  <view class="card-title">
+    奖励明细
   </view>
 
-  <block wx:if="{{rewardLogs.length > 0}}">
+  <view wx:if="{{rewardLogs.length === 0}}" class="card-sub">
+    目前还没有裂变奖励记录，先邀请 1 位好友体验训练营吧。
+  </view>
+
+  <view wx:else>
     <block wx:for="{{rewardLogs}}" wx:key="id">
-      <view class="reward-log-row">
-        <view class="reward-log-main">
-          <text class="reward-log-title">{{item._title}}</text>
-          <text class="reward-log-desc">
-            {{item.remark || '系统记录'}}
-          </text>
+      <view class="reward-item">
+        <view class="reward-item-header">
+          <text class="reward-item-title">{{item.title}}</text>
+          <text class="reward-item-time">{{item.createdAt}}</text>
         </view>
-        <view class="reward-log-meta">
-          <text class="reward-log-times">+{{item.reward_times}}</text>
-          <text class="reward-log-date">{{item._date}}</text>
+
+        <view class="reward-item-body">
+          <text class="reward-item-sub">{{item.sub}}</text>
+          <view class="reward-item-badge">
+            +{{item.rewardTimes}} 次
+          </view>
         </view>
       </view>
     </block>
-  </block>
-
-  <view wx:else class="empty-tip">
-    暂时还没有裂变奖励记录，可以先邀请 1 位好友体验风控训练营。
   </view>
 </view>
 
-<!-- 底部操作 -->
-<view class="card action-card">
-  <button class="btn-primary" bindtap="goUseCalc">
-    立即使用风控计算器
-  </button>
+<!-- 底部说明 + 返回首页 -->
+<view class="card notice-card">
+  <view class="notice-title">玩法说明</view>
+  <view class="notice-text">
+    <text>
+      你邀请的好友在训练营中认真打卡，我们会按照「绑定成功 + D1 完成 + 7/7 完成」
+      给你发放完整方案次数。
+    </text>
+    <text>
+      所有奖励都以风控能力训练为核心，不构成任何收益承诺。
+    </text>
+  </view>
+
   <button class="btn-ghost" bindtap="goHome">
     返回熵盾首页
   </button>
 </view>
 
 </view>
+<text>奖励明细（测试）</text>
