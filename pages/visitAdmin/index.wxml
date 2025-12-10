@@ -1,0 +1,125 @@
+<view class="page">
+
+<!-- 顶部标题 -->
+<view class="admin-header">
+  <text class="admin-title">来访管理</text>
+  <text class="admin-subtitle">
+    一屏查看所有预约，及时确认 / 完成 / 取消。
+  </text>
+</view>
+
+<!-- 状态筛选 Tab -->
+<view class="status-tabs">
+  <block wx:for="{{statusTabs}}" wx:key="key">
+    <view
+      class="status-tab {{activeStatus === item.key ? 'active' : ''}}"
+      data-key="{{item.key}}"
+      bindtap="onStatusTabTap"
+    >
+      <text class="status-tab-label">{{item.label}}</text>
+      <text class="status-tab-count">
+        {{counters[item.key] || 0}}
+      </text>
+    </view>
+  </block>
+</view>
+
+<!-- 列表区域 -->
+<view wx:if="{{filteredList.length > 0}}" class="list-wrap">
+  <block wx:for="{{filteredList}}" wx:key="id">
+    <view class="visit-card">
+
+      <!-- 第一行：日期 + 时间段 + 状态徽章 -->
+      <view class="visit-top-row">
+        <view class="visit-date-time">
+          <text class="visit-date">{{item.visitDateDisplay}}</text>
+          <text class="visit-dot">·</text>
+          <text class="visit-time">{{item.visitTimeRange || '时间未填'}}</text>
+        </view>
+
+        <view class="status-pill {{statusClassMap[item.status]}}">
+          {{statusTextMap[item.status] || '未知状态'}}
+        </view>
+      </view>
+
+      <!-- 详细信息 -->
+      <view class="visit-row">
+        <text class="visit-label">称呼：</text>
+        <text class="visit-value">{{item.name || '—'}}</text>
+      </view>
+
+      <view class="visit-row">
+        <text class="visit-label">电话：</text>
+        <text class="visit-value">{{item.mobile || '—'}}</text>
+      </view>
+
+      <view class="visit-row">
+        <text class="visit-label">目的：</text>
+        <text class="visit-value">{{item.purpose || '未填写'}}</text>
+      </view>
+
+      <view class="visit-row">
+        <text class="visit-label">备注：</text>
+        <text class="visit-value">{{item.remark || '—'}}</text>
+      </view>
+
+      <view class="visit-row visit-meta">
+        <text class="visit-label">提交时间：</text>
+        <text class="visit-value">{{item.createdAt}}</text>
+      </view>
+
+      <view class="visit-row visit-meta">
+        <text class="visit-label">ID：</text>
+        <text class="visit-value">#{{item.id}} · {{item.clientId}}</text>
+      </view>
+
+      <!-- 底部操作按钮 -->
+      <view class="btn-row">
+        <view class="btn-group">
+          <button
+            class="btn-small btn-confirm"
+            size="mini"
+            data-id="{{item.id}}"
+            data-status="1"
+            disabled="{{item.status === 2 || item.status === 3}}"
+            bindtap="onUpdateStatusTap"
+          >
+            确认
+          </button>
+
+          <button
+            class="btn-small btn-done"
+            size="mini"
+            data-id="{{item.id}}"
+            data-status="2"
+            disabled="{{item.status === 2 || item.status === 3}}"
+            bindtap="onUpdateStatusTap"
+          >
+            完成
+          </button>
+
+          <button
+            class="btn-small btn-cancel"
+            size="mini"
+            data-id="{{item.id}}"
+            data-status="3"
+            disabled="{{item.status === 3}}"
+            bindtap="onUpdateStatusTap"
+          >
+            取消
+          </button>
+        </view>
+      </view>
+
+    </view>
+  </block>
+</view>
+
+<!-- 空状态 -->
+<view wx:else class="empty">
+  <text class="empty-text">
+    当前筛选下暂无预约记录。
+  </text>
+</view>
+
+</view>

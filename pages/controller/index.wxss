@@ -1,0 +1,222 @@
+.page {
+  background-color: #0d0d0d;
+  min-height: 100vh;
+  padding: 40rpx 24rpx 32rpx;
+  box-sizing: border-box;
+}
+
+/* 顶部 hero */
+.hero-card {
+  display: flex;
+  justify-content: space-between;
+  padding: 24rpx 22rpx;
+  border-radius: 28rpx;
+  background: linear-gradient(135deg, #11141b, #171e27);
+  border: 1rpx solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 16rpx 40rpx rgba(0, 0, 0, 0.7);
+}
+
+.hero-left {
+  flex: 1;
+  padding-right: 16rpx;
+}
+
+.hero-label {
+  font-size: 22rpx;
+  color: #2aff2a;
+  padding: 2rpx 12rpx;
+  border-radius: 999rpx;
+  border: 1rpx solid rgba(42, 255, 42, 0.6);
+  background-color: rgba(42, 255, 42, 0.06);
+}
+
+.hero-title {
+  margin-top: 8rpx;
+  font-size: 30rpx;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.hero-desc {
+  margin-top: 4rpx;
+  font-size: 22rpx;
+  color: #a9b2c2;
+  line-height: 1.4;
+}
+
+.hero-right {
+  width: 220rpx;
+  padding-left: 18rpx;
+  border-left: 1rpx solid rgba(255, 255, 255, 0.08);
+}
+
+.hero-stat {
+  margin-bottom: 8rpx;
+}
+
+.hero-stat-label {
+  font-size: 22rpx;
+  color: #9ea2ac;
+}
+
+.hero-stat-value {
+  display: block;
+  margin-top: 2rpx;
+  font-size: 26rpx;
+  color: #ffffff;
+  font-weight: 500;
+}
+
+.hero-stat-tag {
+  margin-top: 8rpx;
+  padding: 4rpx 10rpx;
+  border-radius: 16rpx;
+  border: 1rpx solid rgba(169, 178, 194, 0.4);
+  font-size: 22rpx;
+  color: #a9b2c2;
+  text-align: center;
+}
+
+/* 通用 section 卡片 */
+.section-card {
+  margin-top: 28rpx;
+  border-radius: 24rpx;
+  background-color: #14171c;
+  border: 1rpx solid rgba(255, 255, 255, 0.06);
+  padding: 18rpx 18rpx 16rpx;
+}
+
+.section-card-small {
+  margin-bottom: 24rpx;
+}
+
+.section-tag {
+  font-size: 26rpx;
+  color: #ffffff;
+  font-weight: 500;
+}
+
+.section-body {
+  margin-top: 10rpx;
+}
+
+.row-label {
+  font-size: 22rpx;
+  color: #8a8f99;
+}
+
+.row-value {
+  font-size: 24rpx;
+  color: #ffffff;
+  font-weight: 500;
+}
+
+.row-text {
+  font-size: 22rpx;
+  color: #c0c6d2;
+  line-height: 1.5;
+}
+
+.section-footer {
+  margin-top: 10rpx;
+}
+
+.section-tip {
+  font-size: 22rpx;
+  color: #9ea2ac;
+}
+
+/* ============================
+   A 区：三行按钮统一右对齐
+   ============================ */
+
+.section-a-row {
+  display: flex;
+  align-items: flex-start;
+  margin-top: 24rpx;      /* 加大上下间距 */
+}
+
+.section-a-row-top {
+  margin-top: 0;
+}
+
+.section-a-main {
+  flex: 1;
+  padding-right: 16rpx;
+}
+
+.section-a-title {
+  font-size: 24rpx;
+  color: #ffffff;
+  font-weight: 500;
+}
+
+.section-a-sub {
+  margin-top: 4rpx;
+  font-size: 22rpx;
+  color: #a9b2c2;
+  line-height: 1.4;
+}
+
+.section-a-btn-wrap {
+  flex-shrink: 0;
+}
+
+.section-a-btn {
+  min-width: 220rpx;
+  height: 64rpx;
+  line-height: 64rpx;
+  padding: 0 24rpx;
+  border-radius: 999rpx;
+  border: 0;
+  background-color: #2aff2a;
+  color: #050608;
+  font-size: 24rpx;
+  text-align: center;
+}
+
+.section-a-btn::after {
+  border: none;
+}
+
+/* 当前进度 & 训练目标 */
+.section-meta {
+  margin-top: 22rpx;   /* 与按钮区拉开一点距离 */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.section-goal {
+  margin-top: 10rpx;
+}
+
+.section-goal-text {
+  display: block;
+}
+
+/* ============================
+   B 区：近期课程与预约
+   ============================ */
+
+.section-header-b {
+  margin-bottom: 4rpx;
+}
+
+.section-sub-line {
+  font-size: 22rpx;
+  color: #8a8f99;
+}
+
+/* 单段说明文案 */
+.section-row-single {
+  margin-top: 12rpx;
+}
+
+/* ============================
+   C 区：课程预约与渠道数据
+   ============================ */
+
+.section-header-c {
+  margin-bottom: 6rpx;
+}

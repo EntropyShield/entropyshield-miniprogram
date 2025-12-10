@@ -1,0 +1,6 @@
+<!-- pages/course/index.wxml -->
+<view class="page">
+  <view class="hint">
+    这里是课程模块占位页，当前版本未启用。
+  </view>
+</view>

@@ -1,0 +1,97 @@
+<view class="page">
+  <view class="page-body">
+    <view class="page-title">我的课程进度</view>
+    <view class="page-subtitle">查看训练营与多课的完成情况</view>
+
+    <!-- 顶部筛选标签 -->
+    <view class="tabs">
+      <view
+        class="tab-item {{filterType === 'all' ? 'tab-item-active' : ''}}"
+        data-type="all"
+        bindtap="onChangeFilter"
+      >
+        全部
+      </view>
+      <view
+        class="tab-item {{filterType === 'in_progress' ? 'tab-item-active' : ''}}"
+        data-type="in_progress"
+        bindtap="onChangeFilter"
+      >
+        进行中
+      </view>
+      <view
+        class="tab-item {{filterType === 'not_started' ? 'tab-item-active' : ''}}"
+        data-type="not_started"
+        bindtap="onChangeFilter"
+      >
+        未开始
+      </view>
+      <view
+        class="tab-item {{filterType === 'finished' ? 'tab-item-active' : ''}}"
+        data-type="finished"
+        bindtap="onChangeFilter"
+      >
+        已完成
+      </view>
+    </view>
+
+    <!-- 加载 & 错误 & 空态 -->
+    <view wx:if="{{loading}}" class="tip-text">
+      加载中…
+    </view>
+
+    <view wx:elif="{{errorMsg}}" class="tip-text tip-error">
+      {{errorMsg}}
+    </view>
+
+    <view wx:elif="{{!loading && !errorMsg && list.length === 0}}" class="tip-text">
+      暂时还没有课程进度记录，先去课程日历中加入一门课吧。
+    </view>
+
+    <!-- 课程进度列表 -->
+    <scroll-view
+      wx:if="{{!loading && !errorMsg && list.length > 0}}"
+      scroll-y="true"
+      class="list-scroll"
+    >
+      <block wx:for="{{list}}" wx:key="id">
+        <view class="course-card" bindtap="onTapCourse" data-id="{{item.id}}">
+          <view class="card-header">
+            <view class="title-col">
+              <text class="dot"></text>
+              <text class="title">{{item.title}}</text>
+            </view>
+
+            <!-- 状态标签：点击可以更新进度 -->
+            <view
+              class="status-tag status-{{item.status}}"
+              catchtap="onTapUpdateProgress"
+              data-id="{{item.id}}"
+              data-status="{{item.status}}"
+              data-progress="{{item.progress}}"
+            >
+              {{item.statusText}}
+            </view>
+          </view>
+
+          <view class="card-meta">
+            <text class="time">{{item.timeText}}</text>
+            <text class="price">{{item.priceText}}</text>
+          </view>
+
+          <view class="progress-row">
+            <view class="progress-bar">
+              <view
+                class="progress-bar-inner"
+                style="width: {{item.progressPercent}}%;"
+              ></view>
+            </view>
+            <text class="progress-text">
+              已完成 {{item.progressPercent}}%
+            </text>
+          </view>
+        </view>
+      </block>
+    </scroll-view>
+  </view>
+</view>

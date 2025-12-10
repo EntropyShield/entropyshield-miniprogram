@@ -1,0 +1,149 @@
+/* 课程日历列表页样式 */
+
+.page {
+  padding: 24rpx 24rpx 40rpx;
+  background-color: #050608;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+.page-header {
+  margin-bottom: 24rpx;
+}
+
+.title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.subtitle {
+  margin-top: 6rpx;
+  font-size: 24rpx;
+  color: #9aa0b3;
+}
+
+/* 筛选栏 */
+.filter-bar {
+  margin-bottom: 20rpx;
+  padding: 8rpx;
+  border-radius: 999rpx;
+  background: #101218;
+  display: flex;
+  justify-content: space-between;
+}
+
+.filter-item {
+  flex: 1;
+  text-align: center;
+  padding: 10rpx 0;
+  font-size: 24rpx;
+  color: #9aa0b3;
+  border-radius: 999rpx;
+}
+
+.filter-item.active {
+  background: #1c222b;
+  color: #2aff2a;
+  font-weight: 500;
+}
+
+/* 提示 */
+.hint {
+  margin-top: 40rpx;
+  text-align: center;
+  font-size: 24rpx;
+  color: #9aa0b3;
+}
+
+.hint.error {
+  color: #ff5c7a;
+}
+
+/* 日期分组 */
+.date-group {
+  margin-top: 24rpx;
+}
+
+.date-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 12rpx;
+}
+
+.date-text {
+  font-size: 26rpx;
+  color: #ffffff;
+  font-weight: 500;
+}
+
+.date-count {
+  font-size: 22rpx;
+  color: #696f80;
+}
+
+/* 课程卡片 */
+.course-card {
+  margin-bottom: 16rpx;
+  padding: 18rpx 20rpx;
+  border-radius: 20rpx;
+  background: #101218;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.course-main {
+  flex: 1;
+  padding-right: 20rpx;
+}
+
+.course-title {
+  font-size: 26rpx;
+  font-weight: 500;
+  color: #ffffff;
+  margin-bottom: 8rpx;
+}
+
+.course-meta {
+  font-size: 22rpx;
+  color: #9aa0b3;
+}
+
+/* 状态 + 进度条 */
+.course-status {
+  width: 160rpx;
+}
+
+.status-text {
+  font-size: 22rpx;
+  text-align: right;
+  margin-bottom: 8rpx;
+}
+
+/* 状态颜色 */
+.course-status.not_started .status-text {
+  color: #2aff2a;
+}
+.course-status.in_progress .status-text {
+  color: #ffd66b;
+}
+.course-status.finished .status-text {
+  color: #9aa0b3;
+}
+
+/* 进度条 */
+.progress-bar {
+  width: 100%;
+  height: 8rpx;
+  border-radius: 999rpx;
+  background: #22252f;
+  overflow: hidden;
+}
+
+.progress-inner {
+  height: 100%;
+  border-radius: 999rpx;
+  background: #2aff2a;
+}

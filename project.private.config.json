@@ -17,18 +17,25 @@
     "showES6CompileOption": false,
     "bigPackageSizeSupport": false,
     "checkInvalidKey": true,
-    "ignoreDevUnusedFiles": true
+    "ignoreDevUnusedFiles": false
   },
   "libVersion": "3.11.1",
   "condition": {
     "miniprogram": {
       "list": [
         {
-          "name": "测试结果页",
-          "pathName": "pages/resultCommon/index",
-          "query": "type=loss&score=72&level=high",
+          "name": "来访管理页",
+          "pathName": "pages/visitAdmin/index",
+          "query": "",
           "scene": null,
           "launchMode": "default"
+        },
+        {
+          "name": "测试结果页",
+          "pathName": "pages/index/index",
+          "query": "type=loss&score=72&level=high",
+          "launchMode": "default",
+          "scene": null
         }
       ]
     }

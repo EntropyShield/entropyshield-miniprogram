@@ -1,0 +1,76 @@
+<view class="page">
+  <block wx:if="{{loading}}">
+    <view class="loading-text">加载中...</view>
+  </block>
+
+  <block wx:if="{{!loading && list.length === 0}}">
+    <view class="empty">
+      <view class="empty-title">暂无来访预约</view>
+      <view class="empty-desc">可以先去提交一条来访预约</view>
+      <button class="primary-btn" bindtap="goBooking">去预约</button>
+    </view>
+  </block>
+
+  <block wx:if="{{!loading && list.length > 0}}">
+    <view class="list">
+      <block wx:for="{{list}}" wx:key="id">
+        <view class="card">
+          <view class="card-header">
+            <!-- 美化后的日期 + 时间段 -->
+            <view class="date-row">
+              <text class="date-main">{{item.visitDateDisplay}}</text>
+              <text class="date-dot">·</text>
+              <text class="date-time">{{item.visitTimeRange}}</text>
+            </view>
+
+            <view class="status {{statusClassMap[item.status]}}">
+              {{statusTextMap[item.status]}}
+            </view>
+          </view>
+
+          <view class="row">
+            <text class="label">称呼：</text>
+            <text class="value">{{item.name}}</text>
+          </view>
+
+          <view class="row">
+            <text class="label">目的：</text>
+            <text class="value">{{item.purpose || '未填写'}}</text>
+          </view>
+
+          <view class="row" wx:if="{{item.remark}}">
+            <text class="label">备注：</text>
+            <text class="value">{{item.remark}}</text>
+          </view>
+
+          <view class="row created-at">
+            <text class="label">提交时间：</text>
+            <text class="value">{{item.createdAt}}</text>
+          </view>
+
+          <!-- 底部 footer：只在 待确认(0) / 已确认(1) 时显示 -->
+          <view
+            class="card-footer"
+            wx:if="{{item.status === 0 || item.status === 1}}"
+          >
+            <view class="card-footer-left">
+              <text class="footer-tip">
+                如行程有变，可提前取消本次预约
+              </text>
+            </view>
+            <button
+            class="card-footer-btn"
+            wx:if="{{item.status === 0 || item.status === 1}}"
+            data-id="{{item.id}}"
+            data-status="{{item.status}}"
+            bindtap="onCancelVisit"
+          >
+            取消预约
+          </button>
+
+          </view>
+        </view>
+      </block>
+    </view>
+  </block>
+</view>

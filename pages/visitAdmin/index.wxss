@@ -1,0 +1,216 @@
+.page {
+  background-color: #0d0d0d;
+  min-height: 100vh;
+  padding: 24rpx;
+  box-sizing: border-box;
+}
+
+/* 顶部标题 */
+
+.admin-header {
+  margin-bottom: 20rpx;
+}
+
+.admin-title {
+  font-size: 32rpx;
+  color: #ffffff;
+  font-weight: 600;
+  margin-bottom: 6rpx;
+}
+
+.admin-subtitle {
+  font-size: 22rpx;
+  color: #8a8d93;
+}
+
+/* 状态筛选 Tab */
+
+.status-tabs {
+  display: flex;
+  align-items: center;
+  background: #16181d;
+  border-radius: 9999rpx;
+  padding: 4rpx;
+  margin-bottom: 18rpx;
+}
+
+.status-tab {
+  flex: 1;
+  padding: 10rpx 0;
+  border-radius: 9999rpx;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.status-tab-label {
+  font-size: 22rpx;
+  color: #8a8d93;
+}
+
+.status-tab-count {
+  margin-top: 2rpx;
+  font-size: 20rpx;
+  color: #4b4f59;
+}
+
+.status-tab.active {
+  background: linear-gradient(90deg, #18b74b, #2aff2a);
+}
+
+.status-tab.active .status-tab-label {
+  color: #020305;
+  font-weight: 600;
+}
+
+.status-tab.active .status-tab-count {
+  color: #020305;
+}
+
+/* 列表卡片 */
+
+.list-wrap {
+  margin-top: 4rpx;
+}
+
+.visit-card {
+  background: #16181d;
+  border-radius: 24rpx;
+  padding: 20rpx 20rpx 16rpx;
+  margin-bottom: 16rpx;
+}
+
+.visit-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12rpx;
+}
+
+.visit-date-time {
+  display: flex;
+  align-items: center;
+  font-size: 24rpx;
+  color: #ffffff;
+}
+
+.visit-date {
+  font-weight: 600;
+}
+
+.visit-dot {
+  margin: 0 6rpx;
+  color: #8a8d93;
+}
+
+.visit-time {
+  font-size: 24rpx;
+  color: #c4c7ce;
+}
+
+/* 状态徽章 */
+
+.status-pill {
+  padding: 4rpx 12rpx;
+  border-radius: 9999rpx;
+  font-size: 20rpx;
+  font-weight: 500;
+}
+
+.status-pill-pending {
+  background: rgba(255, 184, 0, 0.16);
+  color: #ffb800;
+}
+
+.status-pill-confirmed {
+  background: rgba(0, 160, 255, 0.18);
+  color: #00a0ff;
+}
+
+.status-pill-done {
+  background: rgba(42, 255, 42, 0.18);
+  color: #2aff2a;
+}
+
+.status-pill-cancel {
+  background: rgba(255, 71, 71, 0.18);
+  color: #ff4747;
+}
+
+/* 文本行 */
+
+.visit-row {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 4rpx;
+}
+
+.visit-label {
+  width: 140rpx;
+  font-size: 22rpx;
+  color: #8a8d93;
+}
+
+.visit-value {
+  flex: 1;
+  font-size: 22rpx;
+  color: #ffffff;
+}
+
+.visit-meta .visit-label {
+  color: #6f727a;
+}
+
+.visit-meta .visit-value {
+  color: #a6a9b0;
+}
+
+/* 按钮区域 */
+
+.btn-row {
+  margin-top: 12rpx;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-group {
+  display: flex;
+  gap: 12rpx;
+}
+
+.btn-small {
+  padding: 0 22rpx;
+  height: 56rpx;
+  line-height: 56rpx;
+  border-radius: 9999rpx;
+  font-size: 22rpx;
+  border: none;
+}
+
+.btn-confirm {
+  background: rgba(0, 160, 255, 0.2);
+  color: #00a0ff;
+}
+
+.btn-done {
+  background: rgba(42, 255, 42, 0.2);
+  color: #2aff2a;
+}
+
+.btn-cancel {
+  background: rgba(255, 71, 71, 0.2);
+  color: #ff4747;
+}
+
+/* 空状态 */
+
+.empty {
+  margin-top: 80rpx;
+  text-align: center;
+}
+
+.empty-text {
+  font-size: 24rpx;
+  color: #8a8d93;
+}

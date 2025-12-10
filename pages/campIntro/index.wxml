@@ -23,7 +23,7 @@
   </view>
 </view>
 
-<!-- 邀请码说明：被邀请人视角 -->
+<!-- 邀邀请码说明：被邀请人视角 -->
 <view class="card camp-invite-tip">
   <view class="notice-title">关于邀请码与奖励</view>
   <view class="notice-text">
@@ -33,6 +33,58 @@
     <text class="camp-invite-tip-line">
       · 同时，你也会帮邀请你的好友，再额外获得 4 次完整方案使用次数（绑定邀请码 + 完成 D1 + 完成 7/7 训练营）。
     </text>
+  </view>
+</view>
+
+<!-- 邀请关系展示：当前是否已绑定邀请人 -->
+<view class="card invite-status-card">
+  <view class="invite-status-title">我的邀请关系</view>
+
+  <!-- 已绑定邀请人 -->
+  <view wx:if="{{hasBoundInviter}}">
+    <view class="invite-status-main">
+      <text class="invite-status-strong">
+        已绑定邀请人邀请码：{{invitedByCode}}
+      </text>
+    </view>
+    <view class="invite-status-sub">
+      <text>
+        你完成本轮 7 天训练营后，Ta 将获得对应的裂变奖励次数。
+      </text>
+    </view>
+  </view>
+
+  <!-- 尚未绑定，但入口带着好友的邀请码 -->
+  <view wx:elif="{{entryInviteCode}}">
+    <view class="invite-status-main">
+      <text class="invite-status-strong">
+        你是通过好友的邀请码 {{entryInviteCode}} 进入训练营。
+      </text>
+    </view>
+    <view class="invite-status-sub">
+      <text>
+        完成 D1 后，记得去绑定 Ta 的邀请码，领取你自己的奖励。
+      </text>
+    </view>
+    <view class="invite-status-actions">
+      <button class="btn-mini" bindtap="goBindInvite">
+        去绑定邀请码
+      </button>
+    </view>
+  </view>
+
+  <!-- 没有任何邀请关系 -->
+  <view wx:else>
+    <view class="invite-status-main">
+      <text class="invite-status-strong">
+        当前还未绑定任何邀请人。
+      </text>
+    </view>
+    <view class="invite-status-sub">
+      <text>
+        可以先完整体验 7 天训练营，再邀请好友一起来「控亏」。
+      </text>
+    </view>
   </view>
 </view>
 

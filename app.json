@@ -1,37 +1,41 @@
 {
   "pages": [
     "pages/index/index",
+    "pages/controller/index",
+    "pages/profile/index",
+    "pages/courses/index",
+    "pages/course/detail",
+    "pages/course/progress",
     "pages/riskCalculator/index",
-    "pages/planSteady/index",
-    "pages/planAdvanced/index",
-
-    "pages/calculator/calculator",
-
-    "pages/testLossPersonality/index",
-    "pages/testEmotionIndex/index",
-    "pages/testMarketRisk/index",
-    "pages/testDangerLevel/index",
-    "pages/testRiskScore/index",
-
     "pages/campIntro/index",
-    "pages/fissionTask/index",
-    "pages/resultCommon/index",
     "pages/campDaily/index",
     "pages/campReport/index",
-
-    "pages/pay/index",
-    "pages/payIntro/index",
-    "pages/paySuccess/index",
-    "pages/payFail/index",
-    "pages/funnelLogs/index",
-
-    "pages/membership/index"
+    "pages/fissionTask/index",
+    "pages/visitBooking/index",
+    "pages/visitMyList/index",
+    "pages/visitAdmin/index"
   ],
   "window": {
-    "backgroundTextStyle": "dark",
-    "navigationBarBackgroundColor": "#000000",
-    "navigationBarTitleText": "熵盾 · 风控卫士",
-    "navigationBarTextStyle": "white",
-    "backgroundColor": "#000000"
+    "navigationBarTitleText": "熵盾研究院"
+  },
+  "tabBar": {
+    "color": "#9ea0a4",
+    "selectedColor": "#2AFF2A",
+    "backgroundColor": "#0D0D0D",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页"
+      },
+      {
+        "pagePath": "pages/controller/index",
+        "text": "控局者"
+      },
+      {
+        "pagePath": "pages/profile/index",
+        "text": "个人中心"
+      }
+    ]
   }
 }

@@ -1,6 +1,360 @@
-<view class="page" style="padding:16px;">
-  <view class="card">
-    <text class="h2">我的中心</text>
-    <view class="p text-secondary" style="margin-top:8px;">我的方案 / 偏好 / 设置</view>
+<view class="page">
+
+<!-- 顶部：头像 + 昵称 + 文案 -->
+<view class="profile-header-card">
+  <view class="avatar-wrap">
+    <image
+      wx:if="{{userInfo && userInfo.avatarUrl}}"
+      class="avatar"
+      src="{{userInfo.avatarUrl}}"
+      mode="aspectFill"
+    />
+    <view wx:else class="avatar-placeholder">控</view>
   </view>
+
+  <view class="profile-header-main">
+    <view class="profile-name-row">
+      <text class="profile-name">
+        {{userInfo && userInfo.nickName ? userInfo.nickName : '控局者'}}
+      </text>
+      <view class="profile-tag">熵盾研究院</view>
+    </view>
+    <view class="profile-sub">
+      从会亏钱到会控亏的第 1 天
+    </view>
+  </view>
+</view>
+
+<!-- 快速统计条：横向滑动，一眼看完核心权益 -->
+<scroll-view scroll-x="true" class="stats-strip" enable-flex="true">
+  <view class="stat-pill">
+    <text class="stat-label">剩余方案</text>
+    <text class="stat-value">{{freeCalcTimes}}</text>
+  </view>
+  <view class="stat-pill">
+    <text class="stat-label">训练轮次</text>
+    <text class="stat-value">{{campRewardCount}}</text>
+  </view>
+  <view class="stat-pill">
+    <text class="stat-label">裂变同步</text>
+    <text class="stat-value">{{fissionSyncedTimes}}</text>
+  </view>
+  <view class="stat-pill">
+    <text class="stat-label">本轮进度</text>
+    <text class="stat-value">{{campProgressText}}</text>
+  </view>
+</scroll-view>
+
+<!-- 内页 Tab：权益 / 工具 / 实验室 -->
+<view class="inner-tabs">
+  <view
+    class="inner-tab {{activeInnerTab === 'rights' ? 'active' : ''}}"
+    data-key="rights"
+    bindtap="onInnerTabChange"
+  >
+    我的权益
+  </view>
+  <view
+    class="inner-tab {{activeInnerTab === 'tools' ? 'active' : ''}}"
+    data-key="tools"
+    bindtap="onInnerTabChange"
+  >
+    常用工具
+  </view>
+  <view
+    class="inner-tab {{activeInnerTab === 'lab' ? 'active' : ''}}"
+    data-key="lab"
+    bindtap="onInnerTabChange"
+  >
+    熵盾实验室
+  </view>
+</view>
+
+<!-- ================== Tab1：我的权益 ================== -->
+<view wx:if="{{activeInnerTab === 'rights'}}">
+  <view class="card section-card">
+    <view class="section-header">
+      <text class="section-title">STEP 1 · 我的护盾</text>
+      <text class="section-tag">权益总览</text>
+    </view>
+    <view class="rights-grid">
+      <view class="rights-item">
+        <text class="ri-label">剩余完整方案次数</text>
+        <text class="ri-value">{{freeCalcTimes}}</text>
+      </view>
+      <view class="rights-item">
+        <text class="ri-label">已完成训练营轮次</text>
+        <text class="ri-value">{{campRewardCount}}</text>
+      </view>
+      <view class="rights-item">
+        <text class="ri-label">裂变累计同步次数</text>
+        <text class="ri-value">{{fissionSyncedTimes}}</text>
+      </view>
+      <view class="rights-item">
+        <text class="ri-label">当前会员类型</text>
+        <text class="ri-value">{{membershipName}}</text>
+      </view>
+    </view>
+    <view class="section-tip">
+      完整完成一轮 7 天风控训练营，可解锁 {{CAMP_REWARD_TIMES}} 次完整方案（限前三轮）。
+    </view>
+  </view>
+
+  <!-- STEP 2 · 训练任务与活动 -->
+  <view class="card section-card">
+    <view class="section-header">
+      <text class="section-title">STEP 2 · 训练任务与活动</text>
+      <text class="section-tag">{{campProgressText}}</text>
+    </view>
+    <view class="training-row">
+      <view class="training-item">
+        <text class="training-label">当前 7 天训练营进度</text>
+        <text class="training-value">{{campProgressText}}</text>
+      </view>
+    </view>
+    <view class="section-tip">
+      每天 1 小时，把“会亏钱”停下来，再逐步搭建自己的风控体系。完整完成一轮，可解锁 4 次完整方案（限前三轮）。
+    </view>
+    <button class="btn-primary" bindtap="goCampIntro">
+      进入 7 天风控训练营
+    </button>
+  </view>
+
+  <!-- 线下来访提醒（最近一条） -->
+  <view class="card section-card">
+    <view class="section-header">
+      <text class="section-title">线下来访提醒</text>
+    </view>
+    <view wx:if="{{latestVisit}}">
+      <view class="latest-visit-row">
+        <view class="latest-visit-main">
+          <view class="latest-visit-time">
+            {{latestVisit.visitDateDisplay}} · {{latestVisit.visitTimeRange}}
+          </view>
+          <view class="latest-visit-sub">
+            {{latestVisit.name}} ｜ {{latestVisit.purpose || '交流风控体系'}}
+          </view>
+        </view>
+        <view class="latest-visit-status {{statusClassMap[latestVisit.status]}}">
+          {{statusTextMap[latestVisit.status]}}
+        </view>
+      </view>
+      <view class="section-tip">
+        最近一条线下来访预约，仅作状态提醒；如需查看全部记录或调整行程，请前往「常用工具」中的来访入口。
+      </view>
+    </view>
+    <view wx:else>
+      <view class="empty-text">
+        你还没有线下来访预约。
+      </view>
+      <view class="section-tip">
+        完成一次公司来访后，这里会显示最近一条记录，方便你随时查看行程状态。
+      </view>
+    </view>
+  </view>
+</view>
+
+<!-- ================== Tab2：常用工具 ================== -->
+<view wx:elif="{{activeInnerTab === 'tools'}}">
+  <!-- 模块 A：裂变中心 · 推荐关系（优先展示“人与人”的连接） -->
+  <view class="card">
+    <view class="card-header">
+      <text class="card-title">裂变中心 · 推荐关系</text>
+      <text class="card-subtitle">邀请码 · 好友奖励</text>
+    </view>
+    <view class="nav-list">
+      <view class="nav-item" bindtap="goFissionTask">
+        <view class="nav-main">
+          <text class="nav-title">裂变任务 · 邀请好友控亏</text>
+          <text class="nav-desc">
+            我的邀请码：{{myInviteCode || '待生成'}}；已绑定邀请人：{{invitedByCode || '暂无'}}。
+          </text>
+        </view>
+        <text class="nav-arrow">›</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 模块 B：订单中心 -->
+  <view class="card">
+    <view class="card-header">
+      <text class="card-title">订单中心</text>
+      <text class="card-subtitle">训练营 · 会员 · 线下来访</text>
+    </view>
+    <view class="nav-list">
+      <view class="nav-item" bindtap="goOrderCenter">
+        <view class="nav-main">
+          <text class="nav-title">我的订单中心</text>
+          <text class="nav-desc">
+            训练营、会员、课程等付费记录，将逐步在这里统一查看和下载发票。
+          </text>
+        </view>
+        <text class="nav-tag">敬请期待</text>
+      </view>
+      <view class="nav-item" bindtap="goVisitBooking">
+        <view class="nav-main">
+          <text class="nav-title">公司来访预约</text>
+          <text class="nav-desc">
+            填写称呼、时间与目的，预约到熵盾研究院线下面谈 / 参观。
+          </text>
+        </view>
+        <text class="nav-arrow">›</text>
+      </view>
+      <view class="nav-item" bindtap="goVisitMyList">
+        <view class="nav-main">
+          <text class="nav-title">我的来访预约</text>
+          <text class="nav-desc">
+            查看已提交的来访记录与状态，及时调整行程安排。
+          </text>
+        </view>
+        <text class="nav-arrow">›</text>
+      </view>
+      <view class="nav-item" bindtap="goVisitAdmin">
+        <view class="nav-main">
+          <text class="nav-title">来访预约管理（内测）</text>
+          <text class="nav-desc">
+            一屏查看全部预约，并手动标记确认 / 完成 / 取消。
+          </text>
+        </view>
+        <text class="nav-tag">内部</text>
+      </view>
+    </view>
+  </view>
+</view>
+
+<!-- ================== Tab3：熵盾实验室 ================== -->
+<view wx:if="{{activeInnerTab === 'lab'}}">
+  <!-- 总说明：这个 Tab 只讲“实验能力”，不放运营入口 -->
+  <view class="card">
+    <view class="card-header">
+      <text class="card-title">熵盾实验室</text>
+      <text class="card-subtitle">AI · 策略 · 系统自建</text>
+    </view>
+    <view class="section-paragraph">
+      这里是控局者的“实验场”，所有功能以内测 / 规划为主，用来预告你未来可以在熵盾里做哪些更深的风控实验。
+    </view>
+  </view>
+
+  <!-- 实验一：熵盾 AI 风控助手 -->
+  <view class="card">
+    <view class="card-header">
+      <text class="card-title">实验一 · 熵盾 AI 风控助手</text>
+      <text class="card-subtitle">内测筹备中</text>
+    </view>
+
+    <view class="nav-list">
+      <view class="nav-item nav-item-disabled">
+        <view class="nav-main">
+          <text class="nav-title">一键体检你的交易计划</text>
+          <text class="nav-desc">
+            未来可以粘贴你的交易计划，AI 自动标出风险点、最大回撤估算、分批与止损建议，仅用于风控训练。
+          </text>
+        </view>
+        <text class="nav-tag">内测</text>
+      </view>
+
+      <view class="nav-item nav-item-disabled">
+        <view class="nav-main">
+          <text class="nav-title">情景压力测试 · What if？</text>
+          <text class="nav-desc">
+            假设行情突然振幅加倍 / 缩量 / 跳空，AI 模拟你的仓位会发生什么，用来训练“最坏打算”思维。
+          </text>
+        </view>
+        <text class="nav-tag">规划中</text>
+      </view>
+    </view>
+
+    <view class="section-tip">
+      所有 AI 结果仅为风控训练参考，不构成任何买卖建议或收益承诺。
+    </view>
+  </view>
+
+  <!-- 实验二：控局者策略实验场 -->
+  <view class="card">
+    <view class="card-header">
+      <text class="card-title">实验二 · 控局者策略实验场</text>
+      <text class="card-subtitle">战法 VS 风控</text>
+    </view>
+
+    <view class="nav-list">
+      <view class="nav-item nav-item-disabled">
+        <view class="nav-main">
+          <text class="nav-title">趋势跟踪实验</text>
+          <text class="nav-desc">
+            选一套趋势策略，给定进出场规则和风控参数，观察在不同市场阶段下的盈亏分布与最大回撤。
+          </text>
+        </view>
+        <text class="nav-tag">规划中</text>
+      </view>
+
+      <view class="nav-item nav-item-disabled">
+        <view class="nav-main">
+          <text class="nav-title">网格 / 波段实验</text>
+          <text class="nav-desc">
+            对比“频繁出手”和“少打高胜率仗”的实际结果差异，把感觉变成可量化的数据认知。
+          </text>
+        </view>
+        <text class="nav-tag">规划中</text>
+      </view>
+
+      <view class="nav-item nav-item-disabled">
+        <view class="nav-main">
+          <text class="nav-title">临界点 / 临界仓位实验</text>
+          <text class="nav-desc">
+            找到自己心理与资金的临界点：最大可承受回撤、连续亏损次数、单笔承压额度。
+          </text>
+        </view>
+        <text class="nav-tag">规划中</text>
+      </view>
+    </view>
+
+    <view class="section-tip">
+      策略实验场会优先服务已经完成多轮训练营的控局者，用来验证“适不适合自己”的战法组合。
+    </view>
+  </view>
+
+  <!-- 实验三：控局者系统自建 -->
+  <view class="card">
+    <view class="card-header">
+      <text class="card-title">实验三 · 控局者系统自建</text>
+      <text class="card-subtitle">把碎片经验拼成体系</text>
+    </view>
+
+    <view class="nav-list">
+      <view class="nav-item nav-item-disabled">
+        <view class="nav-main">
+          <text class="nav-title">个人风控蓝图</text>
+          <text class="nav-desc">
+            用一张图梳理你的资金分层、仓位上限、止损规则、加仓原则，形成可复盘的风控蓝图。
+          </text>
+        </view>
+        <text class="nav-tag">规划中</text>
+      </view>
+
+      <view class="nav-item nav-item-disabled">
+        <view class="nav-main">
+          <text class="nav-title">战法矩阵 · 三到五套核心打法</text>
+          <text class="nav-desc">
+            不是学一百种方法，而是沉淀 3~5 套与你风险偏好匹配的核心战法，并配套风控参数。
+          </text>
+        </view>
+        <text class="nav-tag">规划中</text>
+      </view>
+
+      <view class="nav-item nav-item-disabled">
+        <view class="nav-main">
+          <text class="nav-title">执行与复盘模版</text>
+          <text class="nav-desc">
+            固定一套“下单前检查清单 + 事后复盘模版”，让风控从理念变成可以每天执行的动作。
+          </text>
+        </view>
+        <text class="nav-tag">规划中</text>
+      </view>
+    </view>
+
+    <view class="section-tip">
+      系统自建模块会与训练营、实盘记录打通，让每一次交易都为你的长期体系加一块“砖”。
+    </view>
+  </view>
+</view>
 </view>

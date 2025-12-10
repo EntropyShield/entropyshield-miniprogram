@@ -1,0 +1,165 @@
+.page {
+  background-color: #000000;
+  min-height: 100vh;
+  color: #ffffff;
+}
+
+.page-body {
+  padding: 32rpx 32rpx 40rpx;
+}
+
+.page-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #ffffff;
+  margin-bottom: 6rpx;
+}
+
+.page-subtitle {
+  font-size: 24rpx;
+  color: #888888;
+  margin-bottom: 24rpx;
+}
+
+/* 顶部筛选标签 */
+.tabs {
+  display: flex;
+  background-color: #111111;
+  border-radius: 999rpx;
+  padding: 4rpx;
+  margin-bottom: 24rpx;
+}
+
+.tab-item {
+  flex: 1;
+  text-align: center;
+  font-size: 24rpx;
+  line-height: 60rpx;
+  border-radius: 999rpx;
+  color: #aaaaaa;
+}
+
+.tab-item-active {
+  background-color: #00ff44;
+  color: #000000;
+}
+
+/* 提示文案 */
+.tip-text {
+  margin-top: 80rpx;
+  text-align: center;
+  font-size: 26rpx;
+  color: #aaaaaa;
+}
+
+.tip-error {
+  color: #ff4d4f;
+}
+
+/* 列表区域 */
+.list-scroll {
+  max-height: calc(100vh - 260rpx);
+}
+
+/* 课程卡片 */
+.course-card {
+  background-color: #111111;
+  border-radius: 24rpx;
+  padding: 24rpx 28rpx;
+  margin-bottom: 20rpx;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.title-col {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  padding-right: 20rpx;
+}
+
+.dot {
+  width: 8rpx;
+  height: 8rpx;
+  border-radius: 50%;
+  background-color: #00ff44;
+  margin-right: 12rpx;
+}
+
+.title {
+  font-size: 28rpx;
+  color: #ffffff;
+}
+
+/* 状态标签（可点击更新进度） */
+.status-tag {
+  padding: 8rpx 18rpx;
+  border-radius: 999rpx;
+  font-size: 22rpx;
+  color: #cccccc;
+  background-color: #222222;
+}
+
+.status-not_started {
+  background-color: #333333;
+  color: #dddddd;
+}
+
+.status-in_progress {
+  background-color: #00c853;
+  color: #000000;
+}
+
+.status-finished {
+  background-color: #4caf50;
+  color: #000000;
+}
+
+/* 时间 + 价格 */
+.card-meta {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 12rpx;
+  font-size: 24rpx;
+  color: #999999;
+}
+
+.time {
+  flex: 1;
+  margin-right: 20rpx;
+}
+
+.price {
+  flex-shrink: 0;
+}
+
+/* 进度条 */
+.progress-row {
+  display: flex;
+  align-items: center;
+  margin-top: 16rpx;
+}
+
+.progress-bar {
+  flex: 1;
+  height: 12rpx;
+  border-radius: 999rpx;
+  background-color: #222222;
+  overflow: hidden;
+}
+
+.progress-bar-inner {
+  height: 100%;
+  border-radius: 999rpx;
+  background-color: #00ff44;
+}
+
+.progress-text {
+  font-size: 22rpx;
+  color: #aaaaaa;
+  margin-left: 16rpx;
+}

@@ -1,8 +1,8 @@
 // pages/campIntro/index.js
 const { getLevelInfo } = require('../../utils/grade.js');
+const { API_BASE } = require('../../config.js'); // ✅ 统一从 config 读取
 
 // ✅ 完成一轮 7 天训练营，赠送的完整风控方案使用次数
-// 想改成 3 次 / 5 次，直接改这里就可以
 const CAMP_REWARD_TIMES = 4;
 
 // ✅ 最多奖励的轮次（只奖励前三轮，从第四轮开始不再送）
@@ -29,7 +29,13 @@ Page({
       badge: '',            // 徽章图片地址（/images/badges/xxx.png）
       tags: [],
       desc: ''
-    }
+    },
+
+    // 裂变 / 邀请关系展示用
+    hasInviter: false,      // 是否已经绑定过邀请人
+    invitedByCode: '',      // 绑定的邀请人邀请码（如 TEST01）
+    myInviteCode: '',       // 我自己的专属邀请码（用于分享带码）
+    entryInviteCode: ''     // 入口带来的邀请码（仅展示用）
   },
 
   /**
@@ -43,6 +49,11 @@ Page({
 
       if (inviteCode) {
         console.log('[campIntro] onLoad with inviteCode =', inviteCode);
+
+        // 记录入口邀请码，用于页面展示
+        this.setData({
+          entryInviteCode: inviteCode
+        });
 
         // 1）写入全局（可选）
         const app = getApp && getApp();
@@ -64,12 +75,33 @@ Page({
       console.error('[campIntro] parse inviteCode error:', e);
     }
 
-    this.initCampAndGrade();
+    this.initAll();
   },
 
-  // 从打卡页返回时也要刷新等级和进度
+  // 从打卡页返回时也要刷新等级和邀请关系
   onShow() {
+    // 这里只做“刷新”，避免重复调用 /api/fission/init 导致 Duplicate entry 报错
     this.initCampAndGrade();
+
+    const clientId = this.ensureClientId();
+    if (!clientId) return;
+
+    // 只拉取 profile，不再重复 init
+    this.fetchFissionProfile(clientId);
+  },
+
+  /**
+   * 统一初始化：训练营进度 + 等级 + 邀请关系
+   */
+  initAll() {
+    this.initCampAndGrade();
+
+    const clientId = this.ensureClientId();
+    if (!clientId) return;
+
+    this.initFissionUser(clientId, () => {
+      this.fetchFissionProfile(clientId);
+    });
   },
 
   /**
@@ -139,7 +171,6 @@ Page({
       const avgScore = Math.round(totalScore / effectiveDays);
       const allTags = Array.from(tagSet);
 
-      // 从 grade.js 里拿到等级信息
       const levelInfo = getLevelInfo(
         avgScore,
         effectiveDays,
@@ -148,7 +179,6 @@ Page({
         allTags
       );
 
-      // 统一放在 /images/badges/ 下，例如 lv1.png
       const badge = levelInfo.badge
         ? `/images/badges/${levelInfo.badge}`
         : '';
@@ -156,8 +186,8 @@ Page({
       grade = {
         ready: true,
         score: avgScore,
-        levelText: levelInfo.name,      // 例如：Lv.2 记录养成者
-        levelShortTag: levelInfo.tag,   // 简短标签
+        levelText: levelInfo.name,
+        levelShortTag: levelInfo.tag,
         levelClass: levelInfo.toneClass,
         badge,
         tags: [
@@ -175,17 +205,15 @@ Page({
       const hasRewarded = !!userRights.campRewardDone;  // 本轮是否已发过奖励
       const oldTimes = Number(userRights.freeCalcTimes || 0);
 
-      // 已累计奖励的轮次（没有则从 0 开始）
       let rewardRounds = Number(userRights.campRewardCount || 0);
 
-      // 只在「本轮第一次完成 7 天」且「累计奖励轮次 < MAX_REWARD_ROUNDS」时发奖励
       if (finishedDays === 7 && !hasRewarded && rewardRounds < MAX_REWARD_ROUNDS) {
         const newTimes = oldTimes + CAMP_REWARD_TIMES;
         rewardRounds += 1;
 
         userRights.freeCalcTimes = newTimes;
-        userRights.campRewardDone = true;           // 标记本轮已奖励
-        userRights.campRewardCount = rewardRounds;  // 记录已奖励轮次
+        userRights.campRewardDone = true;
+        userRights.campRewardCount = rewardRounds;
         wx.setStorageSync('userRights', userRights);
 
         wx.showToast({
@@ -198,10 +226,8 @@ Page({
       console.log('[campIntro] reward calc times error', e);
     }
 
-    // 保存任务数组供其它函数使用
     this.tasks = tasks;
 
-    // 更新页面数据
     this.setData({
       days,
       activeDay,
@@ -385,11 +411,9 @@ Page({
       wx.removeStorageSync('campDailyLogs');
       wx.removeStorageSync('campFinishedMap');
 
-      // 读取并更新奖励状态
       const userRights = wx.getStorageSync('userRights') || {};
       const rewardRounds = Number(userRights.campRewardCount || 0);
 
-      // 只有在累计奖励轮次小于上限时，才重置 campRewardDone
       if (rewardRounds < MAX_REWARD_ROUNDS) {
         userRights.campRewardDone = false;
         wx.setStorageSync('userRights', userRights);
@@ -405,7 +429,6 @@ Page({
         finished: false
       }));
 
-      // 立即把当前页面上的进度清零（回来时 onShow 还会再计算一次）
       this.setData({
         days,
         activeDay: firstTask.day,
@@ -443,6 +466,20 @@ Page({
     });
   },
 
+  /**
+   * 查看 / 修改当前 Day 记录
+   *（修复 “goCurrentDay 未定义” 的报错）
+   */
+  goCurrentDay() {
+    const day = this.data.activeDay || 'D1';
+    const tasks = this.tasks || this.buildTasks();
+    const task = tasks.find(t => t.day === day) || tasks[0];
+
+    wx.navigateTo({
+      url: `/pages/campDaily/index?day=${day}&dayName=${task.name}`
+    });
+  },
+
   // 查看 7 日风控执行报告
   goCampReport() {
     wx.navigateTo({
@@ -462,5 +499,121 @@ Page({
     wx.switchTab({
       url: '/pages/index/index'
     });
+  },
+
+  // ========== 邀请 / 裂变相关：clientId + profile ==========
+
+  /**
+   * 生成 / 读取 clientId（与裂变页保持一致）
+   */
+  ensureClientId() {
+    const app = getApp && getApp();
+    let clientId =
+      (app && app.globalData && app.globalData.clientId) ||
+      wx.getStorageSync('clientId');
+
+    if (!clientId) {
+      clientId =
+        'ST-' +
+        Date.now() +
+        '-' +
+        Math.floor(Math.random() * 1000000);
+
+      wx.setStorageSync('clientId', clientId);
+      if (app && app.globalData) {
+        app.globalData.clientId = clientId;
+      }
+      console.log('[campIntro] 生成新的 clientId:', clientId);
+    } else {
+      if (app && app.globalData) {
+        app.globalData.clientId = clientId;
+      }
+      console.log('[campIntro] 使用已有 clientId:', clientId);
+    }
+
+    return clientId;
+  },
+
+  /**
+   * 调用 /api/fission/init，确保后端有这条 fission_user 记录
+   */
+  initFissionUser(clientId, cb) {
+    wx.request({
+      url: `${API_BASE}/api/fission/init`,
+      method: 'POST',
+      header: {
+        'content-type': 'application/json'
+      },
+      data: {
+        clientId
+      },
+      success: res => {
+        console.log('[campIntro] fission init result:', res.data);
+      },
+      fail: err => {
+        console.error('[campIntro] fission init failed:', err);
+      },
+      complete: () => {
+        typeof cb === 'function' && cb();
+      }
+    });
+  },
+
+  /**
+   * 获取自己的裂变信息（邀请码、绑定关系）
+   */
+  fetchFissionProfile(clientId) {
+    wx.request({
+      url: `${API_BASE}/api/fission/profile`,
+      method: 'GET',
+      data: {
+        clientId
+      },
+      success: res => {
+        console.log('[campIntro] fission profile:', res.data);
+
+        if (!res.data || !res.data.ok || !res.data.user) {
+          return;
+        }
+
+        const u = res.data.user;
+        const myInviteCode = u.inviteCode || '';
+        const hasInviter = !!u.invitedByCode;
+        const invitedByCode = u.invitedByCode || '';
+
+        this.setData({
+          myInviteCode,
+          hasInviter,
+          invitedByCode
+        });
+
+        const app = getApp && getApp();
+        if (app && app.globalData) {
+          app.globalData.myInviteCode = myInviteCode;
+        }
+      },
+      fail: err => {
+        console.error('[campIntro] fission profile failed:', err);
+      }
+    });
+  },
+
+  /**
+   * 顶部右上角“转发”时，自动带上我的邀请码
+   */
+  onShareAppMessage() {
+    const app = getApp && getApp();
+    const fromGlobal =
+      (app && app.globalData && app.globalData.myInviteCode) || '';
+    const code = (this.data.myInviteCode || fromGlobal || '').toUpperCase();
+
+    const path = code
+      ? `/pages/campIntro/index?inviteCode=${code}`
+      : '/pages/campIntro/index';
+
+    return {
+      title: '7 天风控训练营｜先控亏，再谈收益',
+      path
+    };
   }
 });

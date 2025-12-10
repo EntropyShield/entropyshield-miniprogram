@@ -1,9 +1,12 @@
 // pages/fissionTask/index.js
 const app = getApp();
-const API_BASE = 'http://localhost:3000'; // 本地调试后端地址
+const { API_BASE } = require('../../config.js'); // ✅ 统一从 config.js 读取 API_BASE
 
 // 本地“待绑定的邀请码”的 key
 const PENDING_INVITE_KEY = 'pendingInviteCode';
+// 本地缓存：自己的专属邀请码 & 已绑定的邀请人邀请码
+const FISSION_MY_INVITE_KEY = 'fissionMyInviteCode';
+const FISSION_INVITED_BY_KEY = 'fissionInvitedByCode';
 
 Page({
   data: {
@@ -150,6 +153,23 @@ Page({
           totalRewardTimes
         });
 
+        // 把邀请码信息写入本地缓存，训练营页会读取
+        try {
+          wx.setStorageSync(
+            FISSION_MY_INVITE_KEY,
+            (myInviteCode || '').toUpperCase()
+          );
+          wx.setStorageSync(
+            FISSION_INVITED_BY_KEY,
+            (invitedByCode || '').toUpperCase()
+          );
+        } catch (e) {
+          console.error(
+            '[fissionTask] save invite info to storage error',
+            e
+          );
+        }
+
         // 同步“累计奖励次数”到本地 userRights.freeCalcTimes
         this.syncRewardsToUserRights(totalRewardTimes);
 
@@ -223,7 +243,9 @@ Page({
 
       // 1）本地 pendingInviteCode
       const fromStorage =
-        (wx.getStorageSync(PENDING_INVITE_KEY) || '').toUpperCase().trim();
+        (wx.getStorageSync(PENDING_INVITE_KEY) || '')
+          .toUpperCase()
+          .trim();
 
       // 2）全局 inviteCode（有些入口可能先写在 globalData 里）
       const appInstance = getApp && getApp();
@@ -455,8 +477,7 @@ Page({
     }
 
     const clientId =
-      this.data.clientId ||
-      wx.getStorageSync('clientId');
+      this.data.clientId || wx.getStorageSync('clientId');
 
     if (!clientId) {
       wx.showToast({
@@ -490,6 +511,19 @@ Page({
 
         // 绑定成功后，清理 pendingInviteCode，避免下次再带出来
         wx.removeStorageSync(PENDING_INVITE_KEY);
+
+        // 同步“已绑定的邀请码”到本地缓存，训练营页可以读取
+        try {
+          wx.setStorageSync(
+            FISSION_INVITED_BY_KEY,
+            inviteCode.toUpperCase()
+          );
+        } catch (e) {
+          console.error(
+            '[fissionTask] save invitedByCode after bind error',
+            e
+          );
+        }
 
         wx.showToast({
           title: '绑定成功',
@@ -534,7 +568,22 @@ Page({
    * 顶部右上角“转发”时，自动带上我的邀请码
    */
   onShareAppMessage() {
-    const code = (this.data.myInviteCode || '').toUpperCase();
+    let code = (this.data.myInviteCode || '').toUpperCase();
+    if (!code) {
+      try {
+        code = (
+          wx.getStorageSync(FISSION_MY_INVITE_KEY) || ''
+        )
+          .toUpperCase()
+          .trim();
+      } catch (e) {
+        console.error(
+          '[fissionTask] read myInviteCode from storage error',
+          e
+        );
+      }
+    }
+
     const path = code
       ? `/pages/campIntro/index?inviteCode=${code}`
       : '/pages/campIntro/index';
