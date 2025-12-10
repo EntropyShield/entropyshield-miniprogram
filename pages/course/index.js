@@ -1,5 +1,6 @@
 // pages/courses/index.js 课程日历列表页逻辑
 const funnel = require('../../utils/funnel.js');
+const { getCourseTypeMeta } = require('../../utils/courseType.js');
 
 const app = getApp();
 const API_BASE =
@@ -8,15 +9,32 @@ const API_BASE =
     (app.globalData.API_BASE || app.globalData.apiBase)) ||
   'http://localhost:3000';
 
+/**
+ * 将后端原始类型映射为「控局 5 大课」的统一枚举：
+ * PUBLIC / EXPERIENCE / RISK / SALON / CONTROLLER
+ */
+function normalizeCourseType(rawType) {
+  const t = (rawType || '').toLowerCase();
+
+  if (t === 'promo' || t === 'public' || t === 'open') return 'PUBLIC';          // 公开课
+  if (t === 'lead' || t === 'experience' || t === 'trial') return 'EXPERIENCE';  // 体验课
+  if (t === 'risk' || t === 'calc' || t === 'system') return 'RISK';             // 风控课
+  if (t === 'salon' || t === 'offline') return 'SALON';                          // 线下沙龙
+  if (t === 'paid' || t === 'controller' || t === 'pro') return 'CONTROLLER';    // 成为控局者
+
+  // 未配置的类型，交给 courseType.js 默认处理
+  return '';
+}
+
 Page({
   data: {
     loading: false,
     errorMsg: '',
 
-    // 原始课程列表
+    // 原始课程扁平列表（标准化之后的）
     coursesRaw: [],
 
-    // [{ date, dateDisplay, list: [...] }]
+    // 分组后的课程列表 [{ date, dateDisplay, list: [...] }]
     courseGroups: [],
 
     // 筛选类型：upcoming / all / finished
@@ -69,9 +87,8 @@ Page({
           return;
         }
 
-        // 兼容后端 courses 和 list 两种写法
+        // 兼容 courses / list 两种返回字段
         const list = data.courses || data.list || [];
-
         const normalized = list.map((item) => this.normalizeCourse(item));
 
         this.setData(
@@ -122,14 +139,32 @@ Page({
     const status = this.calcStatus(rawStatus, progress);
     const statusText = this.getStatusText(status);
 
+    // 统一课程类型（底层原始值 → 控局 5 大课类型）
+    const rawType =
+      item.courseType || item.type || item.category || '';
+    const typeKey = normalizeCourseType(rawType);
+    const typeMeta = getCourseTypeMeta(typeKey);
+    const courseTypeText =
+      (typeMeta && (typeMeta.shortTag || typeMeta.name)) || '课程';
+
     return {
       id: item.id || item.course_id,
       title: item.title || item.name || '未命名课程',
+
+      // 日期与时间
       date,
       dateDisplay: this.formatDateDisplay(date),
       timeText: timeText || '时间待定',
+
+      // 原始等级 / 分类
       level: item.level || item.level_name || '',
-      category: item.category || item.type || item.courseType || '',
+      category: rawType,
+
+      // 控局 5 大课类型（归一后）
+      typeKey,
+      courseTypeText,
+
+      // 状态 / 进度
       status,
       statusText,
       progress
@@ -188,12 +223,15 @@ Page({
 
     if (filterType === 'upcoming') {
       filtered = coursesRaw.filter(
-        (c) => c.status === 'not_started' || c.status === 'in_progress'
+        (c) =>
+          c.status === 'not_started' || c.status === 'in_progress'
       );
     } else if (filterType === 'finished') {
       filtered = coursesRaw.filter((c) => c.status === 'finished');
     }
+    // filterType === 'all' 时不过滤
 
+    // 按日期 + 时间排序
     filtered.sort((a, b) => {
       if (a.date === b.date) {
         return a.timeText > b.timeText ? 1 : -1;
@@ -201,6 +239,7 @@ Page({
       return a.date > b.date ? 1 : -1;
     });
 
+    // 分组：按日期聚合
     const groupsMap = {};
     filtered.forEach((c) => {
       const key = c.date || '未知日期';
@@ -223,28 +262,17 @@ Page({
     });
   },
 
-  // 点击课程卡片：先用弹窗展示关键信息，后续可以跳详情页
+  // 点击课程卡片：进入课程详情页
   onTapCourse(e) {
     const id = e.currentTarget.dataset.id;
-    const { coursesRaw } = this.data;
-    const target = coursesRaw.find((c) => c.id === id);
-    if (!target) return;
-
-    const content =
-      `时间：${target.dateDisplay} ${target.timeText}\n` +
-      (target.level ? `难度：${target.level}\n` : '') +
-      (target.category ? `类型：${target.category}\n` : '') +
-      `状态：${target.statusText}`;
-
-    wx.showModal({
-      title: target.title,
-      content,
-      showCancel: false
-    });
+    if (!id) return;
 
     funnel.log('COURSE_ITEM_CLICK', {
-      courseId: id,
-      status: target.status
+      courseId: id
+    });
+
+    wx.navigateTo({
+      url: `/pages/course/detail?id=${id}&from=courses`
     });
   }
 });

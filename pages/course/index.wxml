@@ -1,6 +1,81 @@
-<!-- pages/course/index.wxml -->
+<!-- pages/course/index.wxml 课程日历视图 -->
 <view class="page">
-  <view class="hint">
-    这里是课程模块占位页，当前版本未启用。
+  <!-- 顶部标题 -->
+  <view class="header-card">
+    <view class="header-title">熵盾研究院 · 课程日历</view>
+    <view class="header-sub">
+      按控局路径排布的 5 类课：公开课 / 体验课 / 风控课 / 线下沙龙 / 成为控局者。
+    </view>
   </view>
+
+  <!-- 筛选 Tab -->
+  <view class="tabs">
+    <view
+      class="tab {{filterType === 'upcoming' ? 'tab-active' : ''}}"
+      data-type="upcoming"
+      bindtap="onChangeFilter"
+    >
+      即将开播
+    </view>
+    <view
+      class="tab {{filterType === 'all' ? 'tab-active' : ''}}"
+      data-type="all"
+      bindtap="onChangeFilter"
+    >
+      全部课程
+    </view>
+    <view
+      class="tab {{filterType === 'finished' ? 'tab-active' : ''}}"
+      data-type="finished"
+      bindtap="onChangeFilter"
+    >
+      已结束
+    </view>
+  </view>
+
+  <!-- 加载 / 错误 / 列表 / 空态 -->
+  <block wx:if="{{loading}}">
+    <view class="tip-text">加载中…</view>
+  </block>
+
+  <block wx:elif="{{errorMsg}}">
+    <view class="tip-text tip-error">{{errorMsg}}</view>
+  </block>
+
+  <block wx:elif="{{courseGroups.length}}">
+    <block wx:for="{{courseGroups}}" wx:key="date">
+      <view class="group">
+        <view class="group-date">
+          {{item.dateDisplay}}
+        </view>
+
+        <block wx:for="{{item.list}}" wx:key="id">
+          <view
+            class="course-item"
+            bindtap="onTapCourse"
+            data-id="{{item.id}}"
+          >
+            <view class="course-top">
+              <view class="course-type-tag">
+                {{item.courseTypeText}}
+              </view>
+              <view class="course-title">
+                {{item.title}}
+              </view>
+            </view>
+
+            <view class="course-meta">
+              <text class="meta-text">{{item.timeText}}</text>
+              <text class="meta-dot">·</text>
+              <text class="meta-text">{{item.statusText}}</text>
+            </view>
+          </view>
+        </block>
+      </view>
+    </block>
+  </block>
+
+  <block wx:else>
+    <view class="tip-text">暂无课程排期。</view>
+  </block>
 </view>
