@@ -1,97 +1,119 @@
+<!-- pages/course/progress.wxml -->
 <view class="page">
-  <view class="page-body">
-    <view class="page-title">我的课程进度</view>
-    <view class="page-subtitle">查看训练营与多课的完成情况</view>
-
-    <!-- 顶部筛选标签 -->
-    <view class="tabs">
-      <view
-        class="tab-item {{filterType === 'all' ? 'tab-item-active' : ''}}"
-        data-type="all"
-        bindtap="onChangeFilter"
-      >
-        全部
-      </view>
-      <view
-        class="tab-item {{filterType === 'in_progress' ? 'tab-item-active' : ''}}"
-        data-type="in_progress"
-        bindtap="onChangeFilter"
-      >
-        进行中
-      </view>
-      <view
-        class="tab-item {{filterType === 'not_started' ? 'tab-item-active' : ''}}"
-        data-type="not_started"
-        bindtap="onChangeFilter"
-      >
-        未开始
-      </view>
-      <view
-        class="tab-item {{filterType === 'finished' ? 'tab-item-active' : ''}}"
-        data-type="finished"
-        bindtap="onChangeFilter"
-      >
-        已完成
-      </view>
+  <!-- 顶部说明 -->
+  <view class="header">
+    <view class="header-title">我的课程进度</view>
+    <view class="header-sub">
+      你已经加入的控局课程会出现在这里，可随时更新学习进度。
     </view>
+  </view>
 
-    <!-- 加载 & 错误 & 空态 -->
-    <view wx:if="{{loading}}" class="tip-text">
-      加载中…
-    </view>
-
-    <view wx:elif="{{errorMsg}}" class="tip-text tip-error">
-      {{errorMsg}}
-    </view>
-
-    <view wx:elif="{{!loading && !errorMsg && list.length === 0}}" class="tip-text">
-      暂时还没有课程进度记录，先去课程日历中加入一门课吧。
-    </view>
-
-    <!-- 课程进度列表 -->
-    <scroll-view
-      wx:if="{{!loading && !errorMsg && list.length > 0}}"
-      scroll-y="true"
-      class="list-scroll"
+  <!-- 筛选 Tab -->
+  <view class="filter-bar">
+    <view
+      class="tab {{filterType === 'all' ? 'active' : ''}}"
+      data-type="all"
+      bindtap="onChangeFilter"
     >
-      <block wx:for="{{list}}" wx:key="id">
-        <view class="course-card" bindtap="onTapCourse" data-id="{{item.id}}">
-          <view class="card-header">
-            <view class="title-col">
-              <text class="dot"></text>
-              <text class="title">{{item.title}}</text>
-            </view>
+      全部
+    </view>
+    <view
+      class="tab {{filterType === 'in_progress' ? 'active' : ''}}"
+      data-type="in_progress"
+      bindtap="onChangeFilter"
+    >
+      进行中
+    </view>
+    <view
+      class="tab {{filterType === 'finished' ? 'active' : ''}}"
+      data-type="finished"
+      bindtap="onChangeFilter"
+    >
+      已完成
+    </view>
+  </view>
 
-            <!-- 状态标签：点击可以更新进度 -->
+  <!-- 状态提示 -->
+  <view wx:if="{{loading}}" class="tip-text">加载中…</view>
+
+  <view
+    wx:if="{{!loading && errorMsg}}"
+    class="tip-text tip-error"
+  >
+    {{errorMsg}}
+  </view>
+
+  <view
+    wx:if="{{!loading && !errorMsg && (!items || items.length === 0)}}"
+    class="tip-text"
+  >
+    你还没有加入任何课程，可以先从「控局者」页进入课程日历报名。
+  </view>
+
+  <!-- 列表 -->
+  <scroll-view
+    wx:if="{{!loading && !errorMsg && items && items.length > 0}}"
+    scroll-y="true"
+    class="list"
+  >
+    <block wx:for="{{items}}" wx:key="id">
+      <!-- 根据当前筛选类型做一次前端过滤 -->
+      <view
+        wx:if="{{filterType === 'all' || filterType === item.status}}"
+        class="card"
+        bindtap="onTapItem"
+        data-id="{{item.id}}"
+      >
+        <view class="card-main">
+          <view class="card-title">{{item.title}}</view>
+          <view class="card-time">{{item.timeText}}</view>
+
+          <view class="card-meta">
             <view
-              class="status-tag status-{{item.status}}"
-              catchtap="onTapUpdateProgress"
-              data-id="{{item.id}}"
-              data-status="{{item.status}}"
-              data-progress="{{item.progress}}"
+              class="status-tag {{item.status === 'finished' ? 'status-finished' : 'status-progress'}}"
             >
               {{item.statusText}}
             </view>
-          </view>
-
-          <view class="card-meta">
-            <text class="time">{{item.timeText}}</text>
-            <text class="price">{{item.priceText}}</text>
-          </view>
-
-          <view class="progress-row">
-            <view class="progress-bar">
-              <view
-                class="progress-bar-inner"
-                style="width: {{item.progressPercent}}%;"
-              ></view>
+            <view class="progress-text">
+              进度：{{item.progressPercent || 0}}%
             </view>
-            <text class="progress-text">
-              已完成 {{item.progressPercent}}%
-            </text>
+          </view>
+
+          <view
+            wx:if="{{item.lastLesson}}"
+            class="card-last"
+          >
+            最近学习：{{item.lastLesson}}
+          </view>
+
+          <view
+            wx:if="{{item.updatedAtText}}"
+            class="card-updated"
+          >
+            更新于 {{item.updatedAtText}}
           </view>
         </view>
-      </block>
-    </scroll-view>
-  </view>
+
+        <!-- 操作按钮区域，单独 catchtap 避免冒泡 -->
+        <view class="card-actions" catchtap="noop">
+          <button
+            class="btn-secondary"
+            size="mini"
+            data-id="{{item.id}}"
+            bindtap="onUpdateProgress"
+          >
+            更新进度
+          </button>
+          <button
+            class="btn-primary"
+            size="mini"
+            data-id="{{item.id}}"
+            bindtap="onMarkFinished"
+          >
+            标记完成
+          </button>
+        </view>
+      </view>
+    </block>
+  </scroll-view>
 </view>

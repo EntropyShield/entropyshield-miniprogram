@@ -43,31 +43,35 @@
   </block>
 
   <block wx:elif="{{courseGroups.length}}">
-    <block wx:for="{{courseGroups}}" wx:key="date">
+    <block wx:for="{{courseGroups}}" wx:key="date" wx:for-item="group">
       <view class="group">
         <view class="group-date">
-          {{item.dateDisplay}}
+          {{group.dateDisplay}}
         </view>
 
-        <block wx:for="{{item.list}}" wx:key="id">
+        <block
+          wx:for="{{group.list}}"
+          wx:key="id"
+          wx:for-item="course"
+        >
           <view
             class="course-item"
             bindtap="onTapCourse"
-            data-id="{{item.id}}"
+            data-id="{{course.id}}"
           >
             <view class="course-top">
               <view class="course-type-tag">
-                {{item.courseTypeText}}
+                {{course.courseTypeText}}
               </view>
               <view class="course-title">
-                {{item.title}}
+                {{course.title}}
               </view>
             </view>
 
             <view class="course-meta">
-              <text class="meta-text">{{item.timeText}}</text>
+              <text class="meta-text">{{course.timeText}}</text>
               <text class="meta-dot">·</text>
-              <text class="meta-text">{{item.statusText}}</text>
+              <text class="meta-text">{{course.statusText}}</text>
             </view>
           </view>
         </block>

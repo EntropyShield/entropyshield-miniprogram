@@ -1,5 +1,5 @@
 // pages/course/progress.js
-// 我的课程进度：列表 + 按状态筛选 + 一键更新进度
+// 我的课程进度列表页
 
 const funnel = require('../../utils/funnel.js');
 
@@ -10,123 +10,69 @@ const API_BASE =
     (app.globalData.API_BASE || app.globalData.apiBase)) ||
   'http://localhost:3000';
 
-// 统一 clientId
+// 和其它模块统一的 clientId 生成 / 读取规则
 function ensureClientId() {
-  let cid = wx.getStorageSync('clientId');
+  const appInst = getApp && getApp();
+  let cid =
+    (appInst && appInst.globalData && appInst.globalData.clientId) ||
+    wx.getStorageSync('clientId');
+
   if (!cid) {
     cid = `ST-${Date.now()}-${Math.floor(Math.random() * 1000000)}`;
     wx.setStorageSync('clientId', cid);
-    console.log('[course/progress] new clientId:', cid);
+    console.log('[course/progress] new clientId generated:', cid);
+    if (appInst && appInst.globalData) {
+      appInst.globalData.clientId = cid;
+    }
   } else {
     console.log('[course/progress] use existing clientId:', cid);
+    if (appInst && appInst.globalData) {
+      appInst.globalData.clientId = cid;
+    }
   }
   return cid;
-}
-
-// 时间文案（和详情页保持风格一致）
-function buildTimeText(startTime, endTime) {
-  if (!startTime && !endTime) return '时间待定';
-  if (!startTime) return `结束时间：${endTime}`;
-  if (!endTime) return `开始时间：${startTime}`;
-
-  try {
-    const s = String(startTime).replace('T', ' ');
-    const e = String(endTime).replace('T', ' ');
-    const datePart = s.slice(5, 10); // MM-DD
-    const sTime = s.slice(11, 16);
-    const eTime = e.slice(11, 16);
-    return `${datePart} ${sTime} - ${eTime}`;
-  } catch (e) {
-    return `${startTime} ~ ${endTime}`;
-  }
-}
-
-// 课程类型文案
-function courseTypeText(type) {
-  if (type === 'promo') return '宣传课';
-  if (type === 'lead') return '引流课';
-  if (type === 'paid') return '收费课';
-  if (type === 'camp') return '训练营';
-  return '课程';
-}
-
-// 状态文案
-function statusText(status) {
-  if (status === 'finished') return '已完成';
-  if (status === 'in_progress') return '进行中';
-  if (status === 'not_started') return '未开始';
-  return '未开始';
-}
-
-// 根据后端状态 + 进度 推导展示状态
-function inferStatus(raw, progress) {
-  let s = raw.progressStatus || raw.status || '';
-
-  if (s === 'finished' || s === 'in_progress' || s === 'not_started') {
-    // 已是标准值
-  } else if (raw.status === 'closed') {
-    s = 'finished';
-  } else if (raw.status === 'published') {
-    s = 'not_started';
-  } else {
-    s = 'not_started';
-  }
-
-  // 进度兜底（以进度为准）
-  if (progress >= 1) {
-    s = 'finished';
-  } else if (progress > 0 && progress < 1 && s !== 'finished') {
-    s = 'in_progress';
-  }
-
-  return s;
 }
 
 Page({
   data: {
     loading: false,
     errorMsg: '',
-    // all / in_progress / not_started / finished
+    // all / in_progress / finished
     filterType: 'all',
-
-    // 原始列表（全部课程进度）
-    listRaw: [],
-
-    // 按筛选后的展示列表
-    list: []
+    // 原始进度列表（不带筛选）
+    rawItems: [],
+    // 当前展示列表（已按筛选过滤）
+    items: []
   },
 
   onLoad() {
     funnel.log('COURSE_PROGRESS_VIEW', {});
-  },
-
-  onShow() {
-    // 每次回到本页时刷新一次进度
+    const clientId = ensureClientId();
+    this.clientId = clientId;
     this.fetchProgress();
   },
 
-  onPullDownRefresh() {
-    this.fetchProgress(() => {
-      wx.stopPullDownRefresh();
-    });
+  onShow() {
+    if (this.clientId) {
+      this.fetchProgress();
+    }
   },
 
-  // 切换顶部标签
+  onPullDownRefresh() {
+    this.fetchProgress(() => wx.stopPullDownRefresh());
+  },
+
+  // 顶部筛选 Tab：全部 / 进行中 / 已完成
   onChangeFilter(e) {
     const type = e.currentTarget.dataset.type || 'all';
-    this.setData(
-      {
-        filterType: type
-      },
-      () => {
-        this.applyFilter();
-      }
-    );
+    this.setData({ filterType: type }, () => {
+      this.applyFilter();
+    });
   },
 
   // 拉取当前 clientId 的课程进度
   fetchProgress(done) {
-    const clientId = ensureClientId();
+    const clientId = this.clientId || ensureClientId();
     console.log('[course/progress] fetchProgress clientId =', clientId);
 
     this.setData({
@@ -143,202 +89,289 @@ Page({
         console.log('[course/progress] resp:', data);
 
         if (!data.ok) {
-          this.setData({
-            loading: false,
-            errorMsg: data.message || '课程进度获取失败'
-          });
-          done && done();
+          this.setData(
+            {
+              loading: false,
+              errorMsg: data.message || '加载课程进度失败',
+              rawItems: [],
+              items: []
+            },
+            () => {
+              done && done();
+            }
+          );
           return;
         }
 
-        const listRaw = (data.list || []).map((item) =>
-          this.normalizeCourse(item)
-        );
+        const list = data.list || [];
+        const items = [];
 
+        list.forEach((row) => {
+          // 一行里既有课程字段，也有进度字段
+          const courseIdRaw =
+            row.course_id ??
+            row.courseId ??
+            row.course_id ??
+            row.courseid ??
+            row.id; // 退化用 id 当作课程 id
+
+          const courseId = Number(courseIdRaw);
+
+          if (!Number.isFinite(courseId)) {
+            console.warn(
+              '[course/progress] skip row without valid courseId:',
+              row
+            );
+            return;
+          }
+
+          const startTime = row.startTime || row.start_time || '';
+          const endTime = row.endTime || row.end_time || '';
+          const timeText = this.buildTimeText(startTime, endTime);
+
+          const status = row.status || 'in_progress';
+          const statusText =
+            status === 'finished'
+              ? '已完成'
+              : status === 'in_progress'
+              ? '进行中'
+              : '未开始';
+
+          let progressPercent = 0;
+          if (typeof row.progress_percent === 'number') {
+            progressPercent = row.progress_percent;
+          } else if (typeof row.progressPercent === 'number') {
+            progressPercent = row.progressPercent;
+          } else if (typeof row.progress === 'number') {
+            progressPercent = row.progress;
+          }
+
+          const updatedAtRaw = row.updated_at || row.updatedAt || '';
+          const updatedAtText = updatedAtRaw
+            ? updatedAtRaw.replace('T', ' ').slice(0, 16)
+            : '';
+
+          items.push({
+            id: row.id,
+            progressId: row.progress_id || row.progressId || row.id,
+            courseId,
+            title: row.title || '未命名课程',
+            timeText,
+            status,
+            statusText,
+            progressPercent,
+            lastLesson: row.last_lesson || row.lastLesson || '',
+            updatedAtText
+          });
+        });
+
+        // 先存原始列表，再按当前筛选类型过滤
         this.setData(
           {
             loading: false,
-            listRaw
+            rawItems: items
           },
           () => {
             this.applyFilter();
+            done && done();
           }
         );
-
-        done && done();
       },
       fail: (err) => {
         console.error('[course/progress] request fail:', err);
-        this.setData({
-          loading: false,
-          errorMsg: '网络异常，请稍后重试'
-        });
-        done && done();
+        this.setData(
+          {
+            loading: false,
+            errorMsg: '网络异常，请稍后重试',
+            rawItems: [],
+            items: []
+          },
+          () => {
+            done && done();
+          }
+        );
       }
     });
   },
 
-  // 标准化单条课程记录
-  normalizeCourse(raw) {
-    const startTime = raw.startTime || raw.start_time || '';
-    const endTime = raw.endTime || raw.end_time || '';
-    const priceNum = Number(raw.price || 0);
-
-    // 进度：后端是 0~1 的小数
-    let progress = 0;
-    if (typeof raw.progressPercent === 'number') {
-      progress = raw.progressPercent;
-    }
-    if (!Number.isFinite(progress) || progress < 0) progress = 0;
-    if (progress > 1 && progress <= 100) progress = progress / 100;
-    if (progress > 1) progress = 1;
-
-    const status = inferStatus(raw, progress);
-    const statusLabel = statusText(status);
-
-    const pct = Math.round(progress * 100);
-
-    return {
-      id: raw.id,
-      title: raw.title || '未命名课程',
-      courseType: raw.courseType || raw.course_type || '',
-      courseTypeText: courseTypeText(
-        raw.courseType || raw.course_type || ''
-      ),
-      description: raw.description || raw.description_text || '',
-      startTime,
-      endTime,
-      timeText: buildTimeText(startTime, endTime),
-      price: priceNum,
-      priceText: priceNum > 0 ? `收费 · ¥${priceNum}` : '免费',
-      status,
-      statusText: statusLabel,
-      progress, // 0~1
-      progressPercent: pct // 0~100，用于展示
-    };
-  },
-
-  // 根据 filterType 过滤出展示列表
+  // 根据 filterType 对 rawItems 做前端过滤
   applyFilter() {
-    const { listRaw, filterType } = this.data;
-    let list = listRaw.slice();
+    const { filterType, rawItems } = this.data;
+    let items = rawItems || [];
 
-    if (
-      filterType === 'in_progress' ||
-      filterType === 'not_started' ||
-      filterType === 'finished'
-    ) {
-      list = listRaw.filter((item) => item.status === filterType);
+    if (filterType === 'in_progress') {
+      items = items.filter((x) => x.status === 'in_progress');
+    } else if (filterType === 'finished') {
+      items = items.filter((x) => x.status === 'finished');
     }
+    // filterType === 'all' 时不过滤
 
-    this.setData({ list });
+    this.setData({ items });
   },
 
-  // 点击课程卡片：从“我的课程进度”跳回课程详情
-  onTapCourse(e) {
+  // 时间范围文案（和详情页保持风格一致）
+  buildTimeText(startTime, endTime) {
+    if (!startTime && !endTime) return '时间待定';
+    if (!startTime) return `结束时间：${endTime}`;
+    if (!endTime) return `开始时间：${startTime}`;
+
+    try {
+      const s = (startTime || '').replace('T', ' ');
+      const e = (endTime || '').replace('T', ' ');
+      const datePart = s.slice(5, 10); // MM-DD
+      const sTime = s.slice(11, 16);
+      const eTime = e.slice(11, 16);
+      return `${datePart} ${sTime} - ${eTime}`;
+    } catch (e) {
+      return `${startTime} ~ ${endTime}`;
+    }
+  },
+
+  // 点击整张卡片：弹出当前进度摘要
+  onTapItem(e) {
     const id = e.currentTarget.dataset.id;
-    if (!id) return;
+    const item =
+      this.data.items.find((x) => x.progressId === id) ||
+      this.data.items.find((x) => x.id === id);
+    if (!item) return;
 
-    funnel.log('COURSE_PROGRESS_ITEM_CLICK', {
-      courseId: id
-    });
+    const content =
+      `时间：${item.timeText}\n` +
+      `状态：${item.statusText}\n` +
+      `进度：${item.progressPercent || 0}%\n` +
+      (item.lastLesson ? `最近学习：${item.lastLesson}\n` : '') +
+      (item.updatedAtText ? `最近更新：${item.updatedAtText}` : '');
 
-    wx.navigateTo({
-      url: `/pages/course/detail?id=${id}&from=progress`
+    wx.showModal({
+      title: item.title,
+      content,
+      showCancel: false
     });
   },
 
-  // 点击状态标签：弹出操作菜单，更新进度 / 标记完成
-  onTapUpdateProgress(e) {
+  // 更新进度（弹出进度档位）
+  onUpdateProgress(e) {
     const id = e.currentTarget.dataset.id;
-    if (!id) return;
-
-    const { listRaw } = this.data;
-    const target = listRaw.find((c) => c.id === id);
-    if (!target) return;
+    const item =
+      this.data.items.find((x) => x.progressId === id) ||
+      this.data.items.find((x) => x.id === id);
+    if (!item) return;
 
     const that = this;
 
+    console.log('[course/progress] onUpdateProgress item =', item);
+
     wx.showActionSheet({
-      itemList: ['标记为未开始 (0%)', '标记为进行中 (50%)', '标记为已完成 (100%)'],
+      itemList: ['0%', '25%', '50%', '75%', '100%（标记完成）'],
       success(res) {
-        let progress = target.progress;
-        let status = target.status;
+        const idx = res.tapIndex;
+        const percentMap = [0, 25, 50, 75, 100];
+        const progressPercent = percentMap[idx] || 0;
+        const status = progressPercent === 100 ? 'finished' : 'in_progress';
 
-        if (res.tapIndex === 0) {
-          progress = 0;
-          status = 'not_started';
-        } else if (res.tapIndex === 1) {
-          progress = 0.5;
-          status = 'in_progress';
-        } else if (res.tapIndex === 2) {
-          progress = 1;
-          status = 'finished';
-        } else {
-          return;
-        }
-
-        funnel.log('COURSE_PROGRESS_UPDATE_CLICK', {
-          courseId: id,
-          toStatus: status,
-          toProgress: progress
-        });
-
-        that.updateCourseProgress(id, progress, status);
+        that.saveProgress(
+          item.courseId,
+          progressPercent,
+          status,
+          item.progressId
+        );
       }
     });
   },
 
-  // 调用后端接口，更新某门课的进度
-  updateCourseProgress(courseId, progress, status) {
-    const clientId = ensureClientId();
+  // 直接标记为已完成
+  onMarkFinished(e) {
+    const id = e.currentTarget.dataset.id;
+    const item =
+      this.data.items.find((x) => x.progressId === id) ||
+      this.data.items.find((x) => x.id === id);
+    if (!item) return;
 
-    wx.showLoading({
-      title: '更新中…',
-      mask: true
+    console.log('[course/progress] onMarkFinished item =', item);
+
+    wx.showModal({
+      title: '标记为已完成',
+      content: '确认将本课程标记为「已完成」吗？',
+      success: (res) => {
+        if (res.confirm) {
+          this.saveProgress(item.courseId, 100, 'finished', item.progressId);
+        }
+      }
     });
+  },
+
+  // 保存进度到后端（调用 /api/courses/progress/update）
+  saveProgress(courseId, progressPercent, status, progressId) {
+    const clientId = this.clientId || ensureClientId();
+
+    if (!clientId || !Number.isFinite(Number(courseId))) {
+      console.error(
+        '[course/progress] saveProgress 缺少关键参数',
+        'clientId =',
+        clientId,
+        'courseId =',
+        courseId
+      );
+      wx.showToast({
+        title: '内部错误：缺少课程信息',
+        icon: 'none'
+      });
+      return;
+    }
+
+    const payload = {
+      clientId,
+      courseId,
+      progressPercent,
+      status,
+      lastLesson: ''
+    };
+    if (progressId) {
+      payload.progressId = progressId;
+    }
+
+    console.log('[course/progress] saveProgress payload =', payload);
 
     wx.request({
       url: `${API_BASE}/api/courses/progress/update`,
       method: 'POST',
-      data: {
-        clientId,
-        courseId,
-        progressPercent: progress, // 0~1
-        status,
-        lastLesson: ''
-      },
+      data: payload,
       success: (res) => {
         const data = res.data || {};
         console.log('[course/progress] update resp:', data);
 
         if (!data.ok) {
           wx.showToast({
-            title: data.message || '更新失败',
+            title: data.message || '保存失败',
             icon: 'none'
           });
           return;
         }
 
-        // 更新成功后，重新拉取一遍进度，确保和后端强一致
-        this.fetchProgress();
+        funnel.log('COURSE_PROGRESS_UPDATE', {
+          courseId,
+          progressPercent,
+          status
+        });
 
         wx.showToast({
           title: '已更新',
           icon: 'success',
-          duration: 800
+          duration: 900
         });
+
+        // 保存成功后重新拉一次列表
+        this.fetchProgress();
       },
-      fail: (err) => {
-        console.error('[course/progress] update fail:', err);
+      fail: () => {
         wx.showToast({
           title: '网络异常，稍后重试',
           icon: 'none'
         });
-      },
-      complete: () => {
-        wx.hideLoading();
       }
     });
-  }
+  },
+
+  // 占位，避免按钮点击冒泡到卡片 tap
+  noop() {}
 });

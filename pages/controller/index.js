@@ -168,8 +168,23 @@ Page({
 
   // 进入课程日历（新的课程页）
   goToCourseList() {
+    console.log('[controller] goToCourseList tap');
     wx.navigateTo({
-      url: '/pages/courses/index'
+      // 注意：这里用的是 /pages/course/index，而不是 /pages/courses/index
+      url: '/pages/course/index?from=controller',
+      success() {
+        console.log('[controller] navigateTo /pages/course/index success');
+      },
+      fail(err) {
+        console.error(
+          '[controller] navigateTo /pages/course/index fail:',
+          err
+        );
+        wx.showToast({
+          title: '暂时无法打开课程日历',
+          icon: 'none'
+        });
+      }
     });
   },
 

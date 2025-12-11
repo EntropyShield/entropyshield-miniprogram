@@ -3,7 +3,7 @@
     "pages/index/index",
     "pages/controller/index",
     "pages/profile/index",
-    "pages/courses/index",
+    "pages/course/index",
     "pages/course/detail",
     "pages/course/progress",
     "pages/riskCalculator/index",
