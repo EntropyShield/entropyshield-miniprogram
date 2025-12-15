@@ -4,7 +4,7 @@
 <view class="hero-card">
   <view class="hero-left">
     <view class="hero-label">控局者 · 训练中枢</view>
-    <view class="hero-title">从  7  天训练到完整控局体系</view>
+    <view class="hero-title">从 7 天训练到完整控局体系</view>
     <view class="hero-desc">
       这里承载你的训练营进度、控局日历与后续升级路径。
     </view>
@@ -14,16 +14,13 @@
       <text class="hero-stat-label">本轮训练营</text>
       <text class="hero-stat-value">{{finishedDays}} / 7 天</text>
     </view>
-    <view class="hero-stat-tag">
-      {{stageText}}
-    </view>
+    <view class="hero-stat-tag">{{stageText}}</view>
   </view>
 </view>
 
 <!-- A 区：7 天风控训练营 -->
 <view class="section-card">
 
-  <!-- 行 1：标题 + 进入训练营按钮（右对齐） -->
   <view class="section-a-row section-a-row-top">
     <view class="section-a-main">
       <text class="section-tag">A. 7 天风控训练营</text>
@@ -33,39 +30,31 @@
     </view>
   </view>
 
-  <!-- 行 2：控局日历 + 按钮 -->
   <view class="section-a-row">
     <view class="section-a-main">
       <view class="section-a-title">熵盾研究院 · 控局日历</view>
-      <view class="section-a-sub">
-        统一查看训练营与多类控局排期，集中安排控局节奏
-      </view>
+      <view class="section-a-sub">统一查看训练营与多类控局排期，集中安排控局节奏</view>
     </view>
     <view class="section-a-btn-wrap">
       <button class="section-a-btn" bindtap="goToCourseList">进入控局日历</button>
     </view>
   </view>
 
-  <!-- 行 3：我的控局进度 + 按钮 -->
   <view class="section-a-row">
     <view class="section-a-main">
       <view class="section-a-title">我的控局进度</view>
-      <view class="section-a-sub">
-        查看训练营与控局的完成情况，掌握自己的控局节奏
-      </view>
+      <view class="section-a-sub">查看训练营与控局的完成情况，掌握自己的控局节奏</view>
     </view>
     <view class="section-a-btn-wrap">
       <button class="section-a-btn" bindtap="goCourseProgress">查看进度</button>
     </view>
   </view>
 
-  <!-- 当前进度 -->
   <view class="section-meta">
     <text class="row-label">当前进度</text>
     <text class="row-value">{{finishedDays}} / 7 天</text>
   </view>
 
-  <!-- 训练目标：合并成一句话 -->
   <view class="section-goal">
     <text class="row-text section-goal-text">
       训练目标：通过 7 天，把“止损、仓位、复盘”变成你交易前后自动会做的动作。
@@ -73,40 +62,73 @@
   </view>
 
   <view class="section-footer">
-    <text class="section-tip">
-      建议顺序：先完成一轮 7 天训练，再进入控局系统课与线下沙龙。
-    </text>
+    <text class="section-tip">建议顺序：先完成一轮 7 天训练，再进入控局系统课与线下沙龙。</text>
   </view>
 </view>
 
-<!-- B 区：近期课程与预约 -->
+<!-- B 区：近期课程与预约（真实课表驱动） -->
 <view class="section-card">
-  <view class="section-header-b">
+  <view class="section-header-b header-row">
     <text class="section-tag">B. 近期课与预约</text>
+    <text class="header-link" bindtap="goToCourseList">查看课表</text>
   </view>
-  <view class="section-sub-line">
-    公开课 / 体验课 / 风控课 / 线下沙龙 / 成为控局者
+  <view class="section-sub-line">公开课 / 体验课 / 训练营 / 线下沙龙</view>
+
+  <view class="fixed-title">控局路径 · 固定入口</view>
+
+  <!-- loading：首次加载用骨架 -->
+  <view wx:if="{{bLoading && fixedEntries.length===0}}" class="b-skeleton-wrap">
+    <view class="b-skeleton-card"></view>
+    <view class="b-skeleton-card"></view>
   </view>
 
-  <view class="section-body">
-    <view class="section-row-single">
-      <text class="row-text">
-        说明：当前为示例排期，正式上线后每一场课都可在这里直接预约，
-        并统计人数与渠道来源。
-      </text>
+  <view wx:elif="{{bLoading}}" class="b-hint">
+    正在刷新课表...
+  </view>
+
+  <view class="b-error" wx:if="{{bErrorText}}">
+    <text>{{bErrorText}}</text>
+    <button class="b-retry" catchtap="onRetryFixed">重试</button>
+  </view>
+
+  <view wx:for="{{fixedEntries}}" wx:key="key" class="fixed-card {{item.isFallback?'fixed-card-fallback':''}}" data-id="{{item.id}}" bindtap="onFixedCardTap">
+    <view class="fixed-top">
+      <view class="fixed-step {{item.stepClass}}">{{item.stepLabel}}</view>
+      <view class="fixed-right">
+        <view class="fixed-pill {{item.pillClass}}">{{item.typeLabel}}</view>
+        <view class="fixed-status {{item.statusBadgeClass}}">{{item.statusText}}</view>
+      </view>
+    </view>
+
+    <view class="fixed-name">{{item.title}}</view>
+    <view class="fixed-time">{{item.timeRange}}</view>
+
+    <view class="fixed-brief" wx:if="{{item.brief}}">
+      {{item.brief}}
+    </view>
+
+    <view class="fixed-actions">
+      <button class="btn-ghost {{item.isFallback?'btn-disabled':''}}" data-id="{{item.id}}" catchtap="onFixedDetailTap">查看详情</button>
+      <button class="btn-primary {{item.isFallback?'btn-disabled':''}}"
+        wx:if="{{item.courseType==='salon' || item.key==='salon'}}"
+        data-id="{{item.id}}"
+        catchtap="onFixedBookingTap">预约来访</button>
     </view>
   </view>
+
+  <view class="b-foot">
+    说明：课程时间以课表为准；线下沙龙报名后我们会联系确认来访时间。
+  </view>
 </view>
 
-<!-- C 区：课程预约与渠道数据 -->
+<!-- C 区：课程预约与渠道数据（预留） -->
 <view class="section-card section-card-small">
   <view class="section-header-c">
     <text class="section-tag">C. 课程预约与渠道数据</text>
   </view>
   <view class="section-body">
     <text class="row-text">
-      未来会在这里看到：每一场课程的预约人数、到课率，以及来自
-      「小程序分享 / 老用户转介绍 / 社群渠道」等统计，用于你的市场拓展决策。
+      未来会在这里看到：每一场课程的预约人数、到课率，以及来自「小程序分享 / 老用户转介绍 / 社群渠道」等统计，用于你的市场拓展决策。
     </text>
   </view>
 </view>

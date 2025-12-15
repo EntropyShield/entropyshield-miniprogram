@@ -30,22 +30,38 @@ Page({
     // 原始课程列表（带个人进度）
     coursesRaw: [],
 
-    // [{ date, dateDisplay, list: [...] }]
+    // [{ dateKey, date, dateText, list: [...] }]
     courseGroups: [],
 
-    // 筛选类型：upcoming / all / finished
+    // 筛选类型：upcoming / all / ended
     filterType: 'upcoming'
   },
 
   onLoad() {
     funnel.log('COURSE_LIST_VIEW', {});
+    this.__didLoadOnce = true;
     this.loadCourses();
+  },
+
+  // 返回该页面时刷新一次（保证从详情/进度页回来能看到最新进度）
+  onShow() {
+    if (this.__didLoadOnce) {
+      // 避免首屏 onLoad + onShow 叠加请求：只在已经加载过且非 loading 时刷新
+      if (!this.data.loading) {
+        this.loadCourses();
+      }
+    }
   },
 
   onPullDownRefresh() {
     this.loadCourses(() => {
       wx.stopPullDownRefresh();
     });
+  },
+
+  // WXML 绑定的是 onTapFilter，这里提供同名方法
+  onTapFilter(e) {
+    this.onChangeFilter(e);
   },
 
   // 切换筛选
@@ -73,43 +89,31 @@ Page({
     wx.request({
       url: `${API_BASE}/api/courses/progress`,
       method: 'GET',
-      data: {
-        clientId
-      },
+      data: { clientId },
       success: (res) => {
         const data = res.data || {};
 
         if (!data.ok) {
-          console.warn(
-            '[courses] /api/courses/progress not ok, fallback to /api/courses:',
-            data
-          );
+          console.warn('[courses] /api/courses/progress not ok, fallback to /api/courses:', data);
           this.fetchCoursesFallback(done);
           return;
         }
 
         const list = data.list || [];
-        const normalized = list.map((item) =>
-          this.normalizeCourse(item)
-        );
+        const normalized = list.map((item) => this.normalizeCourse(item));
 
         this.setData(
           {
             loading: false,
             coursesRaw: normalized
           },
-          () => {
-            this.applyFilter();
-          }
+          () => this.applyFilter()
         );
 
         done && done();
       },
       fail: (err) => {
-        console.error(
-          '[courses] /api/courses/progress request fail, fallback:',
-          err
-        );
+        console.error('[courses] /api/courses/progress request fail, fallback:', err);
         this.fetchCoursesFallback(done);
       }
     });
@@ -134,18 +138,14 @@ Page({
 
         // 兼容 courses 和 list 两种写法
         const list = data.courses || data.list || [];
-        const normalized = list.map((item) =>
-          this.normalizeCourse(item)
-        );
+        const normalized = list.map((item) => this.normalizeCourse(item));
 
         this.setData(
           {
             loading: false,
             coursesRaw: normalized
           },
-          () => {
-            this.applyFilter();
-          }
+          () => this.applyFilter()
         );
 
         done && done();
@@ -181,7 +181,31 @@ Page({
       timeText = `${s} - ${e}`;
     }
 
+    // 课程类型（后端多种字段兼容）
+    const courseType =
+      item.category ||
+      item.type ||
+      item.courseType ||
+      item.course_type ||
+      item.typeCode ||
+      '';
+
+    // 类型文案：优先用工具映射，兜底用后端字段或“课程”
+    let courseTypeText = item.courseTypeText || item.course_type_text || '';
+    try {
+      if (typeof getCourseTypeMeta === 'function') {
+        const meta = getCourseTypeMeta(courseType);
+        courseTypeText =
+          (meta && (meta.text || meta.label || meta.name)) ||
+          courseTypeText ||
+          '课程';
+      }
+    } catch (e) {
+      courseTypeText = courseTypeText || '课程';
+    }
+
     // 进度：优先用 progressPercent，其次 progress
+    // 注意：后端可能给 0~100，也可能给 0~1，这里统一成 0~1 的 progress
     let progress = 0;
     if (typeof item.progressPercent === 'number') {
       progress = item.progressPercent;
@@ -189,10 +213,7 @@ Page({
       progress = item.progress;
     }
 
-    // 防御：如果不小心存成 0~100，这里归一化
-    if (progress > 1) {
-      progress = progress / 100;
-    }
+    if (progress > 1) progress = progress / 100;
     if (progress < 0) progress = 0;
     if (progress > 1) progress = 1;
 
@@ -201,25 +222,31 @@ Page({
     const status = this.calcStatus(rawStatus, progress);
     const statusText = this.getStatusText(status);
 
-    // 课程类型：promo / lead / paid / camp
-    const courseType =
-      item.category ||
-      item.type ||
-      item.courseType ||
-      item.course_type ||
-      '';
+    // [P0-FIX-PROGRESS-WIDTH] 进度条宽度：必须是 “xx%” 字符串
+    const percentNum = Math.round(progress * 100);
+    const p = isNaN(percentNum) ? 0 : Math.max(0, Math.min(100, percentNum));
+    const progressWidth = p + '%';
+    const progressText = p > 0 ? `进度 ${p}%` : '';
 
     return {
       id: item.id || item.course_id,
       title: item.title || item.name || '未命名课程',
+
       date,
-      dateDisplay: this.formatDateDisplay(date),
+      dateText: this.formatDateDisplay(date), // 给 WXML 用 g.dateText
       timeText: timeText || '时间待定',
-      level: item.level || item.level_name || '',
+
       category: courseType,
+      courseTypeText,
+
       status,
       statusText,
-      progress
+      statusClass: `status-${status}`,
+
+      progress,              // 0~1
+      progressPercent: p,    // 0~100
+      progressWidth,         // "68%"
+      progressText           // "进度 68%"
     };
   },
 
@@ -281,7 +308,8 @@ Page({
       filtered = coursesRaw.filter(
         (c) => c.status === 'not_started' || c.status === 'in_progress'
       );
-    } else if (filterType === 'finished') {
+    } else if (filterType === 'ended') {
+      // “已结束”：已完成
       filtered = coursesRaw.filter((c) => c.status === 'finished');
     }
     // filterType === 'all' 不做过滤
@@ -298,8 +326,9 @@ Page({
       const key = c.date || '未知日期';
       if (!groupsMap[key]) {
         groupsMap[key] = {
+          dateKey: key,        // 给 wx:key 用
           date: key,
-          dateDisplay: c.dateDisplay || key,
+          dateText: c.dateText || key,
           list: []
         };
       }
@@ -310,9 +339,7 @@ Page({
       .sort((a, b) => (a > b ? 1 : -1))
       .map((k) => groupsMap[k]);
 
-    this.setData({
-      courseGroups
-    });
+    this.setData({ courseGroups });
   },
 
   // 点击课程卡片：直接跳转到课程详情页
@@ -320,9 +347,7 @@ Page({
     const id = e.currentTarget.dataset.id;
     if (!id) return;
 
-    funnel.log('COURSE_ITEM_CLICK', {
-      courseId: id
-    });
+    funnel.log('COURSE_ITEM_CLICK', { courseId: id });
 
     wx.navigateTo({
       url: `/pages/course/detail?id=${id}&from=courses`

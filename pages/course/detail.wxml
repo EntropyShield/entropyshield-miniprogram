@@ -1,24 +1,22 @@
 <view class="page">
   <view class="page-body">
-    <!-- 加载 / 错误提示 -->
-    <view wx:if="{{loading}}" class="tip-text">
-      加载中…
-    </view>
+
+    <view wx:if="{{loading}}" class="tip-text">加载中…</view>
 
     <view wx:if="{{!loading && errorMsg}}" class="tip-text tip-error">
       {{errorMsg}}
+      <view class="retry-wrap">
+        <button class="retry-btn" catchtap="onRetryDetail">重试</button>
+      </view>
     </view>
 
-    <!-- 课程信息 -->
     <view wx:if="{{!loading && !errorMsg && course}}" class="course-card">
-      <view class="course-title">
-        {{course.title}}
-      </view>
+      <view class="course-title">{{course.title}}</view>
 
       <view class="tags-row">
-        <view class="tag type-tag">{{course.courseTypeText}}</view>
+        <view class="tag {{course.courseTypeClass}}">{{course.courseTypeText}}</view>
         <view class="tag price-tag">{{course.priceText}}</view>
-        <view class="tag status-tag">{{course.statusText}}</view>
+        <view class="tag status-tag {{course.statusClass}}">{{course.statusText}}</view>
       </view>
 
       <view class="meta-row">
@@ -36,40 +34,50 @@
         <text class="meta-value">{{course.targetText}}</text>
       </view>
 
+      <view wx:if="{{joined && course.typeCode!=='SALON'}}" class="joined-tip">
+        你已加入本课进度，可在「我的课程进度」查看与更新。
+      </view>
+
       <view class="section">
         <view class="section-title">课程简介</view>
         <view class="section-content">
-          <text>
-            {{course.description || '讲师会结合你的真实交易问题进行拆解与演示，帮助你搭建自己的风控护栏。'}}
-          </text>
+          <text>{{course.description || '讲师会结合你的真实问题进行拆解与演示，帮助你搭建自己的风控护栏。'}}</text>
         </view>
       </view>
 
-      <!-- 新增：控局路径位置说明 -->
-      <view class="section">
+      <view class="section path-section">
         <view class="section-title">这门课在控局路径中的位置</view>
         <view class="section-content">
-          <view class="path-title">
-            {{course.pathStageTitle}}
-          </view>
-          <view class="path-desc">
-            {{course.pathStageDesc}}
-          </view>
-          <view class="path-next">
-            下一步建议：{{course.pathNextStep}}
-          </view>
+          <view class="path-title">{{course.pathStageTitle}}</view>
+          <view class="path-desc">{{course.pathStageDesc}}</view>
+          <view class="path-next">下一步建议：{{course.pathNextStep}}</view>
         </view>
       </view>
     </view>
   </view>
 
-  <!-- 底部操作栏 -->
   <view wx:if="{{!loading && course}}" class="bottom-bar">
-    <button class="btn-secondary" bindtap="goProgress">
-      查看我的课程进度
+    <button class="btn-secondary" bindtap="goProgress">查看我的课程进度</button>
+
+    <button wx:if="{{course.typeCode==='SALON'}}" class="btn-primary" bindtap="onSalonBooking">
+      预约来访
     </button>
-    <button class="btn-primary" bindtap="onJoinCourse">
-      加入我的课程进度
-    </button>
+
+    <block wx:else>
+      <!-- [P1-ENT-20251215] canJoin 仍以状态控制；权益拦截在 JS 内处理 -->
+      <button
+        wx:if="{{course.canJoin !== false}}"
+        class="btn-primary {{(joining || joined) ? 'btn-disabled' : ''}}"
+        loading="{{joining}}"
+        disabled="{{joining || joined}}"
+        bindtap="onJoinCourse"
+      >
+        {{joined ? '已加入' : '加入我的课程进度'}}
+      </button>
+
+      <button wx:else class="btn-primary btn-disabled" disabled="true">
+        {{course.joinDisabledText || '暂不可加入'}}
+      </button>
+    </block>
   </view>
 </view>

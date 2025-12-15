@@ -1,85 +1,95 @@
-<!-- pages/course/index.wxml 课程日历视图 -->
 <view class="page">
-  <!-- 顶部标题 -->
-  <view class="header-card">
-    <view class="header-title">熵盾研究院 · 课程日历</view>
-    <view class="header-sub">
-      按控局路径排布的 5 类课：公开课 / 体验课 / 风控课 / 线下沙龙 / 成为控局者。
-    </view>
+
+<!-- 顶部：标题 + 筛选 -->
+<view class="topbar">
+
+  <!-- [P2-LIST-UX-20251215] 标题行增加“我的进度”入口 -->
+  <view class="top-hd">
+    <view class="top-title">熵盾研究院 · 控局日历</view>
+    <view class="top-link" bindtap="goMyProgress">我的进度</view>
   </view>
 
-  <!-- 筛选 Tab -->
+  <view class="top-sub">公开课 / 体验课 / 训练营 / 线下沙龙</view>
+
   <view class="tabs">
-    <view
-      class="tab {{filterType === 'upcoming' ? 'tab-active' : ''}}"
-      data-type="upcoming"
-      bindtap="onChangeFilter"
-    >
-      即将开播
-    </view>
-    <view
-      class="tab {{filterType === 'all' ? 'tab-active' : ''}}"
-      data-type="all"
-      bindtap="onChangeFilter"
-    >
-      全部课程
-    </view>
-    <view
-      class="tab {{filterType === 'finished' ? 'tab-active' : ''}}"
-      data-type="finished"
-      bindtap="onChangeFilter"
-    >
-      已结束
-    </view>
+    <view class="tab {{filterType==='upcoming'?'tab-on':''}}" data-type="upcoming" bindtap="onTabTap">即将开播</view>
+    <view class="tab {{filterType==='all'?'tab-on':''}}" data-type="all" bindtap="onTabTap">全部</view>
+    <view class="tab {{filterType==='ended'?'tab-on':''}}" data-type="ended" bindtap="onTabTap">已结束</view>
   </view>
 
-  <!-- 加载 / 错误 / 列表 / 空态 -->
-  <block wx:if="{{loading}}">
-    <view class="tip-text">加载中…</view>
-  </block>
+  <view class="search">
+    <input class="search-input"
+      placeholder="搜索课程名称"
+      placeholder-class="search-ph"
+      value="{{searchText}}"
+      bindinput="onSearchInput" />
+    <view class="search-clear" wx:if="{{searchText}}" bindtap="onClearSearch">清空</view>
+  </view>
 
-  <block wx:elif="{{errorMsg}}">
-    <view class="tip-text tip-error">{{errorMsg}}</view>
-  </block>
+  <view class="top-hint">提示：下拉页面可刷新课表</view>
+</view>
 
-  <block wx:elif="{{courseGroups.length}}">
-    <block wx:for="{{courseGroups}}" wx:key="date" wx:for-item="group">
-      <view class="group">
-        <view class="group-date">
-          {{group.dateDisplay}}
+<!-- 错误提示 -->
+<view class="error" wx:if="{{errorText}}">
+  <text class="error-text">{{errorText}}</text>
+  <button class="error-btn" catchtap="onRetry">重试</button>
+</view>
+
+<!-- 加载态 -->
+<view class="loading" wx:if="{{loading}}">
+  <view class="skeleton"></view>
+  <view class="skeleton"></view>
+  <view class="skeleton"></view>
+</view>
+
+<!-- 空态 -->
+<view class="empty" wx:if="{{!loading && !errorText && courseGroups.length===0}}">
+  <view class="empty-title">暂无可展示课程</view>
+  <view class="empty-sub">可切换筛选或清空搜索后再试</view>
+</view>
+
+<!-- 分组列表 -->
+<view wx:for="{{courseGroups}}" wx:key="dateKey" class="group">
+  <view class="group-hd">
+    <view class="group-date">{{item.dateLabel}}</view>
+    <view class="group-count">{{item.items.length}} 场</view>
+  </view>
+
+  <view wx:for="{{item.items}}" wx:key="id" class="card" data-id="{{item.id}}" bindtap="onCourseTap">
+    <view class="card-top">
+      <view class="pill {{item.pillClass}}">{{item.typeLabel}}</view>
+
+      <view class="card-top-right">
+        <!-- [P2-LIST-PROGRESS-20251215] 已加入/进度角标 -->
+        <view class="joined" wx:if="{{item.joined}}">
+          {{item.progressText}}
         </view>
-
-        <block
-          wx:for="{{group.list}}"
-          wx:key="id"
-          wx:for-item="course"
-        >
-          <view
-            class="course-item"
-            bindtap="onTapCourse"
-            data-id="{{course.id}}"
-          >
-            <view class="course-top">
-              <view class="course-type-tag">
-                {{course.courseTypeText}}
-              </view>
-              <view class="course-title">
-                {{course.title}}
-              </view>
-            </view>
-
-            <view class="course-meta">
-              <text class="meta-text">{{course.timeText}}</text>
-              <text class="meta-dot">·</text>
-              <text class="meta-text">{{course.statusText}}</text>
-            </view>
-          </view>
-        </block>
+        <view class="status {{item.statusClass}}">{{item.statusText}}</view>
       </view>
-    </block>
-  </block>
+    </view>
 
-  <block wx:else>
-    <view class="tip-text">暂无课程排期。</view>
-  </block>
+    <view class="card-title">{{item.title}}</view>
+
+    <view class="card-meta">
+      <text class="meta-time">{{item.timeText}}</text>
+      <text class="meta-dot">·</text>
+      <text class="meta-price">{{item.priceText}}</text>
+    </view>
+
+    <view class="card-desc" wx:if="{{item.desc}}">
+      {{item.desc}}
+    </view>
+
+    <view class="card-actions">
+      <button class="btn ghost" data-id="{{item.id}}" catchtap="onCourseTap">查看详情</button>
+
+      <button class="btn primary"
+        wx:if="{{item.typeKey==='SALON'}}"
+        data-id="{{item.id}}"
+        catchtap="onSalonBooking">预约来访</button>
+    </view>
+  </view>
+</view>
+
+<view class="footer-gap"></view>
 </view>

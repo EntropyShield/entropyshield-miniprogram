@@ -1,4 +1,4 @@
-/* pages/course/progress.wxss */
+/* pages/course/progress/index.wxss */
 
 .page {
   display: flex;
@@ -141,4 +141,10 @@
   color: #ffffff;
   border-radius: 999rpx;
   font-size: 24rpx;
+}
+
+/* [P1-WXSS-20251215] 去掉按钮默认 after 边框（不使用 tag selector） */
+.btn-primary::after,
+.btn-secondary::after {
+  border: none;
 }

@@ -7,7 +7,7 @@
 
 .page-body {
   flex: 1;
-  padding: 32rpx 32rpx 140rpx;
+  padding: 32rpx 32rpx 160rpx;
   box-sizing: border-box;
 }
 
@@ -22,20 +22,39 @@
   color: #ff4d4f;
 }
 
+.retry-wrap {
+  margin-top: 18rpx;
+  display: flex;
+  justify-content: center;
+}
+
+.retry-btn {
+  height: 72rpx;
+  line-height: 72rpx;
+  border-radius: 999rpx;
+  padding: 0 26rpx;
+  border: 1rpx solid rgba(255,255,255,0.14);
+  background: rgba(255,255,255,0.06);
+  color: #ffffff;
+  font-size: 26rpx;
+}
+.retry-btn::after { border: none; }
+
 /* 课程卡片 */
 .course-card {
   background: #101114;
   border-radius: 24rpx;
   padding: 32rpx 28rpx 40rpx;
   box-shadow: 0 12rpx 30rpx rgba(0, 0, 0, 0.6);
+  border: 1rpx solid rgba(255, 255, 255, 0.06);
 }
 
 .course-title {
   color: #ffffff;
   font-size: 32rpx;
-  font-weight: 600;
+  font-weight: 700;
   line-height: 1.4;
-  margin-bottom: 20rpx;
+  margin-bottom: 18rpx;
 }
 
 /* 标签 */
@@ -51,20 +70,89 @@
   padding: 6rpx 16rpx;
   border-radius: 999rpx;
   font-size: 22rpx;
+  border: 1rpx solid rgba(255, 255, 255, 0.10);
+  background: rgba(255, 255, 255, 0.06);
+  color: #c0c6d2;
 }
 
-.type-tag {
-  background: rgba(42, 255, 42, 0.1);
+/* 类型 tag */
+.tag-public {
+  border-color: rgba(42, 255, 42, 0.45);
+  background-color: rgba(42, 255, 42, 0.12);
   color: #2aff2a;
 }
 
+.tag-experience {
+  border-color: rgba(80, 200, 255, 0.35);
+  background-color: rgba(80, 200, 255, 0.10);
+  color: #cfefff;
+}
+
+.tag-camp {
+  border-color: rgba(255, 210, 80, 0.35);
+  background-color: rgba(255, 210, 80, 0.10);
+  color: #ffe6a8;
+}
+
+.tag-risk {
+  border-color: rgba(255, 120, 120, 0.35);
+  background-color: rgba(255, 120, 120, 0.10);
+  color: #ffd0d0;
+}
+
+.tag-salon {
+  border-color: rgba(200, 160, 255, 0.35);
+  background-color: rgba(200, 160, 255, 0.10);
+  color: #ead7ff;
+}
+
+.tag-controller {
+  border-color: rgba(255, 255, 255, 0.20);
+  background-color: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+
+.tag-default {
+  border-color: rgba(255, 255, 255, 0.10);
+  background-color: rgba(255, 255, 255, 0.06);
+  color: #c0c6d2;
+}
+
 .price-tag {
-  background: rgba(255, 255, 255, 0.08);
-  color: #f5f5f5;
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.88);
 }
 
 .status-tag {
-  background: rgba(79, 209, 197, 0.12);
+  border-color: rgba(79, 209, 197, 0.18);
+  background: rgba(79, 209, 197, 0.10);
+  color: #4fd1c5;
+}
+
+/* 状态色 */
+.status-draft {
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.70);
+}
+
+.status-published {
+  border-color: rgba(42, 255, 42, 0.35);
+  background: rgba(42, 255, 42, 0.12);
+  color: #2aff2a;
+}
+
+.status-closed,
+.status-finished {
+  border-color: rgba(120, 120, 120, 0.25);
+  background: rgba(120, 120, 120, 0.06);
+  color: #8a8f99;
+}
+
+.status-default {
+  border-color: rgba(79, 209, 197, 0.18);
+  background: rgba(79, 209, 197, 0.10);
   color: #4fd1c5;
 }
 
@@ -85,6 +173,18 @@
   color: #ffffff;
   font-size: 24rpx;
   text-align: right;
+  max-width: 480rpx;
+}
+
+/* 已加入提示 */
+.joined-tip {
+  margin-top: 16rpx;
+  padding: 14rpx 16rpx;
+  border-radius: 18rpx;
+  border: 1rpx solid rgba(42, 255, 42, 0.18);
+  background: rgba(42, 255, 42, 0.08);
+  color: rgba(42, 255, 42, 0.95);
+  font-size: 22rpx;
 }
 
 /* 简介 */
@@ -104,13 +204,38 @@
   line-height: 1.6;
 }
 
+.path-section {
+  border-top: 1rpx solid rgba(255, 255, 255, 0.06);
+  padding-top: 18rpx;
+}
+
+.path-title {
+  font-size: 24rpx;
+  color: #ffffff;
+  font-weight: 700;
+  margin-bottom: 10rpx;
+}
+
+.path-desc {
+  font-size: 22rpx;
+  color: rgba(255, 255, 255, 0.78);
+  line-height: 1.6;
+  margin-bottom: 10rpx;
+}
+
+.path-next {
+  font-size: 22rpx;
+  color: rgba(42, 255, 42, 0.90);
+  line-height: 1.6;
+}
+
 /* 底部按钮栏 */
 .bottom-bar {
   position: fixed;
   left: 0;
   right: 0;
   bottom: 0;
-  padding: 16rpx 32rpx 32rpx;
+  padding: 16rpx 32rpx calc(32rpx + env(safe-area-inset-bottom));
   box-sizing: border-box;
   background: linear-gradient(to top, #050608, rgba(5, 6, 8, 0.9), transparent);
   display: flex;
@@ -131,32 +256,24 @@
 .btn-primary {
   background-color: #2aff2a;
   color: #000000;
-  font-weight: 600;
+  font-weight: 700;
   border: none;
 }
 
-/* 次按钮：描边 */
+/* disabled 态：用 class 控制（避免 attribute selector） */
+.btn-primary.btn-disabled {
+  background-color: rgba(42, 255, 42, 0.30);
+  color: rgba(0, 0, 0, 0.65);
+}
+
 .btn-secondary {
   background-color: transparent;
   color: #2aff2a;
   border: 2rpx solid #2aff2a;
 }
 
-/* 建议学习路径区块 */
-.suggest-path {
-  margin-top: 24rpx;
-  padding-top: 16rpx;
-  border-top: 1rpx solid rgba(255, 255, 255, 0.06);
-}
-
-.suggest-title {
-  font-size: 24rpx;
-  color: #9aa0b3;
-  margin-bottom: 6rpx;
-}
-
-.suggest-text {
-  font-size: 22rpx;
-  color: #c0c6d2;
-  line-height: 1.6;
+/* 去掉 button 默认 after 边框（不使用 tag selector） */
+.btn-primary::after,
+.btn-secondary::after {
+  border: none;
 }

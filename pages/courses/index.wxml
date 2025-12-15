@@ -1,105 +1,84 @@
 <view class="page">
-  <!-- 顶部标题 -->
+  <!-- Header -->
   <view class="page-header">
-    <view class="page-title">熵盾研究院 · 课程日历</view>
-    <view class="page-subtitle">统一查看训练营宣导与多类课程排期</view>
+    <view class="page-title">控局日历</view>
+    <view class="page-subtitle">按“即将开播 / 全部 / 已结束”筛选课程</view>
+
+    <view class="filter-tab">
+      <view
+        class="tab-item {{filterType==='upcoming' ? 'active' : ''}}"
+        data-type="upcoming"
+        bindtap="onTapFilter"
+      >
+        即将开播
+      </view>
+      <view
+        class="tab-item {{filterType==='all' ? 'active' : ''}}"
+        data-type="all"
+        bindtap="onTapFilter"
+      >
+        全部
+      </view>
+      <view
+        class="tab-item {{filterType==='ended' ? 'active' : ''}}"
+        data-type="ended"
+        bindtap="onTapFilter"
+      >
+        已结束
+      </view>
+    </view>
   </view>
 
-  <!-- 筛选 Tab：即将开播 / 全部课程 / 已结束 -->
-  <view class="filter-tab">
-    <view
-      class="tab-item {{filterType === 'upcoming' ? 'active' : ''}}"
-      data-type="upcoming"
-      bindtap="onChangeFilter"
-    >
-      即将开播
-    </view>
-    <view
-      class="tab-item {{filterType === 'all' ? 'active' : ''}}"
-      data-type="all"
-      bindtap="onChangeFilter"
-    >
-      全部课程
-    </view>
-    <view
-      class="tab-item {{filterType === 'finished' ? 'active' : ''}}"
-      data-type="finished"
-      bindtap="onChangeFilter"
-    >
-      已结束
-    </view>
-  </view>
+  <!-- Loading / Error -->
+  <view wx:if="{{loading}}" class="tip-text">加载中…</view>
 
-  <!-- 加载 / 错误提示 -->
-  <view wx:if="{{loading}}" class="tip-text">
-    加载中…
-  </view>
   <view wx:elif="{{errorMsg}}" class="tip-text tip-error">
     {{errorMsg}}
   </view>
 
-  <!-- 课程列表（按日期分组） -->
+  <!-- List -->
   <scroll-view
     wx:else
     class="course-scroll"
     scroll-y="true"
+    enhanced="true"
+    show-scrollbar="false"
   >
-    <block wx:for="{{courseGroups}}" wx:key="date" wx:for-item="group">
-      <!-- 日期行 -->
-      <view class="date-row">
-        <text class="date-text">{{group.dateDisplay}}</text>
-      </view>
+    <view wx:if="{{!courseGroups || courseGroups.length===0}}" class="empty-tip">
+      暂无课程
+    </view>
 
-      <!-- 当天的课程卡片 -->
-      <block wx:for="{{group.list}}" wx:key="id" wx:for-item="item">
-        <view
-          class="course-card"
-          data-id="{{item.id}}"
-          bindtap="onTapCourse"
-        >
-          <!-- 顶部：标题 + 类型标签 -->
-          <view class="card-top">
-            <view class="title-wrap">
-              <view class="title-dot"></view>
-              <text class="course-title">{{item.title}}</text>
-            </view>
-
-            <view wx:if="{{item.category}}" class="type-tag">
-              {{item.category}}
-            </view>
-          </view>
-
-          <!-- 中部：时间 + 状态标签 -->
-          <view class="card-middle">
-            <text class="time-text">{{item.timeText}}</text>
-
-            <view class="status-tag status-{{item.status}}">
-              {{item.statusText}}
-            </view>
-          </view>
-
-          <!-- 底部：已报名才展示进度条 -->
-          <view wx:if="{{item.progress > 0}}" class="card-bottom">
-            <view class="progress-bar">
-              <view
-                class="progress-inner"
-                style="width: {{item.progress * 100}}%;"
-              ></view>
-            </view>
-            <text class="progress-label">
-              已完成 {{item.progress * 100}}%
-            </text>
-          </view>
+    <block wx:else>
+      <block wx:for="{{courseGroups}}" wx:key="dateKey" wx:for-item="g">
+        <view class="date-row">
+          <view class="date-text">{{g.dateText}}</view>
         </view>
+
+        <block wx:for="{{g.list}}" wx:key="id" wx:for-item="c">
+          <view class="course-card" data-id="{{c.id}}" bindtap="onTapCourse">
+            <view class="card-top">
+              <view class="title-wrap">
+                <view class="title-dot"></view>
+                <view class="course-title">{{c.title}}</view>
+              </view>
+              <view class="type-tag">{{c.courseTypeText}}</view>
+            </view>
+
+            <view class="card-middle">
+              <view class="time-text">{{c.timeText}}</view>
+              <view class="status-tag {{c.statusClass}}">{{c.statusText}}</view>
+            </view>
+
+            <view wx:if="{{c.progressText}}" class="card-bottom">
+              <view class="progress-bar">
+                <!-- [P0-FIX-PROGRESS-WIDTH] -->
+                <view class="progress-inner" style="width: {{c.progressWidth}};"></view>
+              </view>
+              <view class="progress-label">{{c.progressText}}</view>
+            </view>
+          </view>
+        </block>
       </block>
     </block>
-
-    <!-- 没有任何课程 -->
-    <view
-      wx:if="{{!loading && !errorMsg && courseGroups.length === 0}}"
-      class="empty-tip"
-    >
-      暂无课程排期
-    </view>
   </scroll-view>
 </view>

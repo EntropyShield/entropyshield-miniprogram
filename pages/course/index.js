@@ -1,331 +1,468 @@
-// pages/course/index.js 课程日历列表页逻辑（字段兼容 + 调试日志版）
+// pages/course/index.js
 const funnel = require('../../utils/funnel.js');
-const { getCourseTypeMeta } = require('../../utils/courseType.js');
-
-const app = getApp();
-const API_BASE =
-  (app &&
-    app.globalData &&
-    (app.globalData.API_BASE || app.globalData.apiBase)) ||
-  'http://localhost:3000';
-
-/**
- * 统一生成 / 读取 clientId，方便后面扩展埋点
- */
-function ensureClientId() {
-  const app = getApp && getApp();
-  let clientId =
-    (app && app.globalData && app.globalData.clientId) ||
-    wx.getStorageSync('clientId');
-
-  if (!clientId) {
-    clientId =
-      'ST-' + Date.now() + '-' + Math.floor(Math.random() * 1000000);
-    wx.setStorageSync('clientId', clientId);
-    if (app && app.globalData) {
-      app.globalData.clientId = clientId;
-    }
-    console.log('[courses] generate new clientId:', clientId);
-  } else {
-    if (app && app.globalData) {
-      app.globalData.clientId = clientId;
-    }
-    console.log('[courses] use existing clientId:', clientId);
-  }
-
-  return clientId;
-}
+const { getCourseTypeMeta } = require('../../utils/courseType.js'); // [P0-FINAL] 统一类型口径
 
 Page({
   data: {
+    from: '',
+    clientId: '',
+
     loading: false,
-    errorMsg: '',
+    errorText: '',
 
-    // 原始课程扁平列表（标准化之后的）
-    coursesRaw: [],
+    // upcoming | all | ended
+    filterType: 'upcoming',
+    searchText: '',
 
-    // 分组后的课程列表 [{ date, dateDisplay, list: [...] }]
-    courseGroups: [],
-
-    // 筛选类型：upcoming / all / finished
-    filterType: 'upcoming'
+    courses: [],
+    courseGroups: []
   },
 
-  onLoad() {
-    ensureClientId();
-    funnel.log('COURSE_LIST_VIEW', {});
+  onLoad(options) {
+    const from = options.from || '';
+    const clientId = this.ensureClientId();
+    this.setData({ from, clientId });
+    console.log('[courses] onLoad from =', from);
+  },
+
+  onShow() {
+    funnel.log('COURSE_LIST_VIEW', { from: this.data.from, ts: Date.now() });
     this.loadCourses();
   },
 
   onPullDownRefresh() {
-    this.loadCourses(() => {
-      wx.stopPullDownRefresh();
+    this.loadCourses(true);
+  },
+
+  // ========== helpers ==========
+
+  ensureClientId() {
+    let clientId = wx.getStorageSync('clientId');
+    if (!clientId) {
+      clientId = `ST-${Date.now()}-${Math.floor(Math.random() * 1000000)}`;
+      wx.setStorageSync('clientId', clientId);
+      console.log('[courses] generate new clientId:', clientId);
+    } else {
+      console.log('[courses] use existing clientId:', clientId);
+    }
+    return clientId;
+  },
+
+  // [P0-FINAL] 与其它页面统一 baseUrl 读取口径
+  getBaseUrl() {
+    const app = getApp && getApp();
+    const base =
+      (app &&
+        app.globalData &&
+        (app.globalData.API_BASE ||
+          app.globalData.apiBase ||
+          app.globalData.baseUrl ||
+          app.globalData.apiBaseUrl)) ||
+      wx.getStorageSync('apiBaseUrl') ||
+      wx.getStorageSync('apiBase') ||
+      'http://localhost:3000';
+    return String(base).replace(/\/$/, '');
+  },
+
+  requestJson(url, method = 'GET', data) {
+    return new Promise((resolve, reject) => {
+      wx.request({
+        url,
+        method,
+        data,
+        header: { 'content-type': 'application/json' },
+        success: (res) => resolve(res.data),
+        fail: (err) => reject(err)
+      });
     });
   },
 
-  // 切换筛选
-  onChangeFilter(e) {
-    const type = e.currentTarget.dataset.type || 'upcoming';
-    this.setData(
-      {
-        filterType: type
-      },
-      () => {
-        this.applyFilter();
+  extractCourseList(payload) {
+    const pickArr = (v) => (Array.isArray(v) ? v : null);
+    if (Array.isArray(payload)) return payload;
+    if (!payload || typeof payload !== 'object') return [];
+
+    let list =
+      pickArr(payload.courses) ||
+      pickArr(payload.list) ||
+      pickArr(payload.rows) ||
+      pickArr(payload.items);
+    if (list) return list;
+
+    const d1 = payload.data;
+    if (d1 && typeof d1 === 'object') {
+      list =
+        pickArr(d1.courses) ||
+        pickArr(d1.list) ||
+        pickArr(d1.rows) ||
+        pickArr(d1.items);
+      if (list) return list;
+
+      const d2 = d1.data;
+      if (d2 && typeof d2 === 'object') {
+        list =
+          pickArr(d2.courses) ||
+          pickArr(d2.list) ||
+          pickArr(d2.rows) ||
+          pickArr(d2.items);
+        if (list) return list;
       }
-    );
+    }
+    return [];
   },
 
-  // 载入课程数据
-  loadCourses(done) {
-    this.setData({
-      loading: true,
-      errorMsg: ''
-    });
+  // [P2-LIST-PROGRESS-20251215] 解析进度列表（兼容 payload.list / payload.courses / payload.items）
+  extractProgressList(payload) {
+    const pickArr = (v) => (Array.isArray(v) ? v : null);
+    if (Array.isArray(payload)) return payload;
+    if (!payload || typeof payload !== 'object') return [];
 
-    wx.request({
-      url: `${API_BASE}/api/courses`,
-      method: 'GET',
-      success: (res) => {
-        console.log('[courses] /api/courses resp raw:', res);
+    let list =
+      pickArr(payload.list) ||
+      pickArr(payload.items) ||
+      pickArr(payload.rows) ||
+      pickArr(payload.courses);
+    if (list) return list;
 
-        const data = res.data || {};
+    const d1 = payload.data;
+    if (d1 && typeof d1 === 'object') {
+      list =
+        pickArr(d1.list) ||
+        pickArr(d1.items) ||
+        pickArr(d1.rows) ||
+        pickArr(d1.courses);
+      if (list) return list;
 
-        if (!data.ok) {
-          this.setData({
-            loading: false,
-            errorMsg: data.message || '课程数据获取失败'
+      const d2 = d1.data;
+      if (d2 && typeof d2 === 'object') {
+        list =
+          pickArr(d2.list) ||
+          pickArr(d2.items) ||
+          pickArr(d2.rows) ||
+          pickArr(d2.courses);
+        if (list) return list;
+      }
+    }
+    return [];
+  },
+
+  // [P0-FINAL] iOS 兼容时间解析：支持 MySQL "YYYY-MM-DD HH:mm:ss"
+  parseDT(v) {
+    if (!v) return null;
+    const raw = String(v).trim();
+    if (!raw) return null;
+
+    const tries = [];
+    tries.push(raw);
+
+    if (/^\d{4}-\d{2}-\d{2}\s/.test(raw)) {
+      tries.push(raw.replace(/-/g, '/'));
+    }
+
+    if (raw.indexOf('T') >= 0) {
+      tries.push(raw.replace('T', ' '));
+      tries.push(raw.replace('T', ' ').replace(/-/g, '/'));
+    }
+
+    for (let i = 0; i < tries.length; i++) {
+      const d = new Date(tries[i]);
+      if (!isNaN(d.getTime())) return d;
+    }
+    return null;
+  },
+
+  pad2(n) {
+    return n < 10 ? `0${n}` : `${n}`;
+  },
+
+  fmtDateKey(d) {
+    return `${d.getFullYear()}-${this.pad2(d.getMonth() + 1)}-${this.pad2(d.getDate())}`;
+  },
+
+  fmtHM(d) {
+    return `${this.pad2(d.getHours())}:${this.pad2(d.getMinutes())}`;
+  },
+
+  weekdayCN(d) {
+    const map = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+    return map[d.getDay()] || '';
+  },
+
+  // [P0-FINAL] 列表 UI pill 映射（统一 key）
+  pillByTypeKey(typeKey) {
+    switch (typeKey) {
+      case 'PUBLIC':
+        return { label: '公开课', pillClass: 'pill-promo' };
+      case 'EXPERIENCE':
+        return { label: '体验课', pillClass: 'pill-experience' };
+      case 'CAMP':
+        return { label: '训练营', pillClass: 'pill-camp' };
+      case 'SALON':
+        return { label: '线下', pillClass: 'pill-salon' };
+      case 'RISK':
+        return { label: '风控课', pillClass: 'pill-risk' };
+      case 'CONTROLLER':
+        return { label: '进阶', pillClass: 'pill-paid' };
+      default:
+        return { label: '课程', pillClass: 'pill-default' };
+    }
+  },
+
+  // [P0-FINAL] 状态口径统一：优先后端 status，其次用时间推断
+  // [P2-LIST-PROGRESS-20251215] 无起止时间时，状态文案改为“时间待定”，减少误导
+  statusMeta(statusRaw, startTs, endTs) {
+    const s = String(statusRaw || '').toLowerCase();
+    const now = Date.now();
+
+    if (s === 'draft') return { text: '待发布', cls: 'status-draft', isDraft: true, isEnded: false };
+    if (s === 'closed' || s === 'finished' || s === 'ended') {
+      return { text: '已结束', cls: 'status-ended', isDraft: false, isEnded: true };
+    }
+
+    if (!startTs || !endTs) return { text: '时间待定', cls: 'status-upcoming', isDraft: false, isEnded: false };
+    if (now < startTs) return { text: '未开始', cls: 'status-upcoming', isDraft: false, isEnded: false };
+    if (now >= startTs && now <= endTs) return { text: '进行中', cls: 'status-live', isDraft: false, isEnded: false };
+    return { text: '已结束', cls: 'status-ended', isDraft: false, isEnded: true };
+  },
+
+  // ========== data flow ==========
+
+  // [P2-LIST-PROGRESS-20251215] 拉取我的课程进度，映射到列表（失败不阻断主列表）
+  fetchProgressMap(baseUrl, clientId) {
+    const url = `${baseUrl}/api/courses/progress?clientId=${encodeURIComponent(clientId || '')}`;
+    console.log('[courses] fetchProgressMap url =', url);
+
+    return this.requestJson(url, 'GET')
+      .then((payload) => {
+        const list = this.extractProgressList(payload);
+        const map = {};
+        (list || []).forEach((it) => {
+          const courseId = it.courseId || it.course_id || it.courseid || it.courseID;
+          if (!courseId) return;
+
+          const key = String(courseId);
+          const percent = Number(it.progressPercent ?? it.progress_percent ?? it.percent ?? 0);
+          const status = String(it.status || '').toLowerCase();
+
+          map[key] = {
+            progressPercent: isNaN(percent) ? 0 : percent,
+            status
+          };
+        });
+
+        console.log('[courses] progressMap size =', Object.keys(map).length);
+        return map;
+      })
+      .catch((e) => {
+        console.warn('[courses] fetchProgressMap fail (ignored):', e);
+        return {};
+      });
+  },
+
+  loadCourses(isPullDown = false) {
+    this.setData({ loading: true, errorText: '' });
+
+    const baseUrl = this.getBaseUrl();
+    const url = `${baseUrl}/api/courses`;
+    const clientId = this.data.clientId || this.ensureClientId();
+
+    console.log('[courses] loadCourses url =', url);
+
+    // [P2-LIST-PROGRESS-20251215] 并行拉取：课程列表 + 我的进度
+    Promise.all([
+      this.requestJson(url, 'GET'),
+      this.fetchProgressMap(baseUrl, clientId)
+    ])
+      .then(([payload, progressMap]) => {
+        console.log('[courses] /api/courses resp raw:', payload);
+
+        const list = this.extractCourseList(payload);
+        console.log('[courses] source list length =', list.length, list);
+
+        const normalized = (list || [])
+          .map((x) => {
+            const rawType = x.type || x.courseType || x.course_type || x.category || '';
+            const typeMeta = getCourseTypeMeta(rawType);
+            const pill = this.pillByTypeKey(typeMeta.key);
+
+            const startRaw = x.startTime || x.start_time || '';
+            const endRaw = x.endTime || x.end_time || '';
+            const startD = this.parseDT(startRaw);
+            const endD = this.parseDT(endRaw);
+
+            const startTs = startD ? startD.getTime() : 0;
+            const endTs = endD ? endD.getTime() : 0;
+
+            const dateKey = startD ? this.fmtDateKey(startD) : '0000-00-00';
+            const dateLabel = startD
+              ? `${this.pad2(startD.getMonth() + 1)}/${this.pad2(startD.getDate())} ${this.weekdayCN(startD)}`
+              : '未定';
+
+            const timeText =
+              startD && endD ? `${this.fmtHM(startD)} - ${this.fmtHM(endD)}` : '时间待定';
+
+            const st = this.statusMeta(x.status, startTs, endTs);
+
+            const desc = x.description_text || x.description || '';
+            const priceNum = Number(x.price || 0);
+            const priceText = priceNum > 0 ? `¥${priceNum}` : '免费';
+
+            // [P2-LIST-PROGRESS-20251215] 合并进度信息
+            const p = progressMap[String(x.id)] || null;
+            const joined = !!p;
+            const progressPercent = joined ? Number(p.progressPercent || 0) : 0;
+            const progressStatus = joined ? String(p.status || '') : '';
+            const progressText =
+              joined && progressStatus === 'finished'
+                ? '已完成'
+                : joined
+                  ? `进度 ${Math.max(0, Math.min(100, progressPercent))}%`
+                  : '';
+
+            return {
+              id: x.id,
+              title: x.title || '',
+
+              typeKey: typeMeta.key,
+              typeLabel: pill.label,
+              pillClass: pill.pillClass,
+
+              startRaw,
+              endRaw,
+              startTs,
+              endTs,
+
+              dateKey,
+              dateLabel,
+              timeText,
+
+              statusText: st.text,
+              statusClass: st.cls,
+              isDraft: st.isDraft,
+              isEnded: st.isEnded,
+
+              desc,
+              priceText,
+
+              joined,
+              progressPercent,
+              progressStatus,
+              progressText
+            };
+          })
+          .sort((a, b) => {
+            const at = a.startTs || Number.MAX_SAFE_INTEGER;
+            const bt = b.startTs || Number.MAX_SAFE_INTEGER;
+            return at - bt;
           });
-          done && done();
-          return;
-        }
 
-        // 兼容 courses / list / rows 三种返回字段
-        let list = [];
-        if (Array.isArray(data.courses)) {
-          list = data.courses;
-        } else if (Array.isArray(data.list)) {
-          list = data.list;
-        } else if (Array.isArray(data.rows)) {
-          list = data.rows;
-        }
+        console.log('[courses] normalized list length =', normalized.length, normalized);
 
-        console.log(
-          '[courses] source list length =',
-          list.length,
-          list
-        );
-
-        const normalized = list.map((item) => this.normalizeCourse(item));
-        console.log(
-          '[courses] normalized list length =',
-          normalized.length,
-          normalized
-        );
-
-        this.setData(
-          {
-            loading: false,
-            coursesRaw: normalized
-          },
-          () => {
-            this.applyFilter();
-          }
-        );
-      },
-      fail: (err) => {
-        console.error('[courses] request fail:', err);
+        this.setData({ courses: normalized }, () => {
+          this.applyFilter();
+        });
+      })
+      .catch((e) => {
+        console.error('[courses] loadCourses error', e);
         this.setData({
           loading: false,
-          errorMsg: '网络异常，请稍后重试'
+          errorText: '课程日历加载失败（请确认后端已启动）'
         });
-      },
-      complete: () => {
-        done && done();
-      }
-    });
+      })
+      .finally(() => {
+        if (isPullDown) wx.stopPullDownRefresh();
+      });
   },
 
-  // 标准化后端课程字段（兼容 startTime / start_time、courseType / course_type）
-  normalizeCourse(item) {
-    // 起止时间字段兼容
-    const startTime = item.startTime || item.start_time || '';
-    const endTime = item.endTime || item.end_time || '';
-
-    // 日期：优先显式 date，其次从 startTime 截取
-    const date =
-      item.date ||
-      (startTime ? startTime.slice(0, 10) : '') ||
-      item.course_date ||
-      '';
-
-    // 时间文案
-    let timeText = '';
-    if (item.timeText) {
-      timeText = item.timeText;
-    } else if ((startTime && endTime) || startTime || endTime) {
-      const s = startTime ? startTime.slice(11, 16) : '';
-      const e = endTime ? endTime.slice(11, 16) : '';
-      if (s && e) {
-        timeText = `${s} - ${e}`;
-      } else {
-        timeText = s || e || '';
-      }
-    }
-
-    const rawStatus = item.status || '';
-    const progress =
-      typeof item.progress === 'number' ? item.progress : 0;
-
-    const status = this.calcStatus(rawStatus, progress);
-    const statusText = this.getStatusText(status);
-
-    // 统一课程类型（底层原始值 → 控局 5 大课类型）
-    const rawType =
-      item.courseType ||
-      item.course_type ||
-      item.type ||
-      item.category ||
-      '';
-
-    const typeMeta = getCourseTypeMeta(rawType);
-
-    return {
-      id: item.id || item.course_id,
-      title: item.title || item.name || '未命名课程',
-
-      // 日期与时间
-      date,
-      dateDisplay: this.formatDateDisplay(date),
-      timeText: timeText || '时间待定',
-
-      // 课程类型（统一后，用于标签）
-      typeKey: typeMeta.key,
-      courseTypeText: typeMeta.shortTag || typeMeta.text,
-      courseTypeClass: typeMeta.cssClass || 'tag-default',
-
-      // 原始等级 / 分类
-      level: item.level || item.level_name || '',
-      category: rawType,
-
-      // 状态 / 进度
-      status,
-      statusText,
-      progress
-    };
-  },
-
-  // 根据状态/进度推导展示状态
-  calcStatus(rawStatus, progress) {
-    if (rawStatus === 'finished') return 'finished';
-    if (rawStatus === 'in_progress') return 'in_progress';
-    if (rawStatus === 'not_started') return 'not_started';
-
-    if (rawStatus === 'closed') return 'finished';
-    if (rawStatus === 'published') return 'not_started';
-    if (rawStatus === 'draft') return 'not_started';
-
-    if (progress >= 1) return 'finished';
-    if (progress > 0 && progress < 1) return 'in_progress';
-    return 'not_started';
-  },
-
-  getStatusText(status) {
-    if (status === 'finished') return '已完成';
-    if (status === 'in_progress') return '进行中';
-    return '未开始';
-  },
-
-  // 格式化日期：2025-12-08 -> 12-08 周一
-  formatDateDisplay(dateStr) {
-    if (!dateStr) return '日期待定';
-
-    const parts = dateStr.split('-');
-    if (parts.length !== 3) return dateStr;
-
-    const month = parts[1];
-    const day = parts[2];
-
-    let weekday = '';
-    try {
-      const d = new Date(dateStr.replace(/-/g, '/'));
-      const w = d.getDay();
-      const map = ['日', '一', '二', '三', '四', '五', '六'];
-      weekday = `周${map[w]}`;
-    } catch (e) {
-      return `${month}-${day}`;
-    }
-
-    return `${month}-${day} ${weekday}`;
-  },
-
-  // 按当前 filterType 重新分组
   applyFilter() {
-    const { coursesRaw, filterType } = this.data;
+    const filterType = this.data.filterType;
+    const q = String(this.data.searchText || '').trim().toLowerCase();
 
-    console.log(
-      '[courses] applyFilter start, filterType =',
-      filterType,
-      ', raw length =',
-      coursesRaw.length
-    );
+    console.log('[courses] applyFilter start, filterType =', filterType, ', raw length =', this.data.courses.length);
 
-    let filtered = coursesRaw.slice();
+    let arr = (this.data.courses || []).slice();
 
+    // [P0-FINAL] 口径统一：默认不展示 draft
     if (filterType === 'upcoming') {
-      filtered = coursesRaw.filter(
-        (c) =>
-          c.status === 'not_started' || c.status === 'in_progress'
-      );
-    } else if (filterType === 'finished') {
-      filtered = coursesRaw.filter((c) => c.status === 'finished');
+      // 未开始 / 进行中 / 时间待定
+      arr = arr.filter((c) => !c.isDraft && !c.isEnded);
+    } else if (filterType === 'ended') {
+      arr = arr.filter((c) => !c.isDraft && c.isEnded);
+    } else {
+      arr = arr.filter((c) => !c.isDraft);
     }
-    // filterType === 'all' 时不过滤
 
-    // 按日期 + 时间排序
-    filtered.sort((a, b) => {
-      if (a.date === b.date) {
-        return a.timeText > b.timeText ? 1 : -1;
+    if (q) {
+      arr = arr.filter((c) => String(c.title || '').toLowerCase().includes(q));
+    }
+
+    const map = {};
+    arr.forEach((c) => {
+      const key = c.dateKey || '0000-00-00';
+      if (!map[key]) {
+        map[key] = { dateKey: key, dateLabel: c.dateLabel || '未定', items: [] };
       }
-      return a.date > b.date ? 1 : -1;
+      map[key].items.push(c);
     });
 
-    // 分组：按日期聚合
-    const groupsMap = {};
-    filtered.forEach((c) => {
-      const key = c.date || '未知日期';
-      if (!groupsMap[key]) {
-        groupsMap[key] = {
-          date: key,
-          dateDisplay: c.dateDisplay || key || '日期待定',
-          list: []
-        };
-      }
-      groupsMap[key].list.push(c);
-    });
-
-    const courseGroups = Object.keys(groupsMap)
-      .sort((a, b) => (a > b ? 1 : -1))
-      .map((k) => groupsMap[k]);
-
-    console.log('[courses] final courseGroups:', courseGroups);
+    const groups = Object.keys(map)
+      .sort((a, b) => {
+        if (a === '0000-00-00') return 1;
+        if (b === '0000-00-00') return -1;
+        return a.localeCompare(b);
+      })
+      .map((k) => map[k]);
 
     this.setData({
-      courseGroups
+      loading: false,
+      courseGroups: groups
     });
+
+    console.log('[courses] final courseGroups:', groups);
   },
 
-  // 点击课程卡片：进入课程详情页
-  onTapCourse(e) {
+  // ========== UI handlers ==========
+
+  onTabTap(e) {
+    const t = e.currentTarget.dataset.type;
+    if (!t) return;
+    this.setData({ filterType: t }, () => this.applyFilter());
+  },
+
+  onSearchInput(e) {
+    const v = e.detail.value || '';
+    this.setData({ searchText: v }, () => this.applyFilter());
+  },
+
+  onClearSearch() {
+    this.setData({ searchText: '' }, () => this.applyFilter());
+  },
+
+  onRetry() {
+    this.loadCourses(false);
+  },
+
+  onCourseTap(e) {
     const id = e.currentTarget.dataset.id;
     if (!id) return;
-
-    funnel.log('COURSE_ITEM_CLICK', {
-      courseId: id
-    });
-
     wx.navigateTo({
       url: `/pages/course/detail?id=${id}&from=courses`
     });
+  },
+
+  onSalonBooking(e) {
+    const id = e.currentTarget.dataset.id;
+    wx.navigateTo({
+      url: `/pages/visitBooking/index?from=course&courseId=${id || ''}`
+    });
+  },
+
+  // [P2-LIST-UX-20251215] 入口：我的课程进度
+  goMyProgress() {
+    wx.navigateTo({ url: '/pages/course/progress?from=courses' });
+  },
+
+  goBack() {
+    wx.navigateBack({ delta: 1 });
   }
 });

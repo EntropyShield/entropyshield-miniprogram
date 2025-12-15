@@ -43,7 +43,7 @@
 }
 
 .tab-item.active {
-  background-color: #00ff44;
+  background-color: #2aff2a;
   color: #000000;
   font-weight: 600;
 }
@@ -62,7 +62,7 @@
 
 /* 列表滚动区 */
 .course-scroll {
-  height: calc(100vh - 220rpx);
+  height: calc(100vh - 220rpx - env(safe-area-inset-bottom));
 }
 
 /* 日期行 */
@@ -101,7 +101,7 @@
   width: 8rpx;
   height: 8rpx;
   border-radius: 50%;
-  background-color: #00ff44;
+  background-color: #2aff2a;
   margin-right: 8rpx;
 }
 
@@ -148,7 +148,7 @@
 }
 
 .status-in_progress {
-  background-color: #00ff44;
+  background-color: #2aff2a;
   color: #000000;
   font-weight: 600;
 }
@@ -176,7 +176,7 @@
 .progress-inner {
   height: 100%;
   border-radius: 999rpx;
-  background-color: #00ff44;
+  background-color: #2aff2a;
 }
 
 .progress-label {

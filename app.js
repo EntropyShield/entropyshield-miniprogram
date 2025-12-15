@@ -4,7 +4,9 @@ App({
     // ... 你已有的逻辑 ...
   },
   globalData: {
-    // ... 你的全局变量 ...
+    // MOD: GLOBAL_BASE_URL_20251214
+    // 开发环境：DevTools 可用 localhost；真机请改成你电脑局域网 IP，例如：http://192.168.1.8:3000
+    baseUrl: wx.getStorageSync('apiBaseUrl') || 'http://localhost:3000'
   }
 });
 

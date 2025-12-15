@@ -1,4 +1,4 @@
-<!-- pages/course/progress.wxml -->
+<!-- pages/course/progress/index.wxml -->
 <view class="page">
   <!-- 顶部说明 -->
   <view class="header">
@@ -36,18 +36,12 @@
   <!-- 状态提示 -->
   <view wx:if="{{loading}}" class="tip-text">加载中…</view>
 
-  <view
-    wx:if="{{!loading && errorMsg}}"
-    class="tip-text tip-error"
-  >
+  <view wx:if="{{!loading && errorMsg}}" class="tip-text tip-error">
     {{errorMsg}}
   </view>
 
-  <view
-    wx:if="{{!loading && !errorMsg && (!items || items.length === 0)}}"
-    class="tip-text"
-  >
-    你还没有加入任何课程，可以先从「控局者」页进入课程日历报名。
+  <view wx:if="{{!loading && !errorMsg && (!items || items.length === 0)}}" class="tip-text">
+    你还没有加入任何课程，可以先从「控局者」页进入控局日历报名。
   </view>
 
   <!-- 列表 -->
@@ -57,9 +51,8 @@
     class="list"
   >
     <block wx:for="{{items}}" wx:key="id">
-      <!-- 根据当前筛选类型做一次前端过滤 -->
+      <!-- [P2-PROGRESS-WXML-SIMPLIFY] 不再在 WXML 二次过滤，交给 JS applyFilter -->
       <view
-        wx:if="{{filterType === 'all' || filterType === item.status}}"
         class="card"
         bindtap="onTapItem"
         data-id="{{item.id}}"
@@ -79,17 +72,16 @@
             </view>
           </view>
 
-          <view
-            wx:if="{{item.lastLesson}}"
-            class="card-last"
-          >
+          <!-- [P2-PROGRESS-BAR] -->
+          <view class="progress-bar">
+            <view class="progress-inner" style="width: {{item.progressWidth}};"></view>
+          </view>
+
+          <view wx:if="{{item.lastLesson}}" class="card-last">
             最近学习：{{item.lastLesson}}
           </view>
 
-          <view
-            wx:if="{{item.updatedAtText}}"
-            class="card-updated"
-          >
+          <view wx:if="{{item.updatedAtText}}" class="card-updated">
             更新于 {{item.updatedAtText}}
           </view>
         </view>

@@ -4,6 +4,7 @@
     "pages/controller/index",
     "pages/profile/index",
     "pages/course/index",
+    "pages/courses/index",
     "pages/course/detail",
     "pages/course/progress",
     "pages/riskCalculator/index",

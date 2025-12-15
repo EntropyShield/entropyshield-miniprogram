@@ -126,14 +126,11 @@
   color: #9ea2ac;
 }
 
-/* ============================
-   A 区：三行按钮统一右对齐
-   ============================ */
-
+/* A 区：三行按钮统一右对齐 */
 .section-a-row {
   display: flex;
   align-items: flex-start;
-  margin-top: 24rpx;      /* 加大上下间距 */
+  margin-top: 24rpx;
 }
 
 .section-a-row-top {
@@ -181,7 +178,7 @@
 
 /* 当前进度 & 训练目标 */
 .section-meta {
-  margin-top: 22rpx;   /* 与按钮区拉开一点距离 */
+  margin-top: 22rpx;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -195,12 +192,24 @@
   display: block;
 }
 
-/* ============================
-   B 区：近期课程与预约
-   ============================ */
-
+/* B 区 */
 .section-header-b {
   margin-bottom: 4rpx;
+}
+
+.header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-link {
+  font-size: 22rpx;
+  color: #2aff2a;
+  padding: 6rpx 12rpx;
+  border-radius: 999rpx;
+  border: 1rpx solid rgba(42, 255, 42, 0.35);
+  background-color: rgba(42, 255, 42, 0.06);
 }
 
 .section-sub-line {
@@ -208,15 +217,269 @@
   color: #8a8f99;
 }
 
-/* 单段说明文案 */
-.section-row-single {
-  margin-top: 12rpx;
+.fixed-title {
+  margin-top: 14rpx;
+  font-size: 22rpx;
+  color: #c0c6d2;
 }
 
-/* ============================
-   C 区：课程预约与渠道数据
-   ============================ */
+.b-hint {
+  margin-top: 10rpx;
+  font-size: 22rpx;
+  color: #9ea2ac;
+}
 
+.b-error {
+  margin-top: 10rpx;
+  font-size: 22rpx;
+  color: #ffb3b3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.b-retry {
+  height: 56rpx;
+  line-height: 56rpx;
+  border-radius: 999rpx;
+  padding: 0 18rpx;
+  border: 1rpx solid rgba(255,255,255,0.14);
+  background: rgba(255,255,255,0.06);
+  color: #ffffff;
+  font-size: 22rpx;
+}
+.b-retry::after { border: none; }
+
+/* B 区骨架 */
+.b-skeleton-wrap {
+  margin-top: 12rpx;
+}
+.b-skeleton-card {
+  height: 190rpx;
+  border-radius: 22rpx;
+  background: rgba(255,255,255,0.05);
+  border: 1rpx solid rgba(255,255,255,0.06);
+  margin-bottom: 12rpx;
+}
+
+/* 固定入口卡 */
+.fixed-card {
+  margin-top: 12rpx;
+  border-radius: 22rpx;
+  background: linear-gradient(135deg, #11141b, #171e27);
+  border: 1rpx solid rgba(255, 255, 255, 0.06);
+  padding: 16rpx 16rpx 14rpx;
+}
+
+.fixed-card-fallback {
+  opacity: 0.92;
+}
+
+.fixed-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.fixed-step {
+  padding: 6rpx 12rpx;
+  border-radius: 999rpx;
+  font-size: 22rpx;
+  border: 1rpx solid rgba(255, 255, 255, 0.10);
+  background-color: rgba(255, 255, 255, 0.06);
+  color: #c0c6d2;
+}
+
+.step-1 {
+  border-color: rgba(42, 255, 42, 0.45);
+  background-color: rgba(42, 255, 42, 0.12);
+  color: #2aff2a;
+}
+
+.step-2 {
+  border-color: rgba(80, 200, 255, 0.35);
+  background-color: rgba(80, 200, 255, 0.10);
+  color: #cfefff;
+}
+
+.step-camp {
+  border-color: rgba(255, 210, 80, 0.35);
+  background-color: rgba(255, 210, 80, 0.10);
+  color: #ffe6a8;
+}
+
+.step-salon {
+  border-color: rgba(200, 160, 255, 0.35);
+  background-color: rgba(200, 160, 255, 0.10);
+  color: #ead7ff;
+}
+
+.step-risk {
+  border-color: rgba(255, 120, 120, 0.35);
+  background-color: rgba(255, 120, 120, 0.10);
+  color: #ffd0d0;
+}
+
+.step-paid {
+  border-color: rgba(255, 255, 255, 0.20);
+  background-color: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+
+.step-default {
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.fixed-right {
+  display: flex;
+  align-items: center;
+}
+
+.fixed-pill {
+  padding: 6rpx 12rpx;
+  border-radius: 999rpx;
+  font-size: 22rpx;
+  border: 1rpx solid rgba(255, 255, 255, 0.10);
+  background-color: rgba(255, 255, 255, 0.06);
+  color: #c0c6d2;
+}
+
+.pill-promo {
+  border-color: rgba(42, 255, 42, 0.45);
+  background-color: rgba(42, 255, 42, 0.12);
+  color: #2aff2a;
+}
+
+.pill-experience {
+  border-color: rgba(80, 200, 255, 0.35);
+  background-color: rgba(80, 200, 255, 0.10);
+  color: #cfefff;
+}
+
+.pill-camp {
+  border-color: rgba(255, 210, 80, 0.35);
+  background-color: rgba(255, 210, 80, 0.10);
+  color: #ffe6a8;
+}
+
+.pill-salon {
+  border-color: rgba(200, 160, 255, 0.35);
+  background-color: rgba(200, 160, 255, 0.10);
+  color: #ead7ff;
+}
+
+.pill-risk {
+  border-color: rgba(255, 120, 120, 0.35);
+  background-color: rgba(255, 120, 120, 0.10);
+  color: #ffd0d0;
+}
+
+.pill-paid {
+  border-color: rgba(255, 255, 255, 0.20);
+  background-color: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+
+.pill-default {
+  border-color: rgba(255, 255, 255, 0.10);
+  background-color: rgba(255, 255, 255, 0.06);
+  color: #c0c6d2;
+}
+
+/* 状态角标（用 class 控色） */
+.fixed-status {
+  margin-left: 12rpx;
+  font-size: 22rpx;
+  padding: 6rpx 12rpx;
+  border-radius: 999rpx;
+  border: 1rpx solid rgba(255,255,255,0.10);
+  color: #a9b2c2;
+  background: rgba(255,255,255,0.06);
+}
+
+.fixed-status-upcoming {
+  border-color: rgba(169, 178, 194, 0.25);
+  background-color: rgba(169, 178, 194, 0.06);
+}
+
+.fixed-status-live {
+  border-color: rgba(42, 255, 42, 0.45);
+  background-color: rgba(42, 255, 42, 0.12);
+  color: #2aff2a;
+}
+
+.fixed-status-ended {
+  border-color: rgba(120, 120, 120, 0.25);
+  background-color: rgba(120, 120, 120, 0.06);
+  color: #8a8f99;
+}
+
+.fixed-name {
+  margin-top: 10rpx;
+  font-size: 28rpx;
+  color: #ffffff;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.fixed-time {
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  color: #a9b2c2;
+}
+
+.fixed-brief {
+  margin-top: 10rpx;
+  font-size: 22rpx;
+  color: #c0c6d2;
+  line-height: 1.5;
+}
+
+.fixed-actions {
+  margin-top: 12rpx;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-ghost,
+.btn-primary {
+  height: 60rpx;
+  line-height: 60rpx;
+  padding: 0 18rpx;
+  border-radius: 999rpx;
+  font-size: 22rpx;
+  margin-left: 12rpx;
+}
+
+.btn-ghost {
+  border: 1rpx solid rgba(255, 255, 255, 0.12);
+  background-color: rgba(255, 255, 255, 0.06);
+  color: #c0c6d2;
+}
+
+.btn-primary {
+  border: 0;
+  background-color: #2aff2a;
+  color: #050608;
+  font-weight: 600;
+}
+
+.btn-ghost::after,
+.btn-primary::after {
+  border: none;
+}
+
+.btn-disabled {
+  opacity: 0.55;
+}
+
+.b-foot {
+  margin-top: 12rpx;
+  font-size: 22rpx;
+  color: #8a8f99;
+}
+
+/* C 区 */
 .section-header-c {
   margin-bottom: 6rpx;
 }

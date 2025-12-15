@@ -1,4 +1,4 @@
-// pages/course/progress.js
+// pages/course/progress/index.js
 // 我的课程进度列表页
 
 const funnel = require('../../utils/funnel.js');
@@ -33,6 +33,18 @@ function ensureClientId() {
   return cid;
 }
 
+// [P2-PROGRESS-PERCENT-NORMALIZE] 兼容 0~1 / 0~100，输出 0~100 整数
+function normalizePercent(v) {
+  let n = Number(v);
+  if (isNaN(n)) n = 0;
+
+  // 如果不小心传了 0~1（例如 0.68），转成百分比
+  if (n > 0 && n <= 1) n = n * 100;
+
+  n = Math.max(0, Math.min(100, n));
+  return Math.round(n);
+}
+
 Page({
   data: {
     loading: false,
@@ -49,13 +61,21 @@ Page({
     funnel.log('COURSE_PROGRESS_VIEW', {});
     const clientId = ensureClientId();
     this.clientId = clientId;
+
+    // [P2-PROGRESS-AVOID-DOUBLE-FETCH] 避免首次 onShow 再拉一遍
+    this._firstShowSkip = true;
+
     this.fetchProgress();
   },
 
   onShow() {
-    if (this.clientId) {
-      this.fetchProgress();
+    // [P2-PROGRESS-AVOID-DOUBLE-FETCH]
+    if (this._firstShowSkip) {
+      this._firstShowSkip = false;
+      return;
     }
+    // 从详情页返回时刷新
+    this.fetchProgress();
   },
 
   onPullDownRefresh() {
@@ -111,17 +131,13 @@ Page({
           const courseIdRaw =
             row.course_id ??
             row.courseId ??
-            row.course_id ??
             row.courseid ??
             row.id; // 退化用 id 当作课程 id
 
           const courseId = Number(courseIdRaw);
 
           if (!Number.isFinite(courseId)) {
-            console.warn(
-              '[course/progress] skip row without valid courseId:',
-              row
-            );
+            console.warn('[course/progress] skip row without valid courseId:', row);
             return;
           }
 
@@ -137,18 +153,22 @@ Page({
               ? '进行中'
               : '未开始';
 
-          let progressPercent = 0;
+          let progressPercentRaw = 0;
           if (typeof row.progress_percent === 'number') {
-            progressPercent = row.progress_percent;
+            progressPercentRaw = row.progress_percent;
           } else if (typeof row.progressPercent === 'number') {
-            progressPercent = row.progressPercent;
+            progressPercentRaw = row.progressPercent;
           } else if (typeof row.progress === 'number') {
-            progressPercent = row.progress;
+            progressPercentRaw = row.progress;
           }
+
+          // [P2-PROGRESS-PERCENT-NORMALIZE]
+          const progressPercent = normalizePercent(progressPercentRaw);
+          const progressWidth = `${progressPercent}%`;
 
           const updatedAtRaw = row.updated_at || row.updatedAt || '';
           const updatedAtText = updatedAtRaw
-            ? updatedAtRaw.replace('T', ' ').slice(0, 16)
+            ? String(updatedAtRaw).replace('T', ' ').slice(0, 16)
             : '';
 
           items.push({
@@ -160,6 +180,7 @@ Page({
             status,
             statusText,
             progressPercent,
+            progressWidth,
             lastLesson: row.last_lesson || row.lastLesson || '',
             updatedAtText
           });
@@ -360,7 +381,7 @@ Page({
           duration: 900
         });
 
-        // 保存成功后重新拉一次列表
+        // 保存成功后重新拉一次列表（以服务端为准）
         this.fetchProgress();
       },
       fail: () => {

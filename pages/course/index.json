@@ -1,4 +1,5 @@
 {
-  "navigationBarTitleText": "熵盾研究院 · 课程日历",
-  "enablePullDownRefresh": true
+  "navigationBarTitleText": "控局日历",
+  "enablePullDownRefresh": true,
+  "backgroundTextStyle": "dark"
 }
