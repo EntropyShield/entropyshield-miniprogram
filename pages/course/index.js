@@ -14,6 +14,9 @@ Page({
     filterType: 'upcoming',
     searchText: '',
 
+    // [P3-PROGRESSMAP-20251215] 进度映射：courseId -> progressRecord
+    progressMap: {},
+
     courses: [],
     courseGroups: []
   },
@@ -111,35 +114,33 @@ Page({
     return [];
   },
 
-  // [P2-LIST-PROGRESS-20251215] 解析进度列表（兼容 payload.list / payload.courses / payload.items）
+  // [P3-PROGRESSMAP-20251215] 进度接口解析：优先 list（进度记录），不要误用 courses（课程信息）
   extractProgressList(payload) {
     const pickArr = (v) => (Array.isArray(v) ? v : null);
     if (Array.isArray(payload)) return payload;
     if (!payload || typeof payload !== 'object') return [];
 
+    // 进度接口：优先 list/rows/items
     let list =
       pickArr(payload.list) ||
-      pickArr(payload.items) ||
       pickArr(payload.rows) ||
-      pickArr(payload.courses);
+      pickArr(payload.items);
     if (list) return list;
 
     const d1 = payload.data;
     if (d1 && typeof d1 === 'object') {
       list =
         pickArr(d1.list) ||
-        pickArr(d1.items) ||
         pickArr(d1.rows) ||
-        pickArr(d1.courses);
+        pickArr(d1.items);
       if (list) return list;
 
       const d2 = d1.data;
       if (d2 && typeof d2 === 'object') {
         list =
           pickArr(d2.list) ||
-          pickArr(d2.items) ||
           pickArr(d2.rows) ||
-          pickArr(d2.courses);
+          pickArr(d2.items);
         if (list) return list;
       }
     }
@@ -209,7 +210,6 @@ Page({
   },
 
   // [P0-FINAL] 状态口径统一：优先后端 status，其次用时间推断
-  // [P2-LIST-PROGRESS-20251215] 无起止时间时，状态文案改为“时间待定”，减少误导
   statusMeta(statusRaw, startTs, endTs) {
     const s = String(statusRaw || '').toLowerCase();
     const now = Date.now();
@@ -219,16 +219,40 @@ Page({
       return { text: '已结束', cls: 'status-ended', isDraft: false, isEnded: true };
     }
 
-    if (!startTs || !endTs) return { text: '时间待定', cls: 'status-upcoming', isDraft: false, isEnded: false };
+    if (!startTs || !endTs) return { text: '未开始', cls: 'status-upcoming', isDraft: false, isEnded: false };
     if (now < startTs) return { text: '未开始', cls: 'status-upcoming', isDraft: false, isEnded: false };
     if (now >= startTs && now <= endTs) return { text: '进行中', cls: 'status-live', isDraft: false, isEnded: false };
     return { text: '已结束', cls: 'status-ended', isDraft: false, isEnded: true };
   },
 
+  // [P3-PROGRESSMETA-20251215] 进度标签（已加入/进度xx/已完成）
+  progressMeta(progressRecord) {
+    if (!progressRecord) return { joined: false, text: '', cls: '' };
+
+    const status = String(progressRecord.status || '').toLowerCase();
+    const percentRaw =
+      progressRecord.progressPercent ??
+      progressRecord.progress_percent ??
+      progressRecord.progress ??
+      progressRecord.percent ??
+      0;
+    const percent = Math.max(0, Math.min(100, Number(percentRaw) || 0));
+
+    if (status === 'finished' || percent >= 100) {
+      return { joined: true, text: '已完成', cls: 'pill-progress-finished', percent: 100, status: 'finished' };
+    }
+    if (status === 'in_progress' || percent > 0) {
+      const t = percent > 0 ? `进度${Math.round(percent)}%` : '进行中';
+      return { joined: true, text: t, cls: 'pill-progress-doing', percent, status: status || 'in_progress' };
+    }
+    return { joined: true, text: '已加入', cls: 'pill-progress-joined', percent, status: status || 'joined' };
+  },
+
   // ========== data flow ==========
 
-  // [P2-LIST-PROGRESS-20251215] 拉取我的课程进度，映射到列表（失败不阻断主列表）
-  fetchProgressMap(baseUrl, clientId) {
+  // [P3-PROGRESSMAP-20251215] 拉取“我的课程进度”映射
+  fetchProgressMap(clientId) {
+    const baseUrl = this.getBaseUrl();
     const url = `${baseUrl}/api/courses/progress?clientId=${encodeURIComponent(clientId || '')}`;
     console.log('[courses] fetchProgressMap url =', url);
 
@@ -236,25 +260,26 @@ Page({
       .then((payload) => {
         const list = this.extractProgressList(payload);
         const map = {};
-        (list || []).forEach((it) => {
-          const courseId = it.courseId || it.course_id || it.courseid || it.courseID;
-          if (!courseId) return;
 
-          const key = String(courseId);
-          const percent = Number(it.progressPercent ?? it.progress_percent ?? it.percent ?? 0);
-          const status = String(it.status || '').toLowerCase();
-
-          map[key] = {
-            progressPercent: isNaN(percent) ? 0 : percent,
-            status
-          };
+        (list || []).forEach((r) => {
+          const cid =
+            r.courseId ??
+            r.course_id ??
+            r.courseID ??
+            r.courseid ??
+            '';
+          const key = String(cid || '').trim();
+          if (!key) return;
+          map[key] = r;
         });
 
         console.log('[courses] progressMap size =', Object.keys(map).length);
+        this.setData({ progressMap: map });
         return map;
       })
       .catch((e) => {
-        console.warn('[courses] fetchProgressMap fail (ignored):', e);
+        console.warn('[courses] fetchProgressMap fail, use empty map', e);
+        this.setData({ progressMap: {} });
         return {};
       });
   },
@@ -268,12 +293,12 @@ Page({
 
     console.log('[courses] loadCourses url =', url);
 
-    // [P2-LIST-PROGRESS-20251215] 并行拉取：课程列表 + 我的进度
-    Promise.all([
-      this.requestJson(url, 'GET'),
-      this.fetchProgressMap(baseUrl, clientId)
-    ])
-      .then(([payload, progressMap]) => {
+    // [P3-PROGRESSMAP-20251215] 先拉进度映射，再合并课程列表
+    this.fetchProgressMap(clientId)
+      .then((pmap) => {
+        return this.requestJson(url, 'GET').then((payload) => ({ payload, pmap }));
+      })
+      .then(({ payload, pmap }) => {
         console.log('[courses] /api/courses resp raw:', payload);
 
         const list = this.extractCourseList(payload);
@@ -307,17 +332,9 @@ Page({
             const priceNum = Number(x.price || 0);
             const priceText = priceNum > 0 ? `¥${priceNum}` : '免费';
 
-            // [P2-LIST-PROGRESS-20251215] 合并进度信息
-            const p = progressMap[String(x.id)] || null;
-            const joined = !!p;
-            const progressPercent = joined ? Number(p.progressPercent || 0) : 0;
-            const progressStatus = joined ? String(p.status || '') : '';
-            const progressText =
-              joined && progressStatus === 'finished'
-                ? '已完成'
-                : joined
-                  ? `进度 ${Math.max(0, Math.min(100, progressPercent))}%`
-                  : '';
+            // [P3-PROGRESSMAP-20251215] 合并进度状态
+            const pr = (pmap || {})[String(x.id)];
+            const pm = this.progressMeta(pr);
 
             return {
               id: x.id,
@@ -341,13 +358,13 @@ Page({
               isDraft: st.isDraft,
               isEnded: st.isEnded,
 
-              desc,
-              priceText,
+              // P3
+              joined: !!pm.joined,
+              progressText: pm.text || '',
+              progressPillClass: pm.cls || '',
 
-              joined,
-              progressPercent,
-              progressStatus,
-              progressText
+              desc,
+              priceText
             };
           })
           .sort((a, b) => {
@@ -457,9 +474,18 @@ Page({
     });
   },
 
-  // [P2-LIST-UX-20251215] 入口：我的课程进度
-  goMyProgress() {
-    wx.navigateTo({ url: '/pages/course/progress?from=courses' });
+  // [P3-QUICK-PROGRESS-20251215] 列表页快捷进入“我的课程进度”
+  goCourseProgress(e) {
+    const focusCourseId = (e && e.currentTarget && e.currentTarget.dataset && e.currentTarget.dataset.id) || '';
+    wx.navigateTo({
+      url: `/pages/course/progress?from=courses${focusCourseId ? `&focusCourseId=${focusCourseId}` : ''}`
+    });
+  },
+
+  // [P3-QUICK-PROGRESS-20251215] 卡片按钮：查看进度
+  onGoProgress(e) {
+    const id = e.currentTarget.dataset.id;
+    this.goCourseProgress({ currentTarget: { dataset: { id } } });
   },
 
   goBack() {

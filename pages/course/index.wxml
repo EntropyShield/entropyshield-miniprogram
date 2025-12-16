@@ -2,11 +2,10 @@
 
 <!-- 顶部：标题 + 筛选 -->
 <view class="topbar">
-
-  <!-- [P2-LIST-UX-20251215] 标题行增加“我的进度”入口 -->
-  <view class="top-hd">
+  <!-- [P3-QUICK-PROGRESS-20251215] 增加“我的进度”快捷入口 -->
+  <view class="top-row">
     <view class="top-title">熵盾研究院 · 控局日历</view>
-    <view class="top-link" bindtap="goMyProgress">我的进度</view>
+    <view class="top-action" bindtap="goCourseProgress">我的进度</view>
   </view>
 
   <view class="top-sub">公开课 / 体验课 / 训练营 / 线下沙龙</view>
@@ -26,7 +25,7 @@
     <view class="search-clear" wx:if="{{searchText}}" bindtap="onClearSearch">清空</view>
   </view>
 
-  <view class="top-hint">提示：下拉页面可刷新课表</view>
+  <view class="top-hint">提示：下拉页面可刷新课表；已加入的课程会显示进度</view>
 </view>
 
 <!-- 错误提示 -->
@@ -57,15 +56,15 @@
 
   <view wx:for="{{item.items}}" wx:key="id" class="card" data-id="{{item.id}}" bindtap="onCourseTap">
     <view class="card-top">
-      <view class="pill {{item.pillClass}}">{{item.typeLabel}}</view>
-
-      <view class="card-top-right">
-        <!-- [P2-LIST-PROGRESS-20251215] 已加入/进度角标 -->
-        <view class="joined" wx:if="{{item.joined}}">
+      <!-- [P3-PROGRESSUI-20251215] 左侧 tags：类型 + 进度 -->
+      <view class="tags">
+        <view class="pill {{item.pillClass}}">{{item.typeLabel}}</view>
+        <view class="pill pill-progress {{item.progressPillClass}}" wx:if="{{item.progressText}}">
           {{item.progressText}}
         </view>
-        <view class="status {{item.statusClass}}">{{item.statusText}}</view>
       </view>
+
+      <view class="status {{item.statusClass}}">{{item.statusText}}</view>
     </view>
 
     <view class="card-title">{{item.title}}</view>
@@ -83,10 +82,17 @@
     <view class="card-actions">
       <button class="btn ghost" data-id="{{item.id}}" catchtap="onCourseTap">查看详情</button>
 
+      <!-- 线下：预约来访 -->
       <button class="btn primary"
         wx:if="{{item.typeKey==='SALON'}}"
         data-id="{{item.id}}"
         catchtap="onSalonBooking">预约来访</button>
+
+      <!-- [P3-PROGRESSUI-20251215] 已加入：查看进度 -->
+      <button class="btn primary"
+        wx:elif="{{item.joined}}"
+        data-id="{{item.id}}"
+        catchtap="onGoProgress">查看进度</button>
     </view>
   </view>
 </view>
