@@ -1,5 +1,3 @@
-/* pages/course/progress/index.wxss */
-
 .page {
   display: flex;
   flex-direction: column;
@@ -115,6 +113,20 @@
   color: #ffffff;
 }
 
+.progress-bar {
+  margin-top: 10rpx;
+  height: 12rpx;
+  border-radius: 999rpx;
+  background-color: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.progress-inner {
+  height: 12rpx;
+  border-radius: 999rpx;
+  background-color: #19ff5f;
+}
+
 .card-last,
 .card-updated {
   margin-top: 6rpx;
@@ -143,7 +155,6 @@
   font-size: 24rpx;
 }
 
-/* [P1-WXSS-20251215] 去掉按钮默认 after 边框（不使用 tag selector） */
 .btn-primary::after,
 .btn-secondary::after {
   border: none;

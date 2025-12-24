@@ -35,7 +35,7 @@
       </view>
 
       <view wx:if="{{joined && course.typeCode!=='SALON'}}" class="joined-tip">
-        你已加入本课进度，可在「我的课程进度」查看与更新。
+        你已加入本课进度{{myProgressText ? '（' + myProgressText + '）' : ''}}，可在「我的课程进度」查看与更新。
       </view>
 
       <view class="section">
@@ -64,7 +64,6 @@
     </button>
 
     <block wx:else>
-      <!-- [P1-ENT-20251215] canJoin 仍以状态控制；权益拦截在 JS 内处理 -->
       <button
         wx:if="{{course.canJoin !== false}}"
         class="btn-primary {{(joining || joined) ? 'btn-disabled' : ''}}"

@@ -3,6 +3,9 @@
 const funnel = require('../../utils/funnel.js');
 const { getCourseTypeMeta } = require('../../utils/courseType.js');
 
+// ========== helpers ==========
+
+// [P2-FIX-20251217] 修复：getStorageSync 没有第二参数；统一 clientId 写入逻辑
 function ensureClientId() {
   const app = getApp && getApp();
   let cid =
@@ -11,7 +14,6 @@ function ensureClientId() {
 
   if (!cid) {
     cid = `ST-${Date.now()}-${Math.floor(Math.random() * 1000000)}`;
-    wx.getStorageSync('clientId', cid);
     wx.setStorageSync('clientId', cid);
     if (app && app.globalData) app.globalData.clientId = cid;
     console.log('[course/detail] new clientId generated:', cid);
@@ -22,6 +24,7 @@ function ensureClientId() {
   return cid;
 }
 
+// [P2-FIX-20251217] 与其它页面统一 baseUrl 读取口径
 function getBaseUrl() {
   const app = getApp && getApp();
   const base =
@@ -35,6 +38,19 @@ function getBaseUrl() {
     wx.getStorageSync('apiBase') ||
     'http://localhost:3000';
   return String(base).replace(/\/$/, '');
+}
+
+function requestJson(url, method = 'GET', data) {
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url,
+      method,
+      data,
+      header: { 'content-type': 'application/json' },
+      success: (res) => resolve(res.data),
+      fail: (err) => reject(err)
+    });
+  });
 }
 
 // [P0-FINAL] iOS 兼容时间解析：支持 MySQL "YYYY-MM-DD HH:mm:ss"
@@ -114,7 +130,7 @@ function computeJoinable(statusRaw) {
   return { canJoin: true, reason: '' };
 }
 
-/** [P1-ENT-20251215] 读取用户权益/会员信息（不存在也不报错） */
+/** [P1-ENT] 读取用户权益/会员信息（不存在也不报错） */
 function getUserEntitlement() {
   const userRights = wx.getStorageSync('userRights') || {};
   const membershipName =
@@ -123,14 +139,12 @@ function getUserEntitlement() {
     '';
   const isMember = !!membershipName;
 
-  // 可选：若你未来加“课程权益次数”，这里直接兼容
   const freeCourseTimes = Number(
     userRights.freeCourseTimes ||
       userRights.freeJoinTimes ||
       0
   );
 
-  // 我的邀请码（用于分享）
   const myInviteCode =
     wx.getStorageSync('inviteCode') ||
     userRights.inviteCode ||
@@ -140,7 +154,7 @@ function getUserEntitlement() {
   return { userRights, membershipName, isMember, freeCourseTimes, myInviteCode };
 }
 
-/** [P1-ENT-20251215] 判断课程是否需要权益/付费（优先读后端字段，否则用 price>0 兜底） */
+/** [P1-ENT] 判断课程是否需要权益/付费（优先读后端字段，否则用 price>0 兜底） */
 function computeRequireEntitlement(rawCourse, computedPrice) {
   const raw = rawCourse || {};
   const candidates = [
@@ -166,21 +180,21 @@ function computeRequireEntitlement(rawCourse, computedPrice) {
     }
   }
 
-  // 兜底：价格大于 0 视为需要权益/付费
   return Number(computedPrice || 0) > 0;
 }
 
-/** [P1-SHARE-20251215] 处理分享进来的 inviteCode（作为“邀请人邀请码”存到 pendingInviteCode） */
+/** [P1-SHARE] 处理分享进来的 inviteCode（存 pendingInviteCode） */
 function handleIncomingInviteCode(inviteCode) {
   const code = String(inviteCode || '').trim();
   if (!code) return;
 
   const { myInviteCode } = getUserEntitlement();
-  // 避免自己分享给自己时覆盖
   if (myInviteCode && code === myInviteCode) return;
 
   wx.setStorageSync('pendingInviteCode', code);
 }
+
+// ========== Page ==========
 
 Page({
   data: {
@@ -192,17 +206,15 @@ Page({
     joining: false,
     joined: false,
 
-    // [P1-ENT-20251215] 用于 UI/埋点展示（可选）
+    // [P1-ENT] 用于 UI/埋点展示
     membershipName: ''
   },
 
   onLoad(options) {
-    // [P1-SHARE-20251215] 允许分享
     try {
       wx.showShareMenu({ withShareTicket: false });
     } catch (e) {}
 
-    // [P1-SHARE-20251215] 处理分享参数 inviteCode
     if (options && options.inviteCode) {
       handleIncomingInviteCode(options.inviteCode);
     }
@@ -218,7 +230,6 @@ Page({
       return;
     }
 
-    // [P1-ENT-20251215] 读取会员名用于展示/埋点
     const ent = getUserEntitlement();
     this.setData({ membershipName: ent.membershipName || '' });
 
@@ -229,21 +240,71 @@ Page({
       courseId: id
     });
 
+    // 本地 joined 兜底
     const joinedMap = wx.getStorageSync('courseJoinedMap') || {};
     const joined = !!joinedMap[id];
     this.setData({ joined });
+
+    // [P3-FIX-20251217] 以服务端进度为准同步 joined（解决清缓存/换端后状态不一致）
+    this.fetchMyProgressForCourse(id);
 
     this.fetchDetail(id);
   },
 
   onPullDownRefresh() {
     const id = this.data.courseId;
-    if (id) this.fetchDetail(id, true);
+    if (id) {
+      this.fetchMyProgressForCourse(id);
+      this.fetchDetail(id, true);
+    }
   },
 
   onRetryDetail() {
     const id = this.data.courseId;
-    if (id) this.fetchDetail(id, false);
+    if (id) {
+      this.fetchMyProgressForCourse(id);
+      this.fetchDetail(id, false);
+    }
+  },
+
+  // [P3-FIX-20251217] 拉取“我的进度”判断该课是否已加入
+  fetchMyProgressForCourse(courseId) {
+    const baseUrl = getBaseUrl();
+    const clientId = this.clientId || ensureClientId();
+    const url = `${baseUrl}/api/courses/progress?clientId=${encodeURIComponent(clientId)}`;
+
+    console.log('[course/detail] fetchMyProgressForCourse url =', url, 'courseId=', courseId);
+
+    return requestJson(url, 'GET')
+      .then((payload) => {
+        const ok = !!(payload && (payload.ok === true || payload.ok === 1));
+        if (!ok) return;
+
+        const list =
+          (payload && (payload.list || payload.rows || payload.items)) ||
+          (payload && payload.data && (payload.data.list || payload.data.rows || payload.data.items)) ||
+          [];
+
+        const found = (list || []).find((r) => {
+          const cid =
+            r.courseId ??
+            r.course_id ??
+            r.courseID ??
+            r.courseid ??
+            r.id; // 兼容：有些实现会把课程 id 放到 id
+          return Number(cid) === Number(courseId);
+        });
+
+        if (found) {
+          const joinedMap = wx.getStorageSync('courseJoinedMap') || {};
+          joinedMap[Number(courseId)] = true;
+          wx.setStorageSync('courseJoinedMap', joinedMap);
+          if (!this.data.joined) this.setData({ joined: true });
+        }
+      })
+      .catch((e) => {
+        console.warn('[course/detail] fetchMyProgressForCourse fail:', e);
+      });
   },
 
   fetchDetail(id, isPullDown = false) {
@@ -257,17 +318,14 @@ Page({
       course: null
     });
 
-    wx.request({
-      url: `${baseUrl}/api/courses/detail/${id}`,
-      method: 'GET',
-      success: (res) => {
-        const data = res.data || {};
+    requestJson(`${baseUrl}/api/courses/detail/${id}`, 'GET')
+      .then((data) => {
         console.log('[course/detail] detail resp:', data);
 
-        if (!data.ok || !data.course) {
+        if (!data || !data.ok || !data.course) {
           this.setData({
             loading: false,
-            errorMsg: data.message || '课程不存在'
+            errorMsg: (data && data.message) || '课程不存在'
           });
           return;
         }
@@ -292,7 +350,6 @@ Page({
 
         const joinable = computeJoinable(raw.status || '');
 
-        // [P1-ENT-20251215] 计算是否需要权益/付费
         const requireEntitlement = computeRequireEntitlement(raw, priceNum);
 
         const course = {
@@ -314,11 +371,9 @@ Page({
           statusText: stText,
           statusClass: stClass,
 
-          // CTA 可用性（状态层面）
           canJoin: joinable.canJoin,
           joinDisabledText: joinable.canJoin ? '' : `当前不可报名（${joinable.reason}）`,
 
-          // [P1-ENT-20251215] 权益层面
           requireEntitlement,
 
           modeText:
@@ -350,18 +405,17 @@ Page({
           loading: false,
           course
         });
-      },
-      fail: (err) => {
+      })
+      .catch((err) => {
         console.error('[course/detail] request fail:', err);
         this.setData({
           loading: false,
           errorMsg: '网络异常，请稍后重试'
         });
-      },
-      complete: () => {
+      })
+      .finally(() => {
         if (isPullDown) wx.stopPullDownRefresh();
-      }
-    });
+      });
   },
 
   onSalonBooking() {
@@ -378,7 +432,6 @@ Page({
     });
   },
 
-  /** [P1-ENT-20251215] 未满足权益时，引导去会员/付费页（尽量兼容你现有页面） */
   goEntitlementGuide(course) {
     const ent = getUserEntitlement();
 
@@ -400,13 +453,10 @@ Page({
       cancelText: '我知道了',
       success: (r) => {
         if (!r.confirm) return;
-
-        // 优先跳会员页（如存在）
         wx.navigateTo({
           url: `/pages/membership/index?from=courseDetail&courseId=${course.id}`
         });
-      },
-      fail: () => {}
+      }
     });
   },
 
@@ -414,19 +464,16 @@ Page({
     const { course, joining, joined } = this.data;
     if (!course) return;
 
-    // 已加入：直接去进度页
     if (joining || joined) {
-      wx.navigateTo({ url: '/pages/course/progress' });
+      this.goProgress();
       return;
     }
 
-    // 不可报名：提示
     if (!course.canJoin) {
       wx.showToast({ title: course.joinDisabledText || '当前不可报名', icon: 'none' });
       return;
     }
 
-    // [P1-ENT-20251215] 权益拦截：需要权益且当前不是会员（也没有 freeCourseTimes）
     if (course.requireEntitlement) {
       const ent = getUserEntitlement();
       const allowByEnt = ent.isMember || ent.freeCourseTimes > 0;
@@ -442,28 +489,22 @@ Page({
     console.log('[course/detail] onJoinCourse tap, course =', course, 'baseUrl=', baseUrl);
 
     this.setData({ joining: true });
-
     wx.showLoading({ title: '正在加入…', mask: true });
 
-    wx.request({
-      url: `${baseUrl}/api/courses/progress/update`,
-      method: 'POST',
-      data: {
-        clientId,
-        courseId: course.id,
-        progressPercent: 0,
-        status: 'in_progress',
-        lastLesson: ''
-      },
-      success: (res) => {
+    requestJson(`${baseUrl}/api/courses/progress/update`, 'POST', {
+      clientId,
+      courseId: course.id,
+      progressPercent: 0,
+      status: 'in_progress',
+      lastLesson: ''
+    })
+      .then((data) => {
         wx.hideLoading();
-
-        const data = res.data || {};
         console.log('[course/detail] join resp:', data);
 
-        if (!data.ok) {
+        if (!data || !data.ok) {
           this.setData({ joining: false });
-          wx.showToast({ title: data.message || '报名失败', icon: 'none' });
+          wx.showToast({ title: (data && data.message) || '报名失败', icon: 'none' });
           return;
         }
 
@@ -483,6 +524,9 @@ Page({
 
         wx.showToast({ title: '已加入课程进度', icon: 'success', duration: 1500 });
 
+        // 同步一次服务端状态
+        this.fetchMyProgressForCourse(course.id);
+
         if (mode === 'insert') {
           setTimeout(() => {
             wx.showModal({
@@ -491,27 +535,26 @@ Page({
               confirmText: '去查看进度',
               cancelText: '留在本页',
               success: (r) => {
-                if (r.confirm) {
-                  wx.navigateTo({ url: '/pages/course/progress' });
-                }
+                if (r.confirm) this.goProgress();
               }
             });
           }, 400);
         }
-      },
-      fail: () => {
+      })
+      .catch(() => {
         wx.hideLoading();
         this.setData({ joining: false });
         wx.showToast({ title: '网络异常，稍后重试', icon: 'none' });
-      }
-    });
+      });
   },
 
   goProgress() {
-    wx.navigateTo({ url: '/pages/course/progress' });
+    const { courseId } = this.data;
+    wx.navigateTo({
+      url: `/pages/course/progress?from=courseDetail${courseId ? `&focusCourseId=${courseId}` : ''}`
+    });
   },
 
-  /** [P1-SHARE-20251215] 分享：携带 courseId + 我的 inviteCode */
   onShareAppMessage() {
     const { courseId, course } = this.data;
     const ent = getUserEntitlement();

@@ -33,14 +33,15 @@
   line-height: 72rpx;
   border-radius: 999rpx;
   padding: 0 26rpx;
-  border: 1rpx solid rgba(255,255,255,0.14);
-  background: rgba(255,255,255,0.06);
+  border: 1rpx solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.06);
   color: #ffffff;
   font-size: 26rpx;
 }
-.retry-btn::after { border: none; }
+.retry-btn::after {
+  border: none;
+}
 
-/* 课程卡片 */
 .course-card {
   background: #101114;
   border-radius: 24rpx;
@@ -57,7 +58,6 @@
   margin-bottom: 18rpx;
 }
 
-/* 标签 */
 .tags-row {
   display: flex;
   flex-direction: row;
@@ -75,7 +75,6 @@
   color: #c0c6d2;
 }
 
-/* 类型 tag */
 .tag-public {
   border-color: rgba(42, 255, 42, 0.45);
   background-color: rgba(42, 255, 42, 0.12);
@@ -130,7 +129,6 @@
   color: #4fd1c5;
 }
 
-/* 状态色 */
 .status-draft {
   border-color: rgba(255, 255, 255, 0.18);
   background: rgba(255, 255, 255, 0.06);
@@ -156,7 +154,6 @@
   color: #4fd1c5;
 }
 
-/* 基本信息行 */
 .meta-row {
   display: flex;
   flex-direction: row;
@@ -176,7 +173,6 @@
   max-width: 480rpx;
 }
 
-/* 已加入提示 */
 .joined-tip {
   margin-top: 16rpx;
   padding: 14rpx 16rpx;
@@ -187,7 +183,6 @@
   font-size: 22rpx;
 }
 
-/* 简介 */
 .section {
   margin-top: 24rpx;
 }
@@ -229,7 +224,6 @@
   line-height: 1.6;
 }
 
-/* 底部按钮栏 */
 .bottom-bar {
   position: fixed;
   left: 0;
@@ -252,7 +246,6 @@
   font-size: 28rpx;
 }
 
-/* 主按钮：电光绿 */
 .btn-primary {
   background-color: #2aff2a;
   color: #000000;
@@ -260,7 +253,6 @@
   border: none;
 }
 
-/* disabled 态：用 class 控制（避免 attribute selector） */
 .btn-primary.btn-disabled {
   background-color: rgba(42, 255, 42, 0.30);
   color: rgba(0, 0, 0, 0.65);
@@ -272,7 +264,6 @@
   border: 2rpx solid #2aff2a;
 }
 
-/* 去掉 button 默认 after 边框（不使用 tag selector） */
 .btn-primary::after,
 .btn-secondary::after {
   border: none;
