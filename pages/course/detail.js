@@ -1,11 +1,12 @@
 // pages/course/detail.js
+// MOD: CLEAN_HARDCODED_API_BASE_20260103
 // 课程详情页：展示课程信息 + 加入我的课程进度
 const funnel = require('../../utils/funnel.js');
 const { getCourseTypeMeta } = require('../../utils/courseType.js');
+const { API_BASE } = require('../../config');
 
 // ========== helpers ==========
 
-// [P2-FIX-20251217] 修复：getStorageSync 没有第二参数；统一 clientId 写入逻辑
 function ensureClientId() {
   const app = getApp && getApp();
   let cid =
@@ -24,20 +25,9 @@ function ensureClientId() {
   return cid;
 }
 
-// [P2-FIX-20251217] 与其它页面统一 baseUrl 读取口径
+// MOD: 统一 baseUrl 取值：config.js -> API_BASE
 function getBaseUrl() {
-  const app = getApp && getApp();
-  const base =
-    (app &&
-      app.globalData &&
-      (app.globalData.API_BASE ||
-        app.globalData.apiBase ||
-        app.globalData.baseUrl ||
-        app.globalData.apiBaseUrl)) ||
-    wx.getStorageSync('apiBaseUrl') ||
-    wx.getStorageSync('apiBase') ||
-    'http://localhost:3000';
-  return String(base).replace(/\/$/, '');
+  return String(API_BASE || '').replace(/\/$/, '');
 }
 
 function requestJson(url, method = 'GET', data) {
@@ -53,7 +43,6 @@ function requestJson(url, method = 'GET', data) {
   });
 }
 
-// [P0-FINAL] iOS 兼容时间解析：支持 MySQL "YYYY-MM-DD HH:mm:ss"
 function parseDT(v) {
   if (!v) return null;
   const raw = String(v).trim();
@@ -130,7 +119,6 @@ function computeJoinable(statusRaw) {
   return { canJoin: true, reason: '' };
 }
 
-/** [P1-ENT] 读取用户权益/会员信息（不存在也不报错） */
 function getUserEntitlement() {
   const userRights = wx.getStorageSync('userRights') || {};
   const membershipName =
@@ -154,7 +142,6 @@ function getUserEntitlement() {
   return { userRights, membershipName, isMember, freeCourseTimes, myInviteCode };
 }
 
-/** [P1-ENT] 判断课程是否需要权益/付费（优先读后端字段，否则用 price>0 兜底） */
 function computeRequireEntitlement(rawCourse, computedPrice) {
   const raw = rawCourse || {};
   const candidates = [
@@ -183,7 +170,6 @@ function computeRequireEntitlement(rawCourse, computedPrice) {
   return Number(computedPrice || 0) > 0;
 }
 
-/** [P1-SHARE] 处理分享进来的 inviteCode（存 pendingInviteCode） */
 function handleIncomingInviteCode(inviteCode) {
   const code = String(inviteCode || '').trim();
   if (!code) return;
@@ -206,7 +192,6 @@ Page({
     joining: false,
     joined: false,
 
-    // [P1-ENT] 用于 UI/埋点展示
     membershipName: ''
   },
 
@@ -240,14 +225,11 @@ Page({
       courseId: id
     });
 
-    // 本地 joined 兜底
     const joinedMap = wx.getStorageSync('courseJoinedMap') || {};
     const joined = !!joinedMap[id];
     this.setData({ joined });
 
-    // [P3-FIX-20251217] 以服务端进度为准同步 joined（解决清缓存/换端后状态不一致）
     this.fetchMyProgressForCourse(id);
-
     this.fetchDetail(id);
   },
 
@@ -267,7 +249,6 @@ Page({
     }
   },
 
-  // [P3-FIX-20251217] 拉取“我的进度”判断该课是否已加入
   fetchMyProgressForCourse(courseId) {
     const baseUrl = getBaseUrl();
     const clientId = this.clientId || ensureClientId();
@@ -291,7 +272,7 @@ Page({
             r.course_id ??
             r.courseID ??
             r.courseid ??
-            r.id; // 兼容：有些实现会把课程 id 放到 id
+            r.id;
           return Number(cid) === Number(courseId);
         });
 
@@ -349,7 +330,6 @@ Page({
         const stClass = statusClass(raw.status || 'draft');
 
         const joinable = computeJoinable(raw.status || '');
-
         const requireEntitlement = computeRequireEntitlement(raw, priceNum);
 
         const course = {
@@ -524,7 +504,6 @@ Page({
 
         wx.showToast({ title: '已加入课程进度', icon: 'success', duration: 1500 });
 
-        // 同步一次服务端状态
         this.fetchMyProgressForCourse(course.id);
 
         if (mode === 'insert') {

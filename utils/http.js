@@ -1,26 +1,42 @@
 // utils/http.js
-// MOD: COURSE_HTTP_20251214 - unified request wrapper
+// MOD: HTTP_UNIFIED_20260102
+const { API_BASE } = require('../config');
 
-const DEFAULT_TIMEOUT = 15000;
+/**
+ * 统一 request 封装
+ * - 自动拼接 API_BASE
+ * - 默认 JSON
+ * - 返回 Promise
+ */
+function request({ url, method = 'GET', data = {}, header = {}, timeout = 15000 }) {
+  const fullUrl = url.startsWith('http') ? url : `${API_BASE}${url}`;
 
-function request({ url, method = 'GET', data = {}, header = {} }) {
   return new Promise((resolve, reject) => {
     wx.request({
-      url,
+      url: fullUrl,
       method,
       data,
+      timeout,
       header: {
-        'content-type': 'application/json',
+        'Content-Type': 'application/json',
         ...header
       },
-      timeout: DEFAULT_TIMEOUT,
-      success: (res) => {
-        if (res.statusCode >= 200 && res.statusCode < 300) resolve(res.data);
-        else reject({ statusCode: res.statusCode, data: res.data });
-      },
+      success: (res) => resolve(res),
       fail: (err) => reject(err)
     });
   });
 }
 
-module.exports = { request };
+function get(url, data = {}, options = {}) {
+  return request({ url, method: 'GET', data, ...options });
+}
+
+function post(url, data = {}, options = {}) {
+  return request({ url, method: 'POST', data, ...options });
+}
+
+module.exports = {
+  request,
+  get,
+  post
+};

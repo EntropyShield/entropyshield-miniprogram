@@ -1,9 +1,22 @@
 {
-  "appid": "wxccc8a5dd04fdb6b6",
+  "appid": "wxaaafd6a01d1cc238",
   "compileType": "miniprogram",
   "libVersion": "trial",
   "packOptions": {
-    "ignore": [],
+    "ignore": [
+      { "type": "folder", "value": "funnelLogs" },
+      { "type": "folder", "value": "logs" },
+      { "type": "folder", "value": ".git" },
+      { "type": "folder", "value": ".vscode" },
+
+      { "type": "folder", "value": "testEmotionIndex" },
+      { "type": "folder", "value": "testLossPersonality" },
+      { "type": "folder", "value": "testLossResult" },
+      { "type": "folder", "value": "testMarketRisk" },
+      { "type": "folder", "value": "testRiskScore" },
+
+      { "type": "file", "value": "project.private.config.json" }
+    ],
     "include": []
   },
   "setting": {
@@ -19,19 +32,24 @@
       "disablePlugins": [],
       "outputPath": ""
     },
-    "compileWorklet": false,
+    "compileWorklet": true,
     "uglifyFileName": false,
-    "uploadWithSourceMap": true,
+
+    "uploadWithSourceMap": false,
     "packNpmManually": false,
+
     "minifyWXSS": true,
     "minifyWXML": true,
+
     "localPlugins": false,
     "condition": true,
-    "swc": false,
-    "disableSWC": true,
+
+    "swc": true,
+    "disableSWC": false,
     "disableUseStrict": false,
     "useCompilerPlugins": false,
-    "ignoreUploadUnusedFiles": false
+
+    "ignoreUploadUnusedFiles": true
   },
   "condition": {},
   "editorSetting": {

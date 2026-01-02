@@ -1,6 +1,8 @@
 // pages/controller/index.js
+// MOD: CLEAN_HARDCODED_API_BASE_20260103
 const funnel = require('../../utils/funnel.js');
 const { getCourseTypeMeta } = require('../../utils/courseType.js'); // 统一类型口径
+const { API_BASE } = require('../../config');
 
 // [P1-SHARE-20251215] 安全开启分享菜单
 function safeShowShareMenu() {
@@ -114,8 +116,6 @@ Page({
   },
 
   // [P1-ROUTE-FINAL-FIX-20251215]
-  // 修正课程日历跳转优先级：优先跳真实存在的 /pages/course/index，失败再兜底 /pages/courses/index
-  // 目的：消除你控制台里“page not found”的失败日志
   goToCourseList() {
     console.log('[controller] goToCourseList tap');
 
@@ -153,19 +153,9 @@ Page({
   // B 区：固定入口（口径与课程日历一致）
   // =========================
 
+  // MOD: 统一从 config.js 取 API_BASE
   getBaseUrl() {
-    const app = getApp && getApp();
-    const base =
-      (app &&
-        app.globalData &&
-        (app.globalData.API_BASE ||
-          app.globalData.apiBase ||
-          app.globalData.baseUrl ||
-          app.globalData.apiBaseUrl)) ||
-      wx.getStorageSync('apiBaseUrl') ||
-      wx.getStorageSync('apiBase') ||
-      'http://localhost:3000';
-    return String(base).replace(/\/$/, '');
+    return String(API_BASE || '').replace(/\/$/, '');
   },
 
   requestJson(url, method = 'GET', data) {
@@ -359,7 +349,6 @@ Page({
             };
           })
           .filter((c) => {
-            // upcoming 口径：排除 draft、排除已结束；保留“未开始/进行中/时间待定”
             if (c.isDraft) return false;
             if (c.isEnded) return false;
             return true;
@@ -462,7 +451,6 @@ Page({
             statusText: use.statusText,
             statusBadgeClass: use.statusBadgeClass || 'fixed-status-upcoming',
 
-            // [P0-FINAL] 轻量弱化未配置入口按钮
             isFallback: !use.id
           };
         });

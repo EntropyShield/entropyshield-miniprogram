@@ -1,6 +1,8 @@
 // pages/course/index.js
+// MOD: CLEAN_HARDCODED_API_BASE_20260103
 const funnel = require('../../utils/funnel.js');
-const { getCourseTypeMeta } = require('../../utils/courseType.js'); // [P0-FINAL] 统一类型口径
+const { getCourseTypeMeta } = require('../../utils/courseType.js');
+const { API_BASE } = require('../../config');
 
 Page({
   data: {
@@ -10,11 +12,9 @@ Page({
     loading: false,
     errorText: '',
 
-    // upcoming | all | ended
     filterType: 'upcoming',
     searchText: '',
 
-    // [P3-PROGRESSMAP-FIX-20251217] 进度映射：courseId -> progressRecord（兼容多种返回形态）
     progressMap: {},
 
     courses: [],
@@ -37,8 +37,6 @@ Page({
     this.loadCourses(true);
   },
 
-  // ========== helpers ==========
-
   ensureClientId() {
     let clientId = wx.getStorageSync('clientId');
     if (!clientId) {
@@ -51,20 +49,9 @@ Page({
     return clientId;
   },
 
-  // [P0-FINAL] 与其它页面统一 baseUrl 读取口径
+  // MOD: 统一 baseUrl 取值：config.js -> API_BASE
   getBaseUrl() {
-    const app = getApp && getApp();
-    const base =
-      (app &&
-        app.globalData &&
-        (app.globalData.API_BASE ||
-          app.globalData.apiBase ||
-          app.globalData.baseUrl ||
-          app.globalData.apiBaseUrl)) ||
-      wx.getStorageSync('apiBaseUrl') ||
-      wx.getStorageSync('apiBase') ||
-      'http://localhost:3000';
-    return String(base).replace(/\/$/, '');
+    return String(API_BASE || '').replace(/\/$/, '');
   },
 
   requestJson(url, method = 'GET', data) {
@@ -114,7 +101,6 @@ Page({
     return [];
   },
 
-  // [P3-PROGRESSMAP-FIX-20251217] 进度接口解析：优先 list，其次兼容 courses
   extractProgressList(payload) {
     const pickArr = (v) => (Array.isArray(v) ? v : null);
     if (Array.isArray(payload)) return payload;
@@ -124,7 +110,7 @@ Page({
       pickArr(payload.list) ||
       pickArr(payload.rows) ||
       pickArr(payload.items) ||
-      pickArr(payload.courses); // 兼容后端把进度合并到 courses 的情况
+      pickArr(payload.courses);
     if (list) return list;
 
     const d1 = payload.data;
@@ -149,7 +135,6 @@ Page({
     return [];
   },
 
-  // [P0-FINAL] iOS 兼容时间解析：支持 MySQL "YYYY-MM-DD HH:mm:ss"
   parseDT(v) {
     if (!v) return null;
     const raw = String(v).trim();
@@ -191,7 +176,6 @@ Page({
     return map[d.getDay()] || '';
   },
 
-  // [P0-FINAL] 列表 UI pill 映射（统一 key）
   pillByTypeKey(typeKey) {
     switch (typeKey) {
       case 'PUBLIC':
@@ -211,7 +195,6 @@ Page({
     }
   },
 
-  // [P0-FINAL] 状态口径统一：优先后端 status，其次用时间推断
   statusMeta(statusRaw, startTs, endTs) {
     const s = String(statusRaw || '').toLowerCase();
     const now = Date.now();
@@ -227,7 +210,6 @@ Page({
     return { text: '已结束', cls: 'status-ended', isDraft: false, isEnded: true };
   },
 
-  // [P3-PROGRESSMAP-FIX-20251217] percent/status 兼容：progressPercent(0~1/0~100/字符串)，progressStatus/status
   progressMeta(progressRecord) {
     if (!progressRecord) return { joined: false, text: '', cls: '' };
 
@@ -248,10 +230,7 @@ Page({
 
     let percent = Number(percentRaw);
     if (isNaN(percent)) percent = 0;
-
-    // 兼容 0~1（如 1.00 表示 100%）
     if (percent > 0 && percent <= 1) percent = percent * 100;
-
     percent = Math.max(0, Math.min(100, percent));
 
     if (status === 'finished' || percent >= 100) {
@@ -264,9 +243,6 @@ Page({
     return { joined: true, text: '已加入', cls: 'pill-progress-joined', percent, status: status || 'joined' };
   },
 
-  // ========== data flow ==========
-
-  // [P3-PROGRESSMAP-FIX-20251217] 拉取“我的课程进度”映射（兼容两种形态：进度记录/合并课程）
   fetchProgressMap(clientId) {
     const baseUrl = this.getBaseUrl();
     const url = `${baseUrl}/api/courses/progress?clientId=${encodeURIComponent(clientId || '')}`;
@@ -290,9 +266,7 @@ Page({
             r.courseid ??
             '';
 
-          // 如果没有 courseId 字段，但整条记录明显是“课程合并形态”，用 r.id 作为 courseId
           const fallbackId = looksLikeCourseMerged(r) ? (r.id ?? '') : '';
-
           const key = String((cid || fallbackId) || '').trim();
           if (!key) return;
 
@@ -380,7 +354,6 @@ Page({
               isDraft: st.isDraft,
               isEnded: st.isEnded,
 
-              // P3
               joined: !!pm.joined,
               progressText: pm.text || '',
               progressPillClass: pm.cls || '',
@@ -456,8 +429,6 @@ Page({
     console.log('[courses] final courseGroups:', groups);
   },
 
-  // ========== UI handlers ==========
-
   onTabTap(e) {
     const t = e.currentTarget.dataset.type;
     if (!t) return;
@@ -488,7 +459,6 @@ Page({
     wx.navigateTo({ url: `/pages/visitBooking/index?from=course&courseId=${id || ''}` });
   },
 
-  // 列表页快捷进入“我的课程进度”
   goCourseProgress(e) {
     const focusCourseId = (e && e.currentTarget && e.currentTarget.dataset && e.currentTarget.dataset.id) || '';
     wx.navigateTo({

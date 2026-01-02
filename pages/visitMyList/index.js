@@ -1,18 +1,23 @@
 // pages/visitMyList/index.js
+// MOD: CLEAN_HARDCODED_API_BASE_20260103
 // [熵盾-来访模块-我的来访预约列表（修复日期 & 取消预约）]
 
 const funnel = require('../../utils/funnel.js');
+const { API_BASE } = require('../../config');
 
-const API_BASE_URL = 'http://localhost:3000';
-const CLIENT_ID_KEY = 'st_client_id';
+function getBaseUrl() {
+  return String(API_BASE || '').replace(/\/$/, '');
+}
 
-// 自动生成 / 获取 clientId
 function ensureClientId() {
-  let cid = wx.getStorageSync(CLIENT_ID_KEY);
+  const app = getApp && getApp();
+  let cid = wx.getStorageSync('clientId') || wx.getStorageSync('st_client_id');
   if (!cid) {
     cid = `ST-${Date.now()}-${Math.floor(Math.random() * 900000) + 100000}`;
-    wx.setStorageSync(CLIENT_ID_KEY, cid);
   }
+  wx.setStorageSync('clientId', cid);
+  wx.setStorageSync('st_client_id', cid);
+  if (app && app.globalData) app.globalData.clientId = cid;
   return cid;
 }
 
@@ -33,30 +38,21 @@ Page({
     this.fetchList();
   },
 
-  // 将数据库返回的日期转成本地 YYYY-MM-DD（解决少一天的问题）
   formatDate(isoOrDate) {
     if (!isoOrDate) return '';
 
-    // 字符串情况
     if (typeof isoOrDate === 'string') {
-      // 如果是纯日期 "YYYY-MM-DD"，直接返回
-      if (!isoOrDate.includes('T')) {
-        return isoOrDate;
-      }
+      if (!isoOrDate.includes('T')) return isoOrDate;
 
-      // 带 T/Z 的 ISO 字符串，用 Date 解析成本地时间再取年月日
       const d = new Date(isoOrDate);
-      if (Number.isNaN(d.getTime())) {
-        // 解析失败兜底：直接取 T 前面的部分
-        return isoOrDate.split('T')[0];
-      }
+      if (Number.isNaN(d.getTime())) return isoOrDate.split('T')[0];
+
       const y = d.getFullYear();
       const m = String(d.getMonth() + 1).padStart(2, '0');
       const day = String(d.getDate()).padStart(2, '0');
       return `${y}-${m}-${day}`;
     }
 
-    // 非字符串，认为是 Date 对象或时间戳
     const d = new Date(isoOrDate);
     if (Number.isNaN(d.getTime())) return '';
     const y = d.getFullYear();
@@ -65,13 +61,11 @@ Page({
     return `${y}-${m}-${day}`;
   },
 
-  // 提交时间：格式化为 YYYY-MM-DD HH:mm
   formatDateTime(isoOrDateTime) {
     if (!isoOrDateTime) return '';
 
     let d;
     if (typeof isoOrDateTime === 'string') {
-      // 已经是 "YYYY-MM-DD HH:mm" 就直接返回
       if (isoOrDateTime.includes(' ') && !isoOrDateTime.includes('T')) {
         return isoOrDateTime;
       }
@@ -89,19 +83,16 @@ Page({
     return `${y}-${m}-${day} ${hh}:${mm}`;
   },
 
-  // 拉取“我的来访预约”列表
   fetchList() {
+    const baseUrl = getBaseUrl();
     const clientId = ensureClientId();
 
     this.setData({ loading: true });
 
-    funnel.log('VISIT_MY_LIST_VIEW', {
-      clientId,
-      ts: Date.now()
-    });
+    funnel.log('VISIT_MY_LIST_VIEW', { clientId, ts: Date.now() });
 
     wx.request({
-      url: `${API_BASE_URL}/api/visit/my-list`,
+      url: `${baseUrl}/api/visit/my-list`,
       method: 'GET',
       data: { clientId },
       success: (res) => {
@@ -110,9 +101,7 @@ Page({
           const rawList = data.list || data.data || [];
 
           const list = rawList.map((item) => {
-            const visitDateDisplay = this.formatDate(
-              item.visitDate || item.visit_date
-            );
+            const visitDateDisplay = this.formatDate(item.visitDate || item.visit_date);
 
             const visitTimeRange =
               item.visitTimeRange ||
@@ -121,9 +110,7 @@ Page({
               item.time_slot ||
               '';
 
-            const createdAtDisplay = this.formatDateTime(
-              item.createdAt || item.created_at
-            );
+            const createdAtDisplay = this.formatDateTime(item.createdAt || item.created_at);
 
             return {
               ...item,
@@ -135,17 +122,11 @@ Page({
 
           this.setData({ list });
         } else {
-          wx.showToast({
-            title: data.message || data.msg || '加载失败',
-            icon: 'none'
-          });
+          wx.showToast({ title: data.message || data.msg || '加载失败', icon: 'none' });
         }
       },
       fail: () => {
-        wx.showToast({
-          title: '网络异常',
-          icon: 'none'
-        });
+        wx.showToast({ title: '网络异常', icon: 'none' });
       },
       complete: () => {
         this.setData({ loading: false });
@@ -153,17 +134,12 @@ Page({
     });
   },
 
-  // 去预约页
   goBooking() {
-    wx.navigateTo({
-      url: '/pages/visitBooking/index'
-    });
+    wx.navigateTo({ url: '/pages/visitBooking/index' });
   },
 
-  // [熵盾-来访模块-用户取消预约]
-  // 对应 WXML 里的 bindtap="onCancelVisit"
   onCancelVisit(e) {
-    // 同时从 currentTarget 和 target 兜底读取 data-*
+    const baseUrl = getBaseUrl();
     const ds = e.currentTarget && e.currentTarget.dataset ? e.currentTarget.dataset : {};
     const tds = e.target && e.target.dataset ? e.target.dataset : {};
 
@@ -178,7 +154,6 @@ Page({
       return;
     }
 
-    // 如果 status 取不到，就按待确认(0) 处理，允许取消
     let statusNum;
     if (rawStatus === undefined || rawStatus === null || rawStatus === '') {
       statusNum = 0;
@@ -186,12 +161,8 @@ Page({
       statusNum = Number(rawStatus);
     }
 
-    // 只有 已完成(2) / 已取消(3) 时禁止取消
     if (statusNum === 2 || statusNum === 3) {
-      wx.showToast({
-        title: '当前状态不可取消',
-        icon: 'none'
-      });
+      wx.showToast({ title: '当前状态不可取消', icon: 'none' });
       return;
     }
 
@@ -212,41 +183,26 @@ Page({
           ts: Date.now()
         });
 
-        wx.showLoading({
-          title: '正在取消...',
-          mask: true
-        });
+        wx.showLoading({ title: '正在取消...', mask: true });
 
         wx.request({
-          url: `${API_BASE_URL}/api/visit/cancel`,
+          url: `${baseUrl}/api/visit/cancel`,
           method: 'POST',
-          header: {
-            'content-type': 'application/json'
-          },
+          header: { 'content-type': 'application/json' },
           data: { id, clientId },
           success: (resp) => {
             wx.hideLoading();
             const data = resp.data || {};
             if (data.ok) {
-              wx.showToast({
-                title: '已取消预约',
-                icon: 'success'
-              });
-              // 重新拉取列表
+              wx.showToast({ title: '已取消预约', icon: 'success' });
               this.fetchList();
             } else {
-              wx.showToast({
-                title: data.message || '取消失败',
-                icon: 'none'
-              });
+              wx.showToast({ title: data.message || '取消失败', icon: 'none' });
             }
           },
           fail: () => {
             wx.hideLoading();
-            wx.showToast({
-              title: '网络异常',
-              icon: 'none'
-            });
+            wx.showToast({ title: '网络异常', icon: 'none' });
           }
         });
       }

@@ -1,385 +1,374 @@
-// pages/profile/index.js
+// pages/course/progress.js
+// MOD: CLEAN_HARDCODED_API_BASE_20260103
+// 我的课程进度列表页
+
 const funnel = require('../../utils/funnel.js');
-const API_BASE_URL = 'http://localhost:3000';
-const CLIENT_ID_KEY = 'st_client_id';
+const { API_BASE } = require('../../config');
 
 function ensureClientId() {
-  let cid = wx.getStorageSync(CLIENT_ID_KEY);
+  const appInst = getApp && getApp();
+  let cid =
+    (appInst && appInst.globalData && appInst.globalData.clientId) ||
+    wx.getStorageSync('clientId');
+
   if (!cid) {
-    cid = `ST-${Date.now()}-${Math.floor(Math.random() * 900000) + 100000}`;
-    wx.setStorageSync(CLIENT_ID_KEY, cid);
+    cid = `ST-${Date.now()}-${Math.floor(Math.random() * 1000000)}`;
+    wx.setStorageSync('clientId', cid);
+    console.log('[course/progress] new clientId generated:', cid);
+    if (appInst && appInst.globalData) appInst.globalData.clientId = cid;
+  } else {
+    console.log('[course/progress] use existing clientId:', cid);
+    if (appInst && appInst.globalData) appInst.globalData.clientId = cid;
   }
   return cid;
 }
 
+function getBaseUrl() {
+  return String(API_BASE || '').replace(/\/$/, '');
+}
+
+function requestJson(url, method = 'GET', data) {
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url,
+      method,
+      data,
+      header: { 'content-type': 'application/json' },
+      success: (res) => resolve(res.data),
+      fail: (err) => reject(err)
+    });
+  });
+}
+
+function extractList(payload) {
+  if (Array.isArray(payload)) return payload;
+  if (!payload || typeof payload !== 'object') return [];
+  return (
+    payload.list ||
+    payload.rows ||
+    payload.items ||
+    (payload.data && (payload.data.list || payload.data.rows || payload.data.items)) ||
+    []
+  );
+}
+
+function normalizePercent(v) {
+  let n = Number(v);
+  if (isNaN(n)) n = 0;
+  if (n > 0 && n <= 1) n = n * 100;
+  n = Math.max(0, Math.min(100, n));
+  return Math.round(n);
+}
+
+function safeTimeText(startTime, endTime) {
+  if (!startTime && !endTime) return '时间待定';
+  const s = String(startTime || '').replace('T', ' ').replace(/\.000Z$/, '');
+  const e = String(endTime || '').replace('T', ' ').replace(/\.000Z$/, '');
+  if (s && e) {
+    try {
+      const datePart = s.slice(5, 10);
+      const sTime = s.slice(11, 16);
+      const eTime = e.slice(11, 16);
+      if (datePart && sTime && eTime) return `${datePart} ${sTime} - ${eTime}`;
+    } catch (err) {}
+    return `${s} ~ ${e}`;
+  }
+  if (s && !e) return `开始时间：${s}`;
+  if (!s && e) return `结束时间：${e}`;
+  return '时间待定';
+}
+
 Page({
   data: {
-    activeInnerTab: 'rights', // rights | tools | lab
+    loading: false,
+    errorMsg: '',
 
-    // 用户信息
-    userInfo: null,
+    filterType: 'all',
 
-    // 权益相关
-    freeCalcTimes: 0,
-    campRewardCount: 0,
-    fissionSyncedTimes: 0,
-    membershipName: '尚未开通会员',
-    campProgressText: '0 / 7 天',
+    rawItems: [],
+    items: [],
 
-    // 裂变相关
-    myInviteCode: '',
-    invitedByCode: '',
+    focusCourseId: ''
+  },
 
-    // 顾问微信（与 payIntro 保持一致即可）
-    advisorWechat: 'dcd7467',
+  onLoad(options) {
+    funnel.log('COURSE_PROGRESS_VIEW', { from: (options && options.from) || '' });
 
-    // 常量：每轮训练营奖励次数（只用于文案）
-    CAMP_REWARD_TIMES: 4,
+    const clientId = ensureClientId();
+    this.clientId = clientId;
 
-    // 最近来访预约
-    latestVisit: null,
-    loadingVisit: false,
+    const focusCourseId = (options && options.focusCourseId) ? String(options.focusCourseId) : '';
+    this.setData({ focusCourseId });
 
-    // 来访状态文案映射
-    statusTextMap: {
-      0: '待确认',
-      1: '已确认',
-      2: '已完成',
-      3: '已取消'
-    },
-    // 来访状态样式映射（对应 wxss 里的类名）
-    statusClassMap: {
-      0: 'status-pending',
-      1: 'status-confirmed',
-      2: 'status-done',
-      3: 'status-cancelled'
-    }
+    this._firstShowSkip = true;
+
+    this.fetchProgress();
   },
 
   onShow() {
-    funnel.log('PROFILE_VIEW', {
-      from: 'tab',
-      ts: Date.now()
-    });
-
-    this.initPage();
-  },
-
-  // ================== 初始化 ==================
-
-  initPage() {
-    this.loadUserInfo();
-    this.loadRightsFromStorage();
-    this.loadCampProgress();
-    this.loadFissionInfo();
-    this.fetchLatestVisit();
-  },
-
-  loadUserInfo() {
-    try {
-      const app = getApp && getApp();
-      if (app && app.globalData && app.globalData.userInfo) {
-        this.setData({
-          userInfo: app.globalData.userInfo
-        });
-      }
-    } catch (e) {
-      console.log('[profile] loadUserInfo error', e);
+    if (this._firstShowSkip) {
+      this._firstShowSkip = false;
+      return;
     }
+    this.fetchProgress();
   },
 
-  // 从本地 userRights 读取权益信息
-  loadRightsFromStorage() {
-    try {
-      const userRights = wx.getStorageSync('userRights') || {};
-      const freeCalcTimes = Number(userRights.freeCalcTimes || 0);
-      const campRewardCount = Number(userRights.campRewardCount || 0);
-      const fissionSyncedTimes = Number(
-        userRights.fissionSyncedTimes || 0
-      );
-      const membershipName =
-        userRights.membershipName || '尚未开通会员';
-
-      this.setData({
-        freeCalcTimes,
-        campRewardCount,
-        fissionSyncedTimes,
-        membershipName
-      });
-    } catch (e) {
-      console.error('[profile] loadRightsFromStorage error', e);
-    }
+  onPullDownRefresh() {
+    this.fetchProgress(() => wx.stopPullDownRefresh());
   },
 
-  // 训练营进度（0~7 天）
-  loadCampProgress() {
-    try {
-      const finishedMap =
-        wx.getStorageSync('campFinishedMap') || {};
-      const finishedDays = Object.keys(finishedMap).length || 0;
-      const text = finishedDays + ' / 7 天';
-
-      this.setData({
-        campProgressText: text
-      });
-    } catch (e) {
-      console.error('[profile] loadCampProgress error', e);
-    }
+  onChangeFilter(e) {
+    const type = e.currentTarget.dataset.type || 'all';
+    this.setData({ filterType: type }, () => this.applyFilter());
   },
 
-  // 裂变邀请码信息
-  loadFissionInfo() {
-    try {
-      const myInviteCode = (
-        wx.getStorageSync('fissionMyInviteCode') || ''
-      )
-        .toUpperCase()
-        .trim();
+  fetchProgress(done) {
+    const clientId = this.clientId || ensureClientId();
+    const baseUrl = getBaseUrl();
+    const url = `${baseUrl}/api/courses/progress?clientId=${encodeURIComponent(clientId)}`;
 
-      const invitedByCode = (
-        wx.getStorageSync('fissionInvitedByCode') || ''
-      )
-        .toUpperCase()
-        .trim();
+    console.log('[course/progress] fetchProgress clientId =', clientId, 'baseUrl=', baseUrl);
 
-      this.setData({
-        myInviteCode,
-        invitedByCode
-      });
-    } catch (e) {
-      console.error('[profile] loadFissionInfo error', e);
-    }
-  },
+    this.setData({ loading: true, errorMsg: '' });
 
-  // 最近一条来访预约
-  fetchLatestVisit() {
-    const clientId = ensureClientId();
+    requestJson(url, 'GET')
+      .then((data) => {
+        console.log('[course/progress] resp:', data);
 
-    funnel.log('PROFILE_VISIT_LATEST_FETCH', {
-      ts: Date.now(),
-      clientId
-    });
-
-    this.setData({ loadingVisit: true });
-
-    wx.request({
-      url: `${API_BASE_URL}/api/visit/my-list`,
-      method: 'GET',
-      data: {
-        clientId,
-        limit: 1
-      },
-      success: (res) => {
-        const data = res.data || {};
-        if (!data.ok || !Array.isArray(data.list) || data.list.length === 0) {
-          this.setData({
-            latestVisit: null,
-            loadingVisit: false
-          });
+        if (!data || !data.ok) {
+          this.setData(
+            {
+              loading: false,
+              errorMsg: (data && data.message) || '加载课程进度失败',
+              rawItems: [],
+              items: []
+            },
+            () => done && done()
+          );
           return;
         }
 
-        const raw = data.list[0];
+        const list = extractList(data);
+        const items = [];
 
-        // 处理日期展示：只要 YYYY-MM-DD
-        let visitDateDisplay = '';
-        if (raw.visitDate) {
-          visitDateDisplay = String(raw.visitDate).slice(0, 10);
-        }
+        (list || []).forEach((row) => {
+          const courseIdRaw =
+            row.course_id ??
+            row.courseId ??
+            row.courseID ??
+            row.courseid ??
+            row.id;
 
-        const latestVisit = {
-          ...raw,
-          visitDateDisplay
-        };
+          const courseId = Number(courseIdRaw);
+          if (!Number.isFinite(courseId) || courseId <= 0) {
+            console.warn('[course/progress] skip row without valid courseId:', row);
+            return;
+          }
 
-        this.setData({
-          latestVisit,
-          loadingVisit: false
+          const progressIdRaw =
+            row.progress_id ??
+            row.progressId ??
+            row.progressID ??
+            row.progressid ??
+            row.pid ??
+            row.id ??
+            courseId;
+
+          const progressId = String(progressIdRaw);
+
+          const startTime = row.startTime || row.start_time || '';
+          const endTime = row.endTime || row.end_time || '';
+          const timeText = safeTimeText(startTime, endTime);
+
+          const status = row.status || 'in_progress';
+          const statusText =
+            status === 'finished'
+              ? '已完成'
+              : status === 'in_progress'
+              ? '进行中'
+              : '未开始';
+
+          const progressPercentRaw =
+            row.progress_percent ??
+            row.progressPercent ??
+            row.progress ??
+            row.percent ??
+            0;
+
+          const progressPercent = normalizePercent(progressPercentRaw);
+          const progressWidth = `${progressPercent}%`;
+
+          const updatedAtRaw = row.updated_at || row.updatedAt || '';
+          const updatedAtText = updatedAtRaw
+            ? String(updatedAtRaw).replace('T', ' ').slice(0, 16)
+            : '';
+
+          items.push({
+            id: progressId,
+            progressId,
+            courseId,
+
+            title: row.title || '未命名课程',
+            timeText,
+
+            status,
+            statusText,
+
+            progressPercent,
+            progressWidth,
+
+            lastLesson: row.last_lesson || row.lastLesson || '',
+            updatedAtText
+          });
         });
-      },
-      fail: () => {
-        this.setData({
-          latestVisit: null,
-          loadingVisit: false
-        });
-      }
-    });
+
+        this.setData(
+          {
+            loading: false,
+            rawItems: items
+          },
+          () => {
+            this.applyFilter();
+            done && done();
+          }
+        );
+      })
+      .catch((err) => {
+        console.error('[course/progress] request fail:', err);
+        this.setData(
+          {
+            loading: false,
+            errorMsg: '网络异常，请稍后重试',
+            rawItems: [],
+            items: []
+          },
+          () => done && done()
+        );
+      });
   },
 
-  // ================== 内部 Tab 切换 ==================
+  applyFilter() {
+    const { filterType, rawItems, focusCourseId } = this.data;
+    let items = (rawItems || []).slice();
 
-  onInnerTabChange(e) {
-    const key = e.currentTarget.dataset.key;
-    if (!key || key === this.data.activeInnerTab) return;
-    this.setData({
-      activeInnerTab: key
-    });
+    if (filterType === 'in_progress') {
+      items = items.filter((x) => x.status === 'in_progress');
+    } else if (filterType === 'finished') {
+      items = items.filter((x) => x.status === 'finished');
+    }
+
+    if (focusCourseId) {
+      const fid = Number(focusCourseId);
+      items.sort((a, b) => {
+        const aHit = Number(a.courseId) === fid ? -1 : 0;
+        const bHit = Number(b.courseId) === fid ? -1 : 0;
+        return aHit - bHit;
+      });
+    }
+
+    this.setData({ items });
   },
 
-  // ================== 跳转 / 交互 ==================
+  onTapItem(e) {
+    const id = e.currentTarget.dataset.id;
+    const item =
+      this.data.items.find((x) => x.progressId === String(id)) ||
+      this.data.items.find((x) => x.id === String(id));
+    if (!item) return;
 
-  goRightsDetail() {
+    const content =
+      `时间：${item.timeText}\n` +
+      `状态：${item.statusText}\n` +
+      `进度：${item.progressPercent || 0}%\n` +
+      (item.lastLesson ? `最近学习：${item.lastLesson}\n` : '') +
+      (item.updatedAtText ? `最近更新：${item.updatedAtText}` : '');
+
     wx.showModal({
-      title: '权益说明',
-      content:
-        '· 完成一轮 7 天风控训练营，可获赠完整风控方案使用次数；\n' +
-        '· 裂变任务产生的奖励会自动同步到“剩余完整方案次数”；\n' +
-        '· 会员权益（如有）将在开通后展示在此页面。\n\n' +
-        '所有功能仅提供风控工具与教育信息，不构成投资建议或收益承诺。',
+      title: item.title,
+      content,
       showCancel: false
     });
   },
 
-  goCalc() {
-    wx.navigateTo({
-      url: '/pages/riskCalculator/index'
+  onUpdateProgress(e) {
+    const id = e.currentTarget.dataset.id;
+    const item =
+      this.data.items.find((x) => x.progressId === String(id)) ||
+      this.data.items.find((x) => x.id === String(id));
+    if (!item) return;
+
+    const that = this;
+
+    wx.showActionSheet({
+      itemList: ['0%', '25%', '50%', '75%', '100%（标记完成）'],
+      success(res) {
+        const idx = res.tapIndex;
+        const percentMap = [0, 25, 50, 75, 100];
+        const progressPercent = percentMap[idx] || 0;
+        const status = progressPercent === 100 ? 'finished' : 'in_progress';
+        that.saveProgress(item.courseId, progressPercent, status, item.progressId);
+      }
     });
   },
 
-  goCampIntro() {
-    wx.navigateTo({
-      url: '/pages/campIntro/index'
+  onMarkFinished(e) {
+    const id = e.currentTarget.dataset.id;
+    const item =
+      this.data.items.find((x) => x.progressId === String(id)) ||
+      this.data.items.find((x) => x.id === String(id));
+    if (!item) return;
+
+    wx.showModal({
+      title: '标记为已完成',
+      content: '确认将本课程标记为「已完成」吗？',
+      success: (res) => {
+        if (res.confirm) {
+          this.saveProgress(item.courseId, 100, 'finished', item.progressId);
+        }
+      }
     });
   },
 
-  goCampReport() {
-    wx.navigateTo({
-      url: '/pages/campReport/index'
-    });
-  },
+  saveProgress(courseId, progressPercent, status, progressId) {
+    const clientId = this.clientId || ensureClientId();
+    const baseUrl = getBaseUrl();
 
-    // 订单中心（当前仅弹说明，后续接入真实订单页）
-    goOrderCenter() {
-      const clientId = ensureClientId();
-      funnel.log('PROFILE_TOOL_ORDER_CENTER', {
-        clientId,
-        from: 'tab2',
-        ts: Date.now()
-      });
-  
-      wx.showToast({
-        title: '订单中心内测筹备中，请先通过顾问确认订单',
-        icon: 'none'
-      });
-    },
-  
-  goControllerCalendar() {
-    // 控局者课程日历目前放在 Tab2：控局者里，这里直接切 Tab
-    wx.switchTab({
-      url: '/pages/controller/index'
-    });
-  },
-
-  goFissionTask() {
-    wx.navigateTo({
-      url: '/pages/fissionTask/index'
-    });
-  },
-
-  goVisitBooking() {
-    wx.navigateTo({
-      url: '/pages/visitBooking/index'
-    });
-  },
-
-  goVisitAdmin() {
-    wx.navigateTo({
-      url: '/pages/visitAdmin/index'
-    });
-  },
-
-  // [熵盾-来访模块-20251204] 我的来访预约列表
-  goVisitMyList() {
-    wx.navigateTo({
-      url: '/pages/visitMyList/index'
-    });
-  },
-
-  goBookshelf() {
-    wx.showToast({
-      title: '控局者书架正在筹备中',
-      icon: 'none'
-    });
-  },
-
-  copyAdvisorWechat() {
-    const wxid = this.data.advisorWechat || '';
-    if (!wxid) {
-      wx.showToast({
-        title: '暂未配置顾问微信',
-        icon: 'none'
-      });
+    if (!clientId || !Number.isFinite(Number(courseId))) {
+      console.error('[course/progress] saveProgress 缺少关键参数', { clientId, courseId });
+      wx.showToast({ title: '内部错误：缺少课程信息', icon: 'none' });
       return;
     }
 
-    wx.setClipboardData({
-      data: wxid,
-      success: () => {
-        wx.showToast({
-          title: '已复制顾问微信',
-          icon: 'success',
-          duration: 1500
-        });
-      }
-    });
-  },
+    const payload = {
+      clientId,
+      courseId: Number(courseId),
+      progressPercent,
+      status,
+      lastLesson: ''
+    };
+    if (progressId) payload.progressId = progressId;
 
-  showUsageInfo() {
-    wx.showModal({
-      title: '使用说明与合规提示',
-      content:
-        '熵盾研究院与风控计算器仅用于交易风控训练与风险教育，不构成任何证券/期货/数字资产的买卖建议，也不承诺任何形式的保本或收益。\n\n' +
-        '请根据自身资金状况与风险承受能力，独立做出交易决策，自行承担盈亏。',
-      showCancel: false
-    });
-  },
+    console.log('[course/progress] saveProgress payload =', payload);
 
-  showAbout() {
-    wx.showModal({
-      title: '关于熵盾研究院',
-      content:
-        '熵盾以“熵智能”为核心，用数据和概率把市场的不确定性量化为可管理的风险预算。\n\n' +
-        '我们不承诺收益，只承诺把亏损控制在预算内：先守住本金，再谈收益；先设好护栏，再提高效率。\n\n' +
-        '一句话：熵盾守护风险，用户安心前行。',
-      showCancel: false
-    });
-  },
+    requestJson(`${baseUrl}/api/courses/progress/update`, 'POST', payload)
+      .then((data) => {
+        console.log('[course/progress] update resp:', data);
 
-  clearCampLocalData() {
-    wx.showModal({
-      title: '确认清理本地训练数据？',
-      content:
-        '仅会清理本机上的 7 天训练营打卡记录与本地训练轮次标记，用于重新体验或测试，不会影响服务器端的权益与裂变奖励记录。',
-      confirmText: '确认清理',
-      cancelText: '再想想',
-      success: res => {
-        if (!res.confirm) return;
-
-        try {
-          wx.removeStorageSync('campDailyLogs');
-          wx.removeStorageSync('campFinishedMap');
-
-          const userRights =
-            wx.getStorageSync('userRights') || {};
-          delete userRights.campRewardDone;
-          delete userRights.campRewardCount;
-          wx.setStorageSync('userRights', userRights);
-
-          wx.showToast({
-            title: '本地训练数据已清理',
-            icon: 'none'
-          });
-
-          // 刷新展示
-          this.initPage();
-        } catch (e) {
-          console.error('[profile] clearCampLocalData error', e);
-          wx.showToast({
-            title: '清理失败，请稍后重试',
-            icon: 'none'
-          });
+        if (!data || !data.ok) {
+          wx.showToast({ title: (data && data.message) || '保存失败', icon: 'none' });
+          return;
         }
-      }
-    });
-  }
+
+        funnel.log('COURSE_PROGRESS_UPDATE', { courseId, progressPercent, status });
+
+        wx.showToast({ title: '已更新', icon: 'success', duration: 900 });
+
+        this.fetchProgress();
+      })
+      .catch(() => {
+        wx.showToast({ title: '网络异常，稍后重试', icon: 'none' });
+      });
+  },
+
+  noop() {}
 });

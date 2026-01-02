@@ -24,11 +24,25 @@
     "miniprogram": {
       "list": [
         {
-          "name": "来访管理页",
-          "pathName": "pages/visitAdmin/index",
+          "name": "FissionTask",
+          "pathName": "pages/fissionTask/index",
           "query": "",
           "scene": null,
           "launchMode": "default"
+        },
+        {
+          "name": "pages/fissionTask/index",
+          "pathName": "pages/fissionTask/index",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
+          "name": "来访管理页",
+          "pathName": "pages/visitAdmin/index",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
         },
         {
           "name": "测试结果页",

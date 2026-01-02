@@ -1,9 +1,9 @@
 // pages/course/progress.js
+// MOD: CLEAN_HARDCODED_API_BASE_20260103
 // 我的课程进度列表页
 
 const funnel = require('../../utils/funnel.js');
-
-// ========== helpers ==========
+const { API_BASE } = require('../../config');
 
 function ensureClientId() {
   const appInst = getApp && getApp();
@@ -23,20 +23,8 @@ function ensureClientId() {
   return cid;
 }
 
-// [P2-FIX-20251217] 统一 baseUrl 读取口径（避免 API_BASE 顶层常量导致切环境不生效）
 function getBaseUrl() {
-  const app = getApp && getApp();
-  const base =
-    (app &&
-      app.globalData &&
-      (app.globalData.API_BASE ||
-        app.globalData.apiBase ||
-        app.globalData.baseUrl ||
-        app.globalData.apiBaseUrl)) ||
-    wx.getStorageSync('apiBaseUrl') ||
-    wx.getStorageSync('apiBase') ||
-    'http://localhost:3000';
-  return String(base).replace(/\/$/, '');
+  return String(API_BASE || '').replace(/\/$/, '');
 }
 
 function requestJson(url, method = 'GET', data) {
@@ -64,7 +52,6 @@ function extractList(payload) {
   );
 }
 
-// [P2-PROGRESS-PERCENT-NORMALIZE] 兼容 0~1 / 0~100，输出 0~100 整数
 function normalizePercent(v) {
   let n = Number(v);
   if (isNaN(n)) n = 0;
@@ -91,20 +78,16 @@ function safeTimeText(startTime, endTime) {
   return '时间待定';
 }
 
-// ========== Page ==========
-
 Page({
   data: {
     loading: false,
     errorMsg: '',
 
-    // all / in_progress / finished
     filterType: 'all',
 
     rawItems: [],
     items: [],
 
-    // [P3-FOCUS-20251217] 从列表/详情跳转时可带 focusCourseId，把该课置顶
     focusCourseId: ''
   },
 
@@ -117,7 +100,6 @@ Page({
     const focusCourseId = (options && options.focusCourseId) ? String(options.focusCourseId) : '';
     this.setData({ focusCourseId });
 
-    // 避免首次 onShow 再拉一遍
     this._firstShowSkip = true;
 
     this.fetchProgress();
@@ -170,7 +152,6 @@ Page({
         const items = [];
 
         (list || []).forEach((row) => {
-          // 课程 ID（后端可能是 course_id / courseId / id）
           const courseIdRaw =
             row.course_id ??
             row.courseId ??
@@ -184,7 +165,6 @@ Page({
             return;
           }
 
-          // 进度记录 ID（优先 progress_id，否则退化为 courseId）
           const progressIdRaw =
             row.progress_id ??
             row.progressId ??
@@ -224,7 +204,7 @@ Page({
             : '';
 
           items.push({
-            id: progressId, // 用 progressId 做 wx:key，稳定唯一
+            id: progressId,
             progressId,
             courseId,
 
@@ -277,7 +257,6 @@ Page({
       items = items.filter((x) => x.status === 'finished');
     }
 
-    // [P3-FOCUS-20251217] 有 focusCourseId 时置顶
     if (focusCourseId) {
       const fid = Number(focusCourseId);
       items.sort((a, b) => {

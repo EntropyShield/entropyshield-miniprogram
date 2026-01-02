@@ -1,6 +1,8 @@
 // pages/fissionTask/index.js
 const app = getApp();
 const { API_BASE } = require('../../config.js'); // ✅ 统一从 config.js 读取 API_BASE
+// [MOD-OPENID-20251230] 改用 utils/clientId.js 的 openid 方案
+const clientIdUtil = require('../../utils/clientId.js');
 
 // 本地“待绑定的邀请码”的 key
 const PENDING_INVITE_KEY = 'pendingInviteCode';
@@ -12,7 +14,7 @@ Page({
   data: {
     loading: true,
 
-    // 当前用户唯一 ID（临时代替 openid）
+    // [MOD-OPENID-20251230] 当前用户唯一 ID：openid（由 /api/wx/login 换取）
     clientId: '',
 
     // 我的专属邀请码
@@ -41,19 +43,41 @@ Page({
   },
 
   onShow() {
+    // [MOD-OPENID-20251230] initPage 改为 async；这里直接触发即可
     this.initPage();
   },
 
   /**
    * 整体初始化流程：
-   * 1）确保有 clientId
+   * 1）确保有 clientId(openid)
    * 2）调用 /api/fission/init，保证后端有 fission_user
    * 3）获取 profile（邀请码、累计奖励次数等）
    * 4）获取 reward-log，生成统计信息 + 展示文案
    */
-  initPage() {
-    const clientId = this.ensureClientId();
-    if (!clientId) return;
+  async initPage() {
+    this.setData({ loading: true });
+
+    // [MOD-OPENID-20251230] 用 openid 作为 clientId
+    let clientId = '';
+    try {
+      clientId = await clientIdUtil.ensureClientId();
+    } catch (e) {
+      console.error('[fissionTask] ensureClientId(openid) failed:', e);
+      wx.showToast({
+        title: '登录态获取失败，请稍后重试',
+        icon: 'none',
+        duration: 2000
+      });
+      this.setData({ loading: false });
+      return;
+    }
+
+    // 同步到 globalData，便于其他页面复用
+    try {
+      if (app && app.globalData) app.globalData.clientId = clientId;
+    } catch (e) {}
+
+    console.log('[fissionTask] clientId(openid)=', clientId);
 
     this.setData({
       clientId,
@@ -65,36 +89,6 @@ Page({
         this.fetchRewardLog(clientId);
       });
     });
-  },
-
-  /**
-   * 生成 / 读取 clientId
-   */
-  ensureClientId() {
-    let clientId =
-      (app.globalData && app.globalData.clientId) ||
-      wx.getStorageSync('clientId');
-
-    if (!clientId) {
-      clientId =
-        'ST-' +
-        Date.now() +
-        '-' +
-        Math.floor(Math.random() * 1000000);
-
-      wx.setStorageSync('clientId', clientId);
-      if (app.globalData) {
-        app.globalData.clientId = clientId;
-      }
-      console.log('[fissionTask] 生成新的 clientId:', clientId);
-    } else {
-      if (app.globalData) {
-        app.globalData.clientId = clientId;
-      }
-      console.log('[fissionTask] 使用已有 clientId:', clientId);
-    }
-
-    return clientId;
   },
 
   /**
@@ -455,8 +449,8 @@ Page({
     });
   },
 
-  // 绑定好友的邀请码
-  onBindInviteCode() {
+  // [MOD-OPENID-20251230] 绑定好友的邀请码：确保使用 openid
+  async onBindInviteCode() {
     if (this.data.hasBoundInviter) {
       wx.showToast({
         title: '已绑定邀请人',
@@ -476,15 +470,20 @@ Page({
       return;
     }
 
-    const clientId =
-      this.data.clientId || wx.getStorageSync('clientId');
+    let clientId = this.data.clientId;
 
+    // 若 data 里没有（极少数），再确保一次
     if (!clientId) {
-      wx.showToast({
-        title: '缺少用户ID，请重试',
-        icon: 'none'
-      });
-      return;
+      try {
+        clientId = await clientIdUtil.ensureClientId();
+        this.setData({ clientId });
+      } catch (e) {
+        wx.showToast({
+          title: '登录态获取失败，请重试',
+          icon: 'none'
+        });
+        return;
+      }
     }
 
     wx.request({

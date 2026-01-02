@@ -1,13 +1,11 @@
 // pages/courses/index.js 课程日历列表页逻辑
+// MOD: CLEAN_HARDCODED_API_BASE_20260103
+
 const { getCourseTypeMeta } = require('../../utils/courseType.js');
 const funnel = require('../../utils/funnel.js');
 
-const app = getApp();
-const API_BASE =
-  (app &&
-    app.globalData &&
-    (app.globalData.API_BASE || app.globalData.apiBase)) ||
-  'http://localhost:3000';
+// MOD: 统一从 config.js 读取 API_BASE，彻底移除 localhost 兜底
+const { API_BASE } = require('../../config');
 
 // 统一生成 / 读取 clientId（和训练营、裂变那套保持一致）
 function ensureClientId() {
@@ -86,6 +84,7 @@ Page({
 
     const clientId = ensureClientId();
 
+    // MOD: API_BASE 来自 config.js
     wx.request({
       url: `${API_BASE}/api/courses/progress`,
       method: 'GET',
@@ -121,6 +120,7 @@ Page({
 
   // 回退：仅获取课程基础信息（不含个人进度）
   fetchCoursesFallback(done) {
+    // MOD: API_BASE 来自 config.js
     wx.request({
       url: `${API_BASE}/api/courses`,
       method: 'GET',
