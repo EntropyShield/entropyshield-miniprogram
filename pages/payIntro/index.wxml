@@ -1,6 +1,5 @@
 <view class="page">
 
-<!-- 方案 A：1 对 1 风控诊断 -->
 <view class="card plan-card">
   <view class="plan-header">
     <text class="plan-title">方案 A · 1 对 1 风控诊断</text>
@@ -20,7 +19,6 @@
   </view>
 </view>
 
-<!-- 方案 B：进阶控局者训练营 -->
 <view class="card plan-card">
   <view class="plan-header">
     <text class="plan-title">方案 B · 进阶控局者训练营</text>
@@ -40,7 +38,6 @@
   </view>
 </view>
 
-<!-- 方案 C：高级风控工具包 -->
 <view class="card plan-card">
   <view class="plan-header">
     <text class="plan-title">方案 C · 高级风控工具包</text>
@@ -60,7 +57,6 @@
   </view>
 </view>
 
-<!-- 如何开启服务 -->
 <view class="card notice-card">
   <view class="notice-title">如何开启进阶服务？</view>
   <view class="notice-text">
@@ -70,7 +66,6 @@
   </view>
 </view>
 
-<!-- 微信号 + 按钮 -->
 <view class="card action-card">
   <view class="advisor-row">
     <text class="advisor-label">顾问微信号</text>
@@ -89,12 +84,5 @@
     先继续自己训练一段时间
   </button>
 </view>
-
-<!-- 开发者隐藏按钮 -->
-<button
-  style="opacity:0.03; height:80rpx;"
-  bindtap="debugShowFunnelLogs">
-  DEV：查看漏斗
-</button>
 
 </view>

@@ -4,18 +4,15 @@ const USER_RIGHTS_KEY = 'userRights';
 
 Page({
   data: {
-    // 我的专属邀请码（用于分享时带参）
     inviteCode: ''
   },
 
   onLoad(options) {
     console.log('[index] onLoad options:', options || {});
 
-    // 1）确保本机有自己的邀请码
     const myInvite = ensureInviteCode();
     this.setData({ inviteCode: myInvite });
 
-    // 2）处理从别人分享链接进来的场景（带 inviteCode）
     handleInviteFromOptions(options || {});
   },
 
@@ -28,16 +25,14 @@ Page({
     const q = wx.createSelectorQuery();
     q.select('#entropyLogo')
       .fields({ node: true, size: true })
-      .exec(res => {
+      .exec((res) => {
         if (!res || !res[0]) return;
 
         const canvas = res[0].node;
         const w = res[0].width;
         const h = res[0].height;
 
-        const sys =
-          (wx.getWindowInfo && wx.getWindowInfo()) ||
-          wx.getSystemInfoSync();
+        const sys = (wx.getWindowInfo && wx.getWindowInfo()) || wx.getSystemInfoSync();
         const dpr = sys.pixelRatio || 1;
 
         canvas.width = Math.round(w * dpr);
@@ -111,48 +106,45 @@ Page({
 
   // 立即使用风控计算器
   goCalc() {
-    console.log('立即使用风控计算器按钮被点击');
+    console.log('[index] goCalc');
 
     wx.navigateTo({
       url: '/pages/riskCalculator/index',
       success() {
-        console.log('跳转到 /pages/riskCalculator/index 成功');
+        console.log('[index] navigate success /pages/riskCalculator/index');
       },
       fail(err) {
-        console.error('跳转到 /pages/riskCalculator/index 失败', err);
+        console.error('[index] navigate fail /pages/riskCalculator/index', err);
       }
-    });
-  },
-
-  // 亏损危险等级测试
-  goLossTest() {
-    wx.navigateTo({
-      url: '/pages/testLossPersonality/index'
-    });
-  },
-
-  // 风控能力评分
-  goAbilityTest() {
-    wx.navigateTo({
-      url: '/pages/testRiskScore/index'
     });
   },
 
   // 7 天训练营
   goCamp() {
-    wx.navigateTo({
-      url: '/pages/campIntro/index'
-    });
+    wx.navigateTo({ url: '/pages/campIntro/index' });
   },
 
   // 裂变任务中心
   goFission() {
-    wx.navigateTo({
-      url: '/pages/fissionTask/index'
-    });
+    wx.navigateTo({ url: '/pages/fissionTask/index' });
   },
 
-  // 小程序转发带上我的邀请码
+  // 控局者（tabBar）
+  goController() {
+    wx.switchTab({ url: '/pages/controller/index' });
+  },
+
+  // 课程日历
+  goCourseCalendar() {
+    wx.navigateTo({ url: '/pages/course/index' });
+  },
+
+  // 进阶服务 / 会员（支付入口保留在这里）
+  goMembership() {
+    wx.navigateTo({ url: '/pages/membership/index' });
+  },
+
+  // 分享带邀请码
   onShareAppMessage() {
     const rights = wx.getStorageSync(USER_RIGHTS_KEY) || {};
     const inviteCode = rights.inviteCode || this.data.inviteCode || '';
@@ -165,21 +157,6 @@ Page({
       title: '熵盾·风控卫士 —— 从会亏钱到会控亏',
       path
     };
-  },
-
-  // 登录请求处理：确保使用 POST 请求发送到后端
-  handleLogin(username, password) {
-    wx.request({
-      url: 'https://api.entropyshield.com/api/wx/login',  // 确保正确的后端 API 路径
-      method: 'POST',  // 使用 POST 请求
-      data: { username, password },
-      success(res) {
-        console.log('Login successful:', res.data);
-      },
-      fail(err) {
-        console.error('Login error:', err);
-      }
-    });
   }
 });
 
@@ -206,8 +183,6 @@ function ensureInviteCode() {
 /**
  * 处理从别人分享链接进入：
  * ?inviteCode=XXXX
- * - 如果本机已有自己的 inviteCode，且与传入的一样 → 认为是“自己点自己的链接”，不记录邀请关系
- * - 否则，在 userRights.invitedByCode 里记录邀请人
  */
 function handleInviteFromOptions(options = {}) {
   const inviteCode = options.inviteCode || options.invite || '';
@@ -216,7 +191,6 @@ function handleInviteFromOptions(options = {}) {
   try {
     const rights = wx.getStorageSync(USER_RIGHTS_KEY) || {};
 
-    // 自己打开自己的链接：直接忽略
     if (rights.inviteCode && rights.inviteCode === inviteCode) {
       console.log('[index] 自己打开自己的分享链接，不记录邀请关系');
       return;
@@ -234,19 +208,13 @@ function handleInviteFromOptions(options = {}) {
         duration: 1500
       });
     } else {
-      console.log(
-        '[index] 已存在 invitedByCode，保持原值：',
-        rights.invitedByCode
-      );
+      console.log('[index] 已存在 invitedByCode，保持原值：', rights.invitedByCode);
     }
   } catch (e) {
     console.log('[index] 保存邀请关系失败', e);
   }
 }
 
-/**
- * 简单生成 6 位大写字母+数字的邀请码
- */
 function genInviteCode(len = 6) {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   let out = '';

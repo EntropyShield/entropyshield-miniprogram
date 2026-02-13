@@ -1,9 +1,9 @@
-// pages/course/progress.js
-// MOD: CLEAN_HARDCODED_API_BASE_20260103
-// 我的课程进度列表页
+// pages/profile/index.js
+// MOD: FIX_PROFILE_INNER_TABS_20260213
+// 个人中心（TabBar）— 三段内页 Tab：rights / tools / lab
 
 const funnel = require('../../utils/funnel.js');
-const { API_BASE } = require('../../config'); // ✅ 确保 API_BASE 从 config.js 引入
+const { API_BASE } = require('../../config');
 
 function ensureClientId() {
   const appInst = getApp && getApp();
@@ -14,17 +14,16 @@ function ensureClientId() {
   if (!cid) {
     cid = `ST-${Date.now()}-${Math.floor(Math.random() * 1000000)}`;
     wx.setStorageSync('clientId', cid);
-    console.log('[course/progress] new clientId generated:', cid);
-    if (appInst && appInst.globalData) appInst.globalData.clientId = cid;
+    console.log('[profile] new clientId generated:', cid);
   } else {
-    console.log('[course/progress] use existing clientId:', cid);
-    if (appInst && appInst.globalData) appInst.globalData.clientId = cid;
+    console.log('[profile] use existing clientId:', cid);
   }
+  if (appInst && appInst.globalData) appInst.globalData.clientId = cid;
   return cid;
 }
 
 function getBaseUrl() {
-  return String(API_BASE || '').replace(/\/$/, ''); // ✅ 使用 API_BASE 确保请求 URL 动态获取
+  return String(API_BASE || '').replace(/\/$/, '');
 }
 
 function requestJson(url, method = 'GET', data) {
@@ -40,321 +39,217 @@ function requestJson(url, method = 'GET', data) {
   });
 }
 
-function extractList(payload) {
-  if (Array.isArray(payload)) return payload;
-  if (!payload || typeof payload !== 'object') return [];
-  return (
-    payload.list ||
-    payload.rows ||
-    payload.items ||
-    (payload.data && (payload.data.list || payload.data.rows || payload.data.items)) ||
-    []
-  );
-}
-
-function normalizePercent(v) {
-  let n = Number(v);
-  if (isNaN(n)) n = 0;
-  if (n > 0 && n <= 1) n = n * 100;
-  n = Math.max(0, Math.min(100, n));
-  return Math.round(n);
-}
-
-function safeTimeText(startTime, endTime) {
-  if (!startTime && !endTime) return '时间待定';
-  const s = String(startTime || '').replace('T', ' ').replace(/\.000Z$/, '');
-  const e = String(endTime || '').replace('T', ' ').replace(/\.000Z$/, '');
-  if (s && e) {
-    try {
-      const datePart = s.slice(5, 10);
-      const sTime = s.slice(11, 16);
-      const eTime = e.slice(11, 16);
-      if (datePart && sTime && eTime) return `${datePart} ${sTime} - ${eTime}`;
-    } catch (err) {}
-    return `${s} ~ ${e}`;
+function pick(obj, keys, fallback) {
+  if (!obj || typeof obj !== 'object') return fallback;
+  for (const k of keys) {
+    if (obj[k] !== undefined && obj[k] !== null && obj[k] !== '') return obj[k];
   }
-  if (s && !e) return `开始时间：${s}`;
-  if (!s && e) return `结束时间：${e}`;
-  return '时间待定';
+  return fallback;
+}
+
+function normalizeLatestVisit(list) {
+  if (!Array.isArray(list) || !list.length) return null;
+  // 取第一条（后端通常已按最新排序）。若没排序也不致命。
+  const v = list[0] || null;
+  if (!v) return null;
+
+  const visitDate =
+    pick(v, ['visit_date', 'visitDate', 'date'], '') || '';
+  const start =
+    pick(v, ['start_time', 'startTime', 'start'], '') || '';
+  const end =
+    pick(v, ['end_time', 'endTime', 'end'], '') || '';
+
+  return {
+    ...v,
+    visitDateDisplay: visitDate ? String(visitDate).slice(0, 10) : '',
+    visitTimeRange: start && end ? `${String(start).slice(0, 5)}-${String(end).slice(0, 5)}` : '',
+    status: pick(v, ['status'], 'pending')
+  };
 }
 
 Page({
   data: {
-    loading: false,
-    errorMsg: '',
+    // 顶部用户信息
+    userInfo: null,
 
-    filterType: 'all',
+    // 快速统计条
+    freeCalcTimes: 0,
+    campRewardCount: 0,
+    fissionSyncedTimes: 0,
+    campProgressText: '0/7',
+    membershipName: '',
 
-    rawItems: [],
-    items: [],
+    // 常量展示
+    CAMP_REWARD_TIMES: 4,
 
-    focusCourseId: ''
+    // 内页 Tab（⚠️WXML用的是 activeInnerTab）
+    // MOD: IMPORTANT_DEFAULT_RIGHTS
+    activeInnerTab: 'rights',
+
+    // 裂变关系
+    myInviteCode: '',
+    invitedByCode: '',
+
+    // 最近来访
+    latestVisit: null,
+    statusTextMap: {
+      pending: '待确认',
+      confirmed: '已确认',
+      finished: '已完成',
+      canceled: '已取消',
+      cancelled: '已取消'
+    },
+    statusClassMap: {
+      pending: 'status-pending',
+      confirmed: 'status-confirmed',
+      finished: 'status-finished',
+      canceled: 'status-canceled',
+      cancelled: 'status-canceled'
+    }
   },
 
   onLoad(options) {
-    funnel.log('COURSE_PROGRESS_VIEW', { from: (options && options.from) || '' });
+    funnel.log('PROFILE_VIEW', { from: (options && options.from) || '' });
 
-    const clientId = ensureClientId();
-    this.clientId = clientId;
+    this.clientId = ensureClientId();
 
-    const focusCourseId = (options && options.focusCourseId) ? String(options.focusCourseId) : '';
-    this.setData({ focusCourseId });
+    // 先用本地缓存把页面撑起来（不依赖网络）
+    this.refreshLocalSnapshot();
 
-    this._firstShowSkip = true;
-
-    this.fetchProgress();
+    // 再拉后端数据（失败也不影响基本显示）
+    this.fetchFissionProfile();
+    this.fetchLatestVisit();
   },
 
   onShow() {
-    if (this._firstShowSkip) {
-      this._firstShowSkip = false;
-      return;
+    // 每次返回个人中心刷新一次本地权益（freeCalcTimes 等）
+    this.refreshLocalSnapshot();
+  },
+
+  // MOD: FIX_EVENT_HANDLER_MATCH_WXML
+  onInnerTabChange(e) {
+    const ds = (e && e.currentTarget && e.currentTarget.dataset) || {};
+    const key = ds.key || 'rights';
+
+    console.log('[profile] onInnerTabChange ->', key, ds);
+
+    this.setData({
+      activeInnerTab: key
+    });
+  },
+
+  refreshLocalSnapshot() {
+    // userInfo（如果你有在别处缓存）
+    const cachedUserInfo = wx.getStorageSync('userInfo');
+    if (cachedUserInfo && typeof cachedUserInfo === 'object') {
+      this.setData({ userInfo: cachedUserInfo });
     }
-    this.fetchProgress();
+
+    // userRights（你的项目里一直在用）
+    const ur = wx.getStorageSync('userRights') || {};
+    const freeCalcTimes = Number(pick(ur, ['freeCalcTimes', 'free_calc_times'], 0)) || 0;
+    const membershipName = String(pick(ur, ['membershipName', 'membership_name'], '')) || '';
+
+    // campRewardCount / campProgress（尽量从已有缓存推导）
+    const campRewardCount = Number(pick(ur, ['campRewardCount', 'camp_reward_count'], 0)) || 0;
+
+    // 若你有 campDailyLogs（数组），用它估算 0/7
+    const logs = wx.getStorageSync('campDailyLogs');
+    const doneDays = Array.isArray(logs) ? Math.min(7, logs.length) : Number(pick(ur, ['campDaysDone'], 0)) || 0;
+    const campProgressText = `${Math.max(0, Math.min(7, doneDays))}/7`;
+
+    // 裂变同步次数（如果 userRights 里已有）
+    const fissionSyncedTimes = Number(pick(ur, ['fissionSyncedTimes', 'total_reward_times'], 0)) || 0;
+
+    this.setData({
+      freeCalcTimes,
+      membershipName,
+      campRewardCount,
+      campProgressText,
+      fissionSyncedTimes
+    });
   },
 
-  onPullDownRefresh() {
-    this.fetchProgress(() => wx.stopPullDownRefresh());
-  },
-
-  onChangeFilter(e) {
-    const type = e.currentTarget.dataset.type || 'all';
-    this.setData({ filterType: type }, () => this.applyFilter());
-  },
-
-  fetchProgress(done) {
+  fetchFissionProfile() {
+    const baseUrl = getBaseUrl();
     const clientId = this.clientId || ensureClientId();
-    const baseUrl = getBaseUrl(); // ✅ 确保请求指向生产环境
-    const url = `${baseUrl}/api/courses/progress?clientId=${encodeURIComponent(clientId)}`;
 
-    console.log('[course/progress] fetchProgress clientId =', clientId, 'baseUrl=', baseUrl);
-
-    this.setData({ loading: true, errorMsg: '' });
-
+    const url = `${baseUrl}/api/fission/profile?clientId=${encodeURIComponent(clientId)}`;
     requestJson(url, 'GET')
       .then((data) => {
-        console.log('[course/progress] resp:', data);
-
         if (!data || !data.ok) {
-          this.setData(
-            {
-              loading: false,
-              errorMsg: (data && data.message) || '加载课程进度失败',
-              rawItems: [],
-              items: []
-            },
-            () => done && done()
-          );
+          console.warn('[profile] fission profile failed:', data);
           return;
         }
+        const profile = data.profile || {};
+        const total = Number(pick(data, ['total_reward_times'], 0)) || 0;
 
-        const list = extractList(data);
-        const items = [];
-
-        (list || []).forEach((row) => {
-          const courseIdRaw =
-            row.course_id ?? row.courseId ?? row.courseID ?? row.courseid ?? row.id;
-
-          const courseId = Number(courseIdRaw);
-          if (!Number.isFinite(courseId) || courseId <= 0) {
-            console.warn('[course/progress] skip row without valid courseId:', row);
-            return;
-          }
-
-          const progressIdRaw =
-            row.progress_id ?? row.progressId ?? row.progressID ?? row.progressid ?? row.pid ?? row.id ?? courseId;
-
-          const progressId = String(progressIdRaw);
-
-          const startTime = row.startTime || row.start_time || '';
-          const endTime = row.endTime || row.end_time || '';
-          const timeText = safeTimeText(startTime, endTime);
-
-          const status = row.status || 'in_progress';
-          const statusText =
-            status === 'finished'
-              ? '已完成'
-              : status === 'in_progress'
-              ? '进行中'
-              : '未开始';
-
-          const progressPercentRaw =
-            row.progress_percent ?? row.progressPercent ?? row.progress ?? row.percent ?? 0;
-
-          const progressPercent = normalizePercent(progressPercentRaw);
-          const progressWidth = `${progressPercent}%`;
-
-          const updatedAtRaw = row.updated_at || row.updatedAt || '';
-          const updatedAtText = updatedAtRaw
-            ? String(updatedAtRaw).replace('T', ' ').slice(0, 16)
-            : '';
-
-          items.push({
-            id: progressId,
-            progressId,
-            courseId,
-
-            title: row.title || '未命名课程',
-            timeText,
-
-            status,
-            statusText,
-
-            progressPercent,
-            progressWidth,
-
-            lastLesson: row.last_lesson || row.lastLesson || '',
-            updatedAtText
-          });
-        });
-
-        this.setData(
-          {
-            loading: false,
-            rawItems: items
-          },
-          () => {
-            this.applyFilter();
-            done && done();
-          }
+        // 尽量兼容字段名
+        const myInviteCode = String(
+          pick(profile, ['my_invite_code', 'invite_code', 'inviteCode', 'myInviteCode'], '')
         );
+        const invitedByCode = String(
+          pick(profile, ['invited_by_code', 'invitedByCode', 'invited_by', 'invitedBy'], '')
+        );
+
+        this.setData({
+          myInviteCode,
+          invitedByCode,
+          fissionSyncedTimes: total || this.data.fissionSyncedTimes
+        });
       })
       .catch((err) => {
-        console.error('[course/progress] request fail:', err);
-        this.setData(
-          {
-            loading: false,
-            errorMsg: '网络异常，请稍后重试',
-            rawItems: [],
-            items: []
-          },
-          () => done && done()
-        );
+        console.warn('[profile] fission profile request fail:', err);
       });
   },
 
-  applyFilter() {
-    const { filterType, rawItems, focusCourseId } = this.data;
-    let items = (rawItems || []).slice();
-
-    if (filterType === 'in_progress') {
-      items = items.filter((x) => x.status === 'in_progress');
-    } else if (filterType === 'finished') {
-      items = items.filter((x) => x.status === 'finished');
-    }
-
-    if (focusCourseId) {
-      const fid = Number(focusCourseId);
-      items.sort((a, b) => {
-        const aHit = Number(a.courseId) === fid ? -1 : 0;
-        const bHit = Number(b.courseId) === fid ? -1 : 0;
-        return aHit - bHit;
-      });
-    }
-
-    this.setData({ items });
-  },
-
-  onTapItem(e) {
-    const id = e.currentTarget.dataset.id;
-    const item =
-      this.data.items.find((x) => x.progressId === String(id)) ||
-      this.data.items.find((x) => x.id === String(id));
-    if (!item) return;
-
-    const content =
-      `时间：${item.timeText}\n` +
-      `状态：${item.statusText}\n` +
-      `进度：${item.progressPercent || 0}%\n` +
-      (item.lastLesson ? `最近学习：${item.lastLesson}\n` : '') +
-      (item.updatedAtText ? `最近更新：${item.updatedAtText}` : '');
-
-    wx.showModal({
-      title: item.title,
-      content,
-      showCancel: false
-    });
-  },
-
-  onUpdateProgress(e) {
-    const id = e.currentTarget.dataset.id;
-    const item =
-      this.data.items.find((x) => x.progressId === String(id)) ||
-      this.data.items.find((x) => x.id === String(id));
-    if (!item) return;
-
-    const that = this;
-
-    wx.showActionSheet({
-      itemList: ['0%', '25%', '50%', '75%', '100%（标记完成）'],
-      success(res) {
-        const idx = res.tapIndex;
-        const percentMap = [0, 25, 50, 75, 100];
-        const progressPercent = percentMap[idx] || 0;
-        const status = progressPercent === 100 ? 'finished' : 'in_progress';
-        that.saveProgress(item.courseId, progressPercent, status, item.progressId);
-      }
-    });
-  },
-
-  onMarkFinished(e) {
-    const id = e.currentTarget.dataset.id;
-    const item =
-      this.data.items.find((x) => x.progressId === String(id)) ||
-      this.data.items.find((x) => x.id === String(id));
-    if (!item) return;
-
-    wx.showModal({
-      title: '标记为已完成',
-      content: '确认将本课程标记为「已完成」吗？',
-      success: (res) => {
-        if (res.confirm) {
-          this.saveProgress(item.courseId, 100, 'finished', item.progressId);
-        }
-      }
-    });
-  },
-
-  saveProgress(courseId, progressPercent, status, progressId) {
+  fetchLatestVisit() {
+    const baseUrl = getBaseUrl();
     const clientId = this.clientId || ensureClientId();
-    const baseUrl = getBaseUrl(); // ✅ 确保使用生产环境的 API 地址
 
-    if (!clientId || !Number.isFinite(Number(courseId))) {
-      console.error('[course/progress] saveProgress 缺少关键参数', { clientId, courseId });
-      wx.showToast({ title: '内部错误：缺少课程信息', icon: 'none' });
-      return;
-    }
-
-    const payload = {
-      clientId,
-      courseId: Number(courseId),
-      progressPercent,
-      status,
-      lastLesson: ''
-    };
-    if (progressId) payload.progressId = progressId;
-
-    console.log('[course/progress] saveProgress payload =', payload);
-
-    requestJson(`${baseUrl}/api/courses/progress/update`, 'POST', payload) // ✅ 请求 URL 确保指向生产环境
+    const url = `${baseUrl}/api/visit/my-list?clientId=${encodeURIComponent(clientId)}`;
+    requestJson(url, 'GET')
       .then((data) => {
-        console.log('[course/progress] update resp:', data);
+        if (!data || !data.ok) return;
 
-        if (!data || !data.ok) {
-          wx.showToast({ title: (data && data.message) || '保存失败', icon: 'none' });
-          return;
-        }
+        const list =
+          data.list ||
+          data.rows ||
+          data.items ||
+          (data.data && (data.data.list || data.data.rows || data.data.items)) ||
+          [];
 
-        funnel.log('COURSE_PROGRESS_UPDATE', { courseId, progressPercent, status });
-
-        wx.showToast({ title: '已更新', icon: 'success', duration: 900 });
-
-        this.fetchProgress();
+        const latestVisit = normalizeLatestVisit(list);
+        this.setData({ latestVisit });
       })
-      .catch(() => {
-        wx.showToast({ title: '网络异常，稍后重试', icon: 'none' });
+      .catch((err) => {
+        console.warn('[profile] visit my-list request fail:', err);
       });
   },
 
-  noop() {}
+  // ====== WXML 里绑定的跳转方法（必须存在，否则点击无反应）======
+  goCampIntro() {
+    wx.navigateTo({ url: '/pages/campIntro/index' });
+  },
+
+  goFissionTask() {
+    wx.navigateTo({ url: '/pages/fissionTask/index' });
+  },
+
+  goOrderCenter() {
+    wx.showToast({ title: '敬请期待', icon: 'none' });
+  },
+
+  goVisitBooking() {
+    wx.navigateTo({ url: '/pages/visitBooking/index' });
+  },
+
+  goVisitMyList() {
+    wx.navigateTo({ url: '/pages/visitMyList/index' });
+  },
+
+  goVisitAdmin() {
+    wx.navigateTo({ url: '/pages/visitAdmin/index' });
+  }
 });

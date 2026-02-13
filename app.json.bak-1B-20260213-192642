@@ -3,31 +3,28 @@
     "pages/index/index",
     "pages/controller/index",
     "pages/profile/index",
-
-    "pages/riskCalculator/index",
-    "pages/planSteady/index",
-    "pages/planAdvanced/index",
-    "pages/resultCommon/index",
-
-    "pages/campIntro/index",
-    "pages/campDaily/index",
-    "pages/campReport/index",
-
-    "pages/fissionTask/index",
-
     "pages/course/index",
     "pages/courses/index",
     "pages/course/detail",
     "pages/course/progress",
-
+    "pages/riskCalculator/index",
+    "pages/campIntro/index",
+    "pages/campDaily/index",
+    "pages/campReport/index",
+    "pages/fissionTask/index",
     "pages/visitBooking/index",
     "pages/visitMyList/index",
     "pages/visitAdmin/index",
-
+    "pages/funnelLogs/index",
     "pages/membership/index",
-    "pages/payIntro/index",
     "pages/pay/index",
-    "pages/paySuccess/index"
+    "pages/payIntro/index",
+    "pages/paySuccess/index",
+    "pages/resultCommon/index",
+    "pages/testLossPersonality/index",
+    "pages/testRiskScore/index",
+    "pages/planAdvanced/index",
+    "pages/planSteady/index"
   ],
   "window": {
     "navigationBarTitleText": "熵盾研究院"

@@ -12,7 +12,6 @@
     </view>
   </view>
 
-  <!-- 立即使用风控计算器按钮 -->
   <button class="btn-primary" bindtap="goCalc">
     立即使用风控计算器
   </button>
@@ -29,36 +28,49 @@
   </view>
 </view>
 
-<!-- 风控测试中心 -->
+<!-- 控局者路径（替代原“测试中心”，避免引用测试页） -->
 <view class="card section-card">
   <view class="section-header">
-    <text class="section-title">风控测试中心</text>
-    <text class="section-sub">先认识自己，再进入市场</text>
+    <text class="section-title">控局者路径</text>
+    <text class="section-sub">训练 · 课程 · 进阶服务</text>
   </view>
 
-  <view class="test-item" bindtap="goLossTest">
-    <view class="test-left">
-      <view class="bullet bullet-red"></view>
-      <view class="test-text">
-        <text class="test-title">亏损危险等级</text>
-        <text class="test-desc">看清你距离深度回撤还有多远</text>
-      </view>
-    </view>
-    <view class="test-right">
-      <text class="test-action">开始测试</text>
-    </view>
-  </view>
-
-  <view class="test-item" bindtap="goAbilityTest">
+  <view class="test-item" bindtap="goController">
     <view class="test-left">
       <view class="bullet bullet-green"></view>
       <view class="test-text">
-        <text class="test-title">风控能力评分</text>
-        <text class="test-desc">你的风控能力现在处在什么阶段</text>
+        <text class="test-title">进入控局者</text>
+        <text class="test-desc">训练营 + 课程日历中枢入口</text>
       </view>
     </view>
     <view class="test-right">
-      <text class="test-action">查看评分</text>
+      <text class="test-action">进入</text>
+    </view>
+  </view>
+
+  <view class="test-item" bindtap="goCourseCalendar">
+    <view class="test-left">
+      <view class="bullet bullet-green"></view>
+      <view class="test-text">
+        <text class="test-title">课程日历</text>
+        <text class="test-desc">查看即将开播 / 全部课程</text>
+      </view>
+    </view>
+    <view class="test-right">
+      <text class="test-action">查看</text>
+    </view>
+  </view>
+
+  <view class="test-item" bindtap="goMembership">
+    <view class="test-left">
+      <view class="bullet bullet-green"></view>
+      <view class="test-text">
+        <text class="test-title">进阶服务与会员</text>
+        <text class="test-desc">保留付费链路入口（提审可用）</text>
+      </view>
+    </view>
+    <view class="test-right">
+      <text class="test-action">进入</text>
     </view>
   </view>
 </view>
@@ -83,7 +95,7 @@
   </button>
 </view>
 
-<!-- 控局者专属权益（裂变中心） -->
+<!-- 裂变中心 -->
 <view class="card section-card">
   <view class="section-header">
     <text class="section-title">控局者专属权益</text>
