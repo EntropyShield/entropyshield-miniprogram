@@ -15,6 +15,7 @@
     "pages/visitBooking/index",
     "pages/visitMyList/index",
     "pages/visitAdmin/index",
+
     "pages/funnelLogs/index",
     "pages/membership/index",
     "pages/pay/index",
@@ -22,9 +23,7 @@
     "pages/paySuccess/index",
     "pages/resultCommon/index",
     "pages/testLossPersonality/index",
-    "pages/testRiskScore/index",
-    "pages/planAdvanced/index",
-    "pages/planSteady/index"
+    "pages/testRiskScore/index"
   ],
   "window": {
     "navigationBarTitleText": "熵盾研究院"
@@ -35,18 +34,9 @@
     "backgroundColor": "#0D0D0D",
     "borderStyle": "black",
     "list": [
-      {
-        "pagePath": "pages/index/index",
-        "text": "首页"
-      },
-      {
-        "pagePath": "pages/controller/index",
-        "text": "控局者"
-      },
-      {
-        "pagePath": "pages/profile/index",
-        "text": "个人中心"
-      }
+      { "pagePath": "pages/index/index", "text": "首页" },
+      { "pagePath": "pages/controller/index", "text": "控局者" },
+      { "pagePath": "pages/profile/index", "text": "个人中心" }
     ]
   }
 }

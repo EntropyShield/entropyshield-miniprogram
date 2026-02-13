@@ -3,7 +3,7 @@
 // 课程详情页：展示课程信息 + 加入我的课程进度
 const funnel = require('../../utils/funnel.js');
 const { getCourseTypeMeta } = require('../../utils/courseType.js');
-const { API_BASE } = require('../../config');
+const { API_BASE } = require('../../config');  // ✅ 统一从 config 读取
 
 // ========== helpers ==========
 
@@ -27,13 +27,13 @@ function ensureClientId() {
 
 // MOD: 统一 baseUrl 取值：config.js -> API_BASE
 function getBaseUrl() {
-  return String(API_BASE || '').replace(/\/$/, '');
+  return String(API_BASE || '').replace(/\/$/, '');  // 确保从 config.js 中正确读取生产环境地址
 }
 
 function requestJson(url, method = 'GET', data) {
   return new Promise((resolve, reject) => {
     wx.request({
-      url,
+      url,  // 使用 API_BASE 动态构造请求的 URL
       method,
       data,
       header: { 'content-type': 'application/json' },
@@ -250,7 +250,7 @@ Page({
   },
 
   fetchMyProgressForCourse(courseId) {
-    const baseUrl = getBaseUrl();
+    const baseUrl = getBaseUrl();  // 确保从 config.js 中正确读取生产环境地址
     const clientId = this.clientId || ensureClientId();
     const url = `${baseUrl}/api/courses/progress?clientId=${encodeURIComponent(clientId)}`;
 
@@ -289,7 +289,7 @@ Page({
   },
 
   fetchDetail(id, isPullDown = false) {
-    const baseUrl = getBaseUrl();
+    const baseUrl = getBaseUrl();  // 确保使用 API_BASE
 
     console.log('[course/detail] fetchDetail id =', id, 'baseUrl=', baseUrl);
 

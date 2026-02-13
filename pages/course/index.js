@@ -2,7 +2,7 @@
 // MOD: CLEAN_HARDCODED_API_BASE_20260103
 const funnel = require('../../utils/funnel.js');
 const { getCourseTypeMeta } = require('../../utils/courseType.js');
-const { API_BASE } = require('../../config');
+const { API_BASE } = require('../../config');  // ✅ 统一从 config 读取
 
 Page({
   data: {
@@ -51,13 +51,13 @@ Page({
 
   // MOD: 统一 baseUrl 取值：config.js -> API_BASE
   getBaseUrl() {
-    return String(API_BASE || '').replace(/\/$/, '');
+    return String(API_BASE || '').replace(/\/$/, '');  // 确保从 config.js 中正确读取生产环境地址
   },
 
   requestJson(url, method = 'GET', data) {
     return new Promise((resolve, reject) => {
       wx.request({
-        url,
+        url,  // 使用 API_BASE 动态构造请求的 URL
         method,
         data,
         header: { 'content-type': 'application/json' },
@@ -215,17 +215,17 @@ Page({
 
     const status =
       String(
-        progressRecord.progressStatus ??
-          progressRecord.progress_status ??
-          progressRecord.status ??
+        progressRecord.progressStatus ?? 
+          progressRecord.progress_status ?? 
+          progressRecord.status ?? 
           ''
       ).toLowerCase();
 
     let percentRaw =
-      progressRecord.progressPercent ??
-      progressRecord.progress_percent ??
-      progressRecord.progress ??
-      progressRecord.percent ??
+      progressRecord.progressPercent ?? 
+      progressRecord.progress_percent ?? 
+      progressRecord.progress ?? 
+      progressRecord.percent ?? 
       0;
 
     let percent = Number(percentRaw);
@@ -263,9 +263,9 @@ Page({
             r.courseId ??
             r.course_id ??
             r.courseID ??
-            r.courseid ??
+            r.courseid ?? 
             '';
-
+          
           const fallbackId = looksLikeCourseMerged(r) ? (r.id ?? '') : '';
           const key = String((cid || fallbackId) || '').trim();
           if (!key) return;

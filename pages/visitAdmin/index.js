@@ -3,10 +3,10 @@
 // [熵盾-来访模块-管理端列表]
 
 const funnel = require('../../utils/funnel.js');
-const { API_BASE } = require('../../config');
+const { API_BASE } = require('../../config'); // ✅ 引入 API_BASE 配置
 
 function getBaseUrl() {
-  return String(API_BASE || '').replace(/\/$/, '');
+  return String(API_BASE || '').replace(/\/$/, ''); // ✅ 使用 API_BASE 来构建基础 URL
 }
 
 Page({
@@ -44,7 +44,7 @@ Page({
 
   onShow() {
     funnel.log('VISIT_ADMIN_VIEW', { ts: Date.now() });
-    this.fetchList();
+    this.fetchList();  // ✅ 调用 fetchList 来获取数据
   },
 
   formatDate(isoOrDate) {
@@ -93,11 +93,11 @@ Page({
   },
 
   fetchList() {
-    const baseUrl = getBaseUrl();
+    const baseUrl = getBaseUrl(); // ✅ 使用 API_BASE 来获取 baseUrl
     this.setData({ loading: true });
 
     wx.request({
-      url: `${baseUrl}/api/visit/list`,
+      url: `${baseUrl}/api/visit/list`, // ✅ 使用动态构建的 URL
       method: 'GET',
       data: { limit: 100 },
       success: (res) => {
@@ -176,7 +176,7 @@ Page({
   },
 
   onUpdateStatusTap(e) {
-    const baseUrl = getBaseUrl();
+    const baseUrl = getBaseUrl(); // ✅ 使用 API_BASE 来获取 baseUrl
     const id = e.currentTarget.dataset.id;
     const toStatus = Number(e.currentTarget.dataset.status);
 
@@ -196,7 +196,7 @@ Page({
         funnel.log('VISIT_ADMIN_UPDATE_STATUS', { id, toStatus, ts: Date.now() });
 
         wx.request({
-          url: `${baseUrl}/api/visit/admin/update-status`,
+          url: `${baseUrl}/api/visit/admin/update-status`, // ✅ 使用动态构建的 URL
           method: 'POST',
           data: { id, status: toStatus },
           success: (resp) => {

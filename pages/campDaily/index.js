@@ -1,7 +1,7 @@
 // pages/campDaily/index.js
 // MOD: STABILIZE_APP_INSTANCE_20260103
 
-const { API_BASE } = require('../../config');
+const { API_BASE } = require('../../config');  // 确保从 config.js 中导入 API_BASE
 
 const app = getApp && getApp();
 
@@ -58,8 +58,9 @@ Page({
       if (appInst && appInst.globalData) appInst.globalData.clientId = clientId;
     }
 
+    // 确保请求的 URL 使用正确的生产环境地址
     wx.request({
-      url: `${API_BASE}/api/fission/init`,
+      url: `${API_BASE}/api/fission/init`,  // 这里确保 URL 使用的是生产环境的 API_BASE
       method: 'POST',
       header: { 'content-type': 'application/json' },
       data: { clientId },
@@ -238,7 +239,7 @@ Page({
     }
 
     wx.request({
-      url: `${API_BASE}/api/fission/camp/d1`,
+      url: `${API_BASE}/api/fission/camp/d1`,  // 确保请求的 URL 使用正确的生产环境地址
       method: 'POST',
       header: { 'content-type': 'application/json' },
       data: { clientId },

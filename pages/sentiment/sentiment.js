@@ -1,5 +1,6 @@
 // 市场情绪页面逻辑 (sentiment.js)
 const { reportUsageData } = require('../../utils/analytics/dataReporting');
+const { API_BASE } = require('../../config'); // ✅ 引入 API_BASE 配置
 
 Page({
   data: {
@@ -16,9 +17,11 @@ Page({
     if (this.data.loading) return; // 防止重复请求
     this.setData({ loading: true });
 
-    // 假设接口返回的数据结构
+    // 使用动态 API_BASE 构建请求 URL
+    const url = `${API_BASE}/api/sentiment`; // ✅ 确保请求 URL 使用 API_BASE
+
     wx.request({
-      url: 'https://example.com/api/sentiment', // 假设API
+      url: url, // 使用动态 URL
       method: 'GET',
       success: (res) => {
         if (res.data) {

@@ -3,10 +3,10 @@
 // [熵盾-来访模块-我的来访预约列表（修复日期 & 取消预约）]
 
 const funnel = require('../../utils/funnel.js');
-const { API_BASE } = require('../../config');
+const { API_BASE } = require('../../config'); // ✅ 引入 API_BASE 配置
 
 function getBaseUrl() {
-  return String(API_BASE || '').replace(/\/$/, '');
+  return String(API_BASE || '').replace(/\/$/, ''); // ✅ 使用 API_BASE 来构建基础 URL
 }
 
 function ensureClientId() {
@@ -84,7 +84,7 @@ Page({
   },
 
   fetchList() {
-    const baseUrl = getBaseUrl();
+    const baseUrl = getBaseUrl(); // ✅ 使用 API_BASE 来获取 baseUrl
     const clientId = ensureClientId();
 
     this.setData({ loading: true });
@@ -92,7 +92,7 @@ Page({
     funnel.log('VISIT_MY_LIST_VIEW', { clientId, ts: Date.now() });
 
     wx.request({
-      url: `${baseUrl}/api/visit/my-list`,
+      url: `${baseUrl}/api/visit/my-list`, // ✅ 使用动态构建的 URL
       method: 'GET',
       data: { clientId },
       success: (res) => {
@@ -139,7 +139,7 @@ Page({
   },
 
   onCancelVisit(e) {
-    const baseUrl = getBaseUrl();
+    const baseUrl = getBaseUrl(); // ✅ 使用 API_BASE 来获取 baseUrl
     const ds = e.currentTarget && e.currentTarget.dataset ? e.currentTarget.dataset : {};
     const tds = e.target && e.target.dataset ? e.target.dataset : {};
 
@@ -186,7 +186,7 @@ Page({
         wx.showLoading({ title: '正在取消...', mask: true });
 
         wx.request({
-          url: `${baseUrl}/api/visit/cancel`,
+          url: `${baseUrl}/api/visit/cancel`, // ✅ 使用动态构建的 URL
           method: 'POST',
           header: { 'content-type': 'application/json' },
           data: { id, clientId },

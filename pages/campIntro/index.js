@@ -539,7 +539,7 @@ Page({
    */
   initFissionUser(clientId, cb) {
     wx.request({
-      url: `${API_BASE}/api/fission/init`,
+      url: `${API_BASE}/api/fission/init`,  // 确保使用正确的生产环境 API_BASE
       method: 'POST',
       header: {
         'content-type': 'application/json'
@@ -564,7 +564,7 @@ Page({
    */
   fetchFissionProfile(clientId) {
     wx.request({
-      url: `${API_BASE}/api/fission/profile`,
+      url: `${API_BASE}/api/fission/profile`,  // 确保使用正确的生产环境 API_BASE
       method: 'GET',
       data: {
         clientId

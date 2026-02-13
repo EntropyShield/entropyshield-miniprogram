@@ -2,7 +2,7 @@
 // MOD: CONFIG_API_BASE_COMPAT_20260102
 // Strategy:
 // - Default to PROD (https) so preview/real device works.
-// - Allow local dev (http://127.0.0.1:3001) only when explicitly enabled in storage AND running in DevTools.
+// - Allow local dev (http://127.0.0.1:3000) only when explicitly enabled in storage AND running in DevTools.
 
 function safeGetAccountInfo() {
   try {
@@ -12,11 +12,14 @@ function safeGetAccountInfo() {
   }
 }
 
+// [MODIFIED] 使用新的 API 替换 wx.getSystemInfoSync
 function safeGetSystemInfo() {
   try {
-    return wx.getSystemInfoSync && wx.getSystemInfoSync();
+    // [MODIFIED] 使用 wx.getDeviceInfo 替代 wx.getSystemInfoSync
+    const result = wx.getDeviceInfo ? wx.getDeviceInfo() : {};  // 使用新的 API
+    return result;
   } catch (e) {
-    return {};
+    return {};  // 如果失败，返回空对象
   }
 }
 
@@ -28,11 +31,11 @@ const systemInfo = safeGetSystemInfo();
 const platform = systemInfo.platform || ''; // devtools / ios / android
 const runtime = { platform, envVersion };
 
-// Local dev base (your requirement: port 3001)
-const DEV_API_BASE = 'http://127.0.0.1:3001';
+// Local dev base (use the production domain for local testing)
+const DEV_API_BASE = 'http://127.0.0.1:3000';  // 本地开发地址 (仅在开发模式下使用)
 
 // Prod base (your real domain)
-const PROD_API_BASE = 'https://api.entropyshaield.com';
+const PROD_API_BASE = 'https://api.entropyshield.com';  // 正式环境的域名
 
 // Storage toggles (optional)
 let useLocalApi = false;
@@ -46,11 +49,13 @@ try {
 // Decide API base
 // - Real device / preview / release: always PROD
 // - DevTools: PROD by default, local only if useLocalApi=1
-let API_BASE = PROD_API_BASE;
+let API_BASE = PROD_API_BASE;  // 默认使用生产环境地址
 
 if (platform === 'devtools') {
+  // 仅在开发者工具中，并且本地 API 被启用时，使用本地开发地址
   API_BASE = useLocalApi ? DEV_API_BASE : PROD_API_BASE;
 } else {
+  // 非开发者工具环境，使用正式环境地址
   API_BASE = PROD_API_BASE;
 }
 

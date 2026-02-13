@@ -5,7 +5,7 @@ const { getCourseTypeMeta } = require('../../utils/courseType.js');
 const funnel = require('../../utils/funnel.js');
 
 // MOD: 统一从 config.js 读取 API_BASE，彻底移除 localhost 兜底
-const { API_BASE } = require('../../config');
+const { API_BASE } = require('../../config');  // ✅ 从 config.js 获取 API_BASE
 
 // 统一生成 / 读取 clientId（和训练营、裂变那套保持一致）
 function ensureClientId() {
@@ -86,7 +86,7 @@ Page({
 
     // MOD: API_BASE 来自 config.js
     wx.request({
-      url: `${API_BASE}/api/courses/progress`,
+      url: `${API_BASE}/api/courses/progress`,  // ✅ 使用 API_BASE 动态构造请求的 URL
       method: 'GET',
       data: { clientId },
       success: (res) => {
@@ -122,7 +122,7 @@ Page({
   fetchCoursesFallback(done) {
     // MOD: API_BASE 来自 config.js
     wx.request({
-      url: `${API_BASE}/api/courses`,
+      url: `${API_BASE}/api/courses`,  // ✅ 使用 API_BASE 动态构造请求的 URL
       method: 'GET',
       success: (res) => {
         const data = res.data || {};

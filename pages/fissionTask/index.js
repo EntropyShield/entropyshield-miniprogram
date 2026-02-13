@@ -1,4 +1,4 @@
-// pages/fissionTask/index.js
+// pages/fissionTask/index.js 
 const app = getApp();
 const { API_BASE } = require('../../config.js'); // ✅ 统一从 config.js 读取 API_BASE
 // [MOD-OPENID-20251230] 改用 utils/clientId.js 的 openid 方案
@@ -96,7 +96,7 @@ Page({
    */
   initFissionUser(clientId, cb) {
     wx.request({
-      url: `${API_BASE}/api/fission/init`,
+      url: `${API_BASE}/api/fission/init`, // ✅ 使用生产环境的 API 地址
       method: 'POST',
       header: {
         'content-type': 'application/json'
@@ -104,11 +104,16 @@ Page({
       data: {
         clientId
       },
+      timeout: 10000, // 设置请求超时为 10 秒
       success: res => {
         console.log('[fissionTask] fission init result:', res.data);
       },
       fail: err => {
         console.error('[fissionTask] fission init failed:', err);
+        wx.showToast({
+          title: '网络错误，请稍后再试',
+          icon: 'none'
+        });
       },
       complete: () => {
         typeof cb === 'function' && cb();
@@ -121,24 +126,40 @@ Page({
    */
   fetchProfile(clientId, cb) {
     wx.request({
-      url: `${API_BASE}/api/fission/profile`,
+      url: `${API_BASE}/api/fission/profile`, // ✅ 使用生产环境的 API 地址
       method: 'GET',
       data: {
         clientId
       },
+      timeout: 10000, // 设置请求超时为 10 秒
       success: res => {
         console.log('[fissionTask] profile:', res.data);
 
-        if (!res.data || !res.data.ok || !res.data.user) {
+        // [MOD-20260212-PROFILE-COMPAT] 兼容后端返回：{ ok, user } 或 { ok, profile, total_reward_times }
+        const data = res.data || {};
+        if (!data.ok) {
           return;
         }
 
-        const u = res.data.user;
+        const u = data.user || data.profile;
+        if (!u) {
+          return;
+        }
 
-        const myInviteCode = u.inviteCode || '';
-        const hasBoundInviter = !!u.invitedByCode;
-        const invitedByCode = u.invitedByCode || '';
-        const totalRewardTimes = Number(u.totalRewardTimes || 0);
+        // 兼容字段：inviteCode / invite_code
+        const myInviteCode = (u.inviteCode || u.invite_code || '').toString();
+        // 兼容字段：invitedByCode / invited_by_code
+        const invitedByCode = (u.invitedByCode || u.invited_by_code || '').toString();
+        const hasBoundInviter = !!invitedByCode;
+
+        // 兼容 totalRewardTimes / total_reward_times（优先用顶层 total_reward_times，其次 profile 内）
+        const totalRewardTimes = Number(
+          data.total_reward_times ||
+          data.totalRewardTimes ||
+          u.totalRewardTimes ||
+          u.total_reward_times ||
+          0
+        );
 
         this.setData({
           myInviteCode,
@@ -164,14 +185,23 @@ Page({
           );
         }
 
-        // 同步“累计奖励次数”到本地 userRights.freeCalcTimes
-        this.syncRewardsToUserRights(totalRewardTimes);
+        // [MOD-20260212-UR-SYNC] 同步“累计奖励次数”到本地 userRights.freeCalcTimes（增量同步，不覆盖已消耗）
+        // 同时兼容 membership 字段（不影响你原逻辑）
+        const membershipName =
+          (u.membershipName || u.membership_level || u.membershipLevel || 'FREE')
+            .toString();
+
+        this.syncRewardsToUserRights(totalRewardTimes, membershipName);
 
         // 尝试用 pendingInviteCode / globalData 邀请码自动填入绑定框
         this.prefillInviteCode(hasBoundInviter, myInviteCode);
       },
       fail: err => {
         console.error('[fissionTask] profile failed:', err);
+        wx.showToast({
+          title: '网络错误，请稍后再试',
+          icon: 'none'
+        });
       },
       complete: () => {
         typeof cb === 'function' && cb();
@@ -182,13 +212,23 @@ Page({
   /**
    * 根据后端 total_reward_times，把“可用完整方案次数”同步到本地 userRights
    * - userRights.freeCalcTimes       当前小程序本地记录的剩余完整方案次数
-   * - userRights.fissionSyncedTimes  上次已经同步过的“累计奖励次数”
+   * - userRights.fissionSyncedTimes  上次已经同步过的“累计奖励次数”（兼容旧字段）
+   * - userRights.serverTotalRewardTimes 上次同步的服务器累计奖励次数（新字段）
    */
-  syncRewardsToUserRights(totalRewardTimes) {
+  syncRewardsToUserRights(totalRewardTimes, membershipName) {
     try {
       const userRights = wx.getStorageSync('userRights') || {};
-      const alreadySynced = Number(userRights.fissionSyncedTimes || 0);
+
+      // [MOD-20260212-UR-SYNC] 优先使用 serverTotalRewardTimes，其次兼容旧字段 fissionSyncedTimes
+      const alreadySynced = Number(
+        userRights.serverTotalRewardTimes || userRights.fissionSyncedTimes || 0
+      );
       const oldFreeTimes = Number(userRights.freeCalcTimes || 0);
+
+      // 写入 membershipName（不改变你原结构；用于前端显示“当前权益：FREE/会员”等）
+      if (membershipName) {
+        userRights.membershipName = membershipName;
+      }
 
       if (!totalRewardTimes || totalRewardTimes <= alreadySynced) {
         console.log('[fissionTask] syncRewardsToUserRights 无新增奖励', {
@@ -197,14 +237,24 @@ Page({
           delta: 0,
           newFreeTimes: oldFreeTimes
         });
+
+        // [MOD-20260212-UR-SYNC] 仍然把 serverTotalRewardTimes 固化下来（避免首次为 0 的边界）
+        if (totalRewardTimes && totalRewardTimes > 0) {
+          userRights.serverTotalRewardTimes = totalRewardTimes;
+          userRights.fissionSyncedTimes = totalRewardTimes; // 兼容
+          wx.setStorageSync('userRights', userRights);
+        }
         return;
       }
 
       const delta = totalRewardTimes - alreadySynced;
+
+      // 增量加到本地剩余次数，不会覆盖你本地已消耗的次数
       const newFreeTimes = oldFreeTimes + delta;
 
       userRights.freeCalcTimes = newFreeTimes;
-      userRights.fissionSyncedTimes = totalRewardTimes;
+      userRights.serverTotalRewardTimes = totalRewardTimes; // 新字段
+      userRights.fissionSyncedTimes = totalRewardTimes;     // 兼容旧字段
       wx.setStorageSync('userRights', userRights);
 
       console.log('[fissionTask] syncRewardsToUserRights', {
@@ -275,11 +325,12 @@ Page({
    */
   fetchRewardLog(clientId) {
     wx.request({
-      url: `${API_BASE}/api/fission/reward-log`,
+      url: `${API_BASE}/api/fission/reward-log`, // ✅ 使用生产环境的 API 地址
       method: 'GET',
       data: {
         clientId
       },
+      timeout: 10000, // 设置请求超时为 10 秒
       success: res => {
         console.log('[fissionTask] reward-log:', res.data);
 
@@ -294,7 +345,8 @@ Page({
           return;
         }
 
-        const rawLogs = res.data.logs || [];
+        // [MOD-20260212-REWARDLOG-COMPAT] 兼容后端返回：{ ok, logs } 或 { ok, list }
+        const rawLogs = res.data.logs || res.data.list || [];
 
         // 给每条日志加上标题 & 日期，方便 WXML 显示
         const enhancedLogs = rawLogs.map(row => {
@@ -417,7 +469,6 @@ Page({
   },
 
   // -------------------- 交互：复制邀请码 & 绑定邀请码 --------------------
-
   // 输入框
   onInputBindCode(e) {
     const value = (e.detail.value || '').toUpperCase().trim();
@@ -449,7 +500,7 @@ Page({
     });
   },
 
-  // [MOD-OPENID-20251230] 绑定好友的邀请码：确保使用 openid
+  // 绑定好友的邀请码：确保使用 openid
   async onBindInviteCode() {
     if (this.data.hasBoundInviter) {
       wx.showToast({
@@ -487,7 +538,7 @@ Page({
     }
 
     wx.request({
-      url: `${API_BASE}/api/fission/bind`,
+      url: `${API_BASE}/api/fission/bind`,  // ✅ 使用生产环境的 API 地址
       method: 'POST',
       header: {
         'content-type': 'application/json'
@@ -544,7 +595,6 @@ Page({
   },
 
   // -------------------- 跳转：使用风控计算器 / 返回首页 --------------------
-
   goUseCalc() {
     console.log('[fissionTask] 立即使用风控计算器按钮被点击');
     wx.navigateTo({

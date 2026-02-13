@@ -1,3 +1,4 @@
+// pages/riskCalculator/pay/index.js
 Page({
   data: {
     selectedPlan: 'month',  // 默认选中月度版
@@ -17,17 +18,17 @@ Page({
   updatePayAmount(plan) {
     let amount = 0;
     if (plan === 'trial') {
-      amount = 99;
+      amount = 99; // 免费试用
     } else if (plan === 'month') {
-      amount = 999;
+      amount = 999; // 月度套餐
     } else if (plan === 'year') {
-      amount = 9999;
+      amount = 9999; // 年度套餐
     }
 
     this.setData({
       selectedPlan: plan,
       payAmount: amount,
-      canPay: this.data.agreed && amount > 0
+      canPay: this.data.agreed && amount > 0  // 如果勾选了协议且金额大于0，则支付按钮可用
     });
   },
 
@@ -36,11 +37,11 @@ Page({
     const agreed = !this.data.agreed;
     this.setData({
       agreed,
-      canPay: agreed && this.data.payAmount > 0
+      canPay: agreed && this.data.payAmount > 0  // 更新支付按钮可用状态
     });
   },
 
-  // 打开发服务协议（先用 Toast 占位）
+  // 打开发服务协议（暂时用 Toast 占位）
   openProtocol() {
     wx.showToast({
       title: '服务协议页面待接入',
@@ -77,14 +78,14 @@ Page({
     // 显示“支付中”蒙层
     this.setData({ paying: true });
 
-    // TODO: 这里将来替换成真实下单 + wx.requestPayment
+    // 模拟支付逻辑（实际应该调用 wx.requestPayment）
     setTimeout(() => {
       this.setData({ paying: false });
 
       // 模拟“支付成功”
       wx.navigateTo({
-        url: '/pages/paySuccess/index'
+        url: '/pages/paySuccess/index'  // 支付成功后跳转
       });
-    }, 1000);
+    }, 1000);  // 模拟支付过程，延时1秒后支付成功
   }
 });

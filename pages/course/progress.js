@@ -3,7 +3,7 @@
 // 我的课程进度列表页
 
 const funnel = require('../../utils/funnel.js');
-const { API_BASE } = require('../../config');
+const { API_BASE } = require('../../config');  // ✅ 统一从 config 读取
 
 function ensureClientId() {
   const appInst = getApp && getApp();
@@ -24,13 +24,13 @@ function ensureClientId() {
 }
 
 function getBaseUrl() {
-  return String(API_BASE || '').replace(/\/$/, '');
+  return String(API_BASE || '').replace(/\/$/, '');  // ✅ 确保从 config.js 中正确读取生产环境地址
 }
 
 function requestJson(url, method = 'GET', data) {
   return new Promise((resolve, reject) => {
     wx.request({
-      url,
+      url,  // ✅ 使用 API_BASE 动态构造请求的 URL
       method,
       data,
       header: { 'content-type': 'application/json' },
@@ -124,7 +124,7 @@ Page({
 
   fetchProgress(done) {
     const clientId = this.clientId || ensureClientId();
-    const baseUrl = getBaseUrl();
+    const baseUrl = getBaseUrl();  // ✅ 使用 getBaseUrl 获取 API_BASE 地址
     const url = `${baseUrl}/api/courses/progress?clientId=${encodeURIComponent(clientId)}`;
 
     console.log('[course/progress] fetchProgress clientId =', clientId, 'baseUrl=', baseUrl);
@@ -153,10 +153,10 @@ Page({
 
         (list || []).forEach((row) => {
           const courseIdRaw =
-            row.course_id ??
-            row.courseId ??
-            row.courseID ??
-            row.courseid ??
+            row.course_id ?? 
+            row.courseId ?? 
+            row.courseID ?? 
+            row.courseid ?? 
             row.id;
 
           const courseId = Number(courseIdRaw);
@@ -166,12 +166,12 @@ Page({
           }
 
           const progressIdRaw =
-            row.progress_id ??
-            row.progressId ??
-            row.progressID ??
-            row.progressid ??
-            row.pid ??
-            row.id ??
+            row.progress_id ?? 
+            row.progressId ?? 
+            row.progressID ?? 
+            row.progressid ?? 
+            row.pid ?? 
+            row.id ?? 
             courseId;
 
           const progressId = String(progressIdRaw);
@@ -189,10 +189,10 @@ Page({
               : '未开始';
 
           const progressPercentRaw =
-            row.progress_percent ??
-            row.progressPercent ??
-            row.progress ??
-            row.percent ??
+            row.progress_percent ?? 
+            row.progressPercent ?? 
+            row.progress ?? 
+            row.percent ?? 
             0;
 
           const progressPercent = normalizePercent(progressPercentRaw);
@@ -331,7 +331,7 @@ Page({
 
   saveProgress(courseId, progressPercent, status, progressId) {
     const clientId = this.clientId || ensureClientId();
-    const baseUrl = getBaseUrl();
+    const baseUrl = getBaseUrl();  // ✅ 使用 getBaseUrl 获取 API_BASE 地址
 
     if (!clientId || !Number.isFinite(Number(courseId))) {
       console.error('[course/progress] saveProgress 缺少关键参数', { clientId, courseId });
@@ -350,7 +350,7 @@ Page({
 
     console.log('[course/progress] saveProgress payload =', payload);
 
-    requestJson(`${baseUrl}/api/courses/progress/update`, 'POST', payload)
+    requestJson(`${baseUrl}/api/courses/progress/update`, 'POST', payload)  // ✅ 使用 API_BASE 生成完整 URL
       .then((data) => {
         console.log('[course/progress] update resp:', data);
 

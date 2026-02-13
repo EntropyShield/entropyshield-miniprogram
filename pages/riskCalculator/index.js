@@ -105,30 +105,46 @@ Page({
 
     // 1. 有免费次数：直接跳结果页
     if (freeCalcTimes > 0) {
-      const userRights = wx.getStorageSync('userRights') || {};
+      // [MOD-NAV-20260212] 不再提前扣次数，改为：navigateTo 成功后再扣，避免“只扣次数不显示”
       const left = freeCalcTimes - 1;
-      userRights.freeCalcTimes = left;
-      wx.setStorageSync('userRights', userRights);
 
-      this.setData({ freeCalcTimes: left });
-
-      funnel.log('CALC_FREE_PLAN', {
+      this.gotoPlanResult(
         planType,
-        leftFreeTimes: left
-      });
+        {
+          balance,
+          price,
+          code,
+          membershipType: '训练营/会员 · 免费权益使用'
+        },
+        {
+          onSuccess: () => {
+            const userRights = wx.getStorageSync('userRights') || {};
+            userRights.freeCalcTimes = left;
+            wx.setStorageSync('userRights', userRights);
 
-      wx.showToast({
-        title: `已使用免费次数，剩余 ${left} 次`,
-        icon: 'none',
-        duration: 2000
-      });
+            this.setData({ freeCalcTimes: left });
 
-      this.gotoPlanResult(planType, {
-        balance,
-        price,
-        code,
-        membershipType: '训练营/会员 · 免费权益使用'
-      });
+            funnel.log('CALC_FREE_PLAN', {
+              planType,
+              leftFreeTimes: left
+            });
+
+            wx.showToast({
+              title: `已使用免费次数，剩余 ${left} 次`,
+              icon: 'none',
+              duration: 2000
+            });
+          },
+          onFail: (err) => {
+            console.error('[riskCalculator] gotoPlanResult failed, will NOT deduct free times:', err);
+            wx.showToast({
+              title: '页面跳转失败，请检查结果页是否已注册',
+              icon: 'none',
+              duration: 2000
+            });
+          }
+        }
+      );
 
       return;
     }
@@ -138,7 +154,8 @@ Page({
   },
 
   // 跳转到对应方案结果页（稳健版 / 加强版）
-  gotoPlanResult(planType, { balance, price, code, membershipType }) {
+  // [MOD-NAV-20260212] 增加 hooks：onSuccess/onFail，且补充 navigateTo 成功/失败日志
+  gotoPlanResult(planType, { balance, price, code, membershipType }, hooks = {}) {
     const base =
       `?balance=${encodeURIComponent(balance)}` +
       `&price=${encodeURIComponent(price)}` +
@@ -149,15 +166,32 @@ Page({
         ? `&membershipType=${encodeURIComponent(membershipType)}`
         : '';
 
+    let url = '';
     if (planType === 'steady') {
-      wx.navigateTo({
-        url: '/pages/planSteady/index' + base + mt
-      });
+      url = '/pages/planSteady/index' + base + mt;
     } else {
-      wx.navigateTo({
-        url: '/pages/planAdvanced/index' + base + mt
-      });
+      url = '/pages/planAdvanced/index' + base + mt;
     }
+
+    console.log('[riskCalculator] will navigate url=', url);
+
+    wx.navigateTo({
+      url,
+      success: () => {
+        console.log('[riskCalculator] navigate success', url);
+        if (hooks && typeof hooks.onSuccess === 'function') hooks.onSuccess();
+      },
+      fail: (e) => {
+        console.error('[riskCalculator] navigate fail', e);
+        // 常见：page "xxx" is not found（未在 app.json/subpackages 注册）
+        wx.showToast({
+          title: (e && e.errMsg) ? `跳转失败：${e.errMsg}` : '跳转失败',
+          icon: 'none',
+          duration: 2500
+        });
+        if (hooks && typeof hooks.onFail === 'function') hooks.onFail(e);
+      }
+    });
   },
 
   // 弹出下一步选择（会员 / 训练营 / 邀请好友）

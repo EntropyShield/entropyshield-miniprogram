@@ -2,7 +2,7 @@
 // MOD: CLEAN_HARDCODED_API_BASE_20260103
 const funnel = require('../../utils/funnel.js');
 const { getCourseTypeMeta } = require('../../utils/courseType.js'); // 统一类型口径
-const { API_BASE } = require('../../config');
+const { API_BASE } = require('../../config.js'); // ✅ 统一从 config 读取
 
 // [P1-SHARE-20251215] 安全开启分享菜单
 function safeShowShareMenu() {
@@ -155,13 +155,13 @@ Page({
 
   // MOD: 统一从 config.js 取 API_BASE
   getBaseUrl() {
-    return String(API_BASE || '').replace(/\/$/, '');
+    return String(API_BASE || '').replace(/\/$/, '');  // 确保从 config.js 中正确读取生产环境地址
   },
 
   requestJson(url, method = 'GET', data) {
     return new Promise((resolve, reject) => {
       wx.request({
-        url,
+        url,  // 确保 URL 使用的是从 config.js 中读取的 API_BASE
         method,
         data,
         header: { 'content-type': 'application/json' },
@@ -297,8 +297,8 @@ Page({
   },
 
   loadFixedEntries() {
-    const baseUrl = this.getBaseUrl();
-    const url = `${baseUrl}/api/courses`;
+    const baseUrl = this.getBaseUrl();  // 确保使用生产环境 API_BASE
+    const url = `${baseUrl}/api/courses`; // 确保请求的 URL 使用 API_BASE
 
     console.log('[controller] loadFixedEntries url =', url);
 

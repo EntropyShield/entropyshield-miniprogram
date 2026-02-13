@@ -3,10 +3,10 @@
 // 熵盾 · 来访预约页（自由时间段 + 摘要展示）
 
 const funnel = require('../../utils/funnel.js');
-const { API_BASE } = require('../../config');
+const { API_BASE } = require('../../config'); // ✅ 引入 API_BASE 配置
 
 function getBaseUrl() {
-  return String(API_BASE || '').replace(/\/$/, '');
+  return String(API_BASE || '').replace(/\/$/, ''); // ✅ 使用 API_BASE 来构建基础 URL
 }
 
 // MOD: 统一 clientId 存储口径：优先 clientId，兼容 st_client_id
@@ -149,7 +149,7 @@ Page({
 
     if (!this.validateForm()) return;
 
-    const baseUrl = getBaseUrl();
+    const baseUrl = getBaseUrl(); // ✅ 使用 API_BASE 来获取 baseUrl
     const clientId = ensureClientId();
 
     const {
@@ -169,7 +169,7 @@ Page({
     this.setData({ submitting: true });
 
     wx.request({
-      url: `${baseUrl}/api/visit/submit`,
+      url: `${baseUrl}/api/visit/submit`, // ✅ 使用动态构建的 URL
       method: 'POST',
       data: {
         clientId,

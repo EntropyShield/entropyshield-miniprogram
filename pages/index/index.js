@@ -165,6 +165,21 @@ Page({
       title: '熵盾·风控卫士 —— 从会亏钱到会控亏',
       path
     };
+  },
+
+  // 登录请求处理：确保使用 POST 请求发送到后端
+  handleLogin(username, password) {
+    wx.request({
+      url: 'https://api.entropyshield.com/api/wx/login',  // 确保正确的后端 API 路径
+      method: 'POST',  // 使用 POST 请求
+      data: { username, password },
+      success(res) {
+        console.log('Login successful:', res.data);
+      },
+      fail(err) {
+        console.error('Login error:', err);
+      }
+    });
   }
 });
 
@@ -189,7 +204,7 @@ function ensureInviteCode() {
 }
 
 /**
- * 处理从别人的分享链接进入：
+ * 处理从别人分享链接进入：
  * ?inviteCode=XXXX
  * - 如果本机已有自己的 inviteCode，且与传入的一样 → 认为是“自己点自己的链接”，不记录邀请关系
  * - 否则，在 userRights.invitedByCode 里记录邀请人

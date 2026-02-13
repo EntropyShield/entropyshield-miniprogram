@@ -9,6 +9,7 @@ const { API_BASE } = require('../config');
  * - 返回 Promise
  */
 function request({ url, method = 'GET', data = {}, header = {}, timeout = 15000 }) {
+  // 动态拼接完整的 API URL
   const fullUrl = url.startsWith('http') ? url : `${API_BASE}${url}`;
 
   return new Promise((resolve, reject) => {

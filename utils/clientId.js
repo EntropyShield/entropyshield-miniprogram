@@ -38,9 +38,10 @@ async function ensureClientId(forceRefresh = false) {
     (config && (config.API_BASE || config.BASE_URL || config.apiBaseUrl || config.baseUrl)) || '';
 
   if (!base) {
-    throw new Error('config.js 缺少 API_BASE（本地应为 http://127.0.0.1:3000）');
+    throw new Error('config.js 缺少 API_BASE（本地应为 https://api.entropyshield.com）');
   }
 
+  // 使用动态构建的 API 地址
   const resp = await postJson(`${base}/api/wx/login`, { code: loginRes.code });
 
   if (!resp || !resp.ok || !resp.openid) {
