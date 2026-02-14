@@ -24,11 +24,18 @@
     "miniprogram": {
       "list": [
         {
+          "name": "MembershipTest",
+          "pathName": "pages/membership/index",
+          "query": "type=steady&balance=100000&price=10&code=",
+          "scene": null,
+          "launchMode": "default"
+        },
+        {
           "name": "FissionTask",
           "pathName": "pages/fissionTask/index",
           "query": "",
-          "scene": null,
-          "launchMode": "default"
+          "launchMode": "default",
+          "scene": null
         },
         {
           "name": "pages/fissionTask/index",
