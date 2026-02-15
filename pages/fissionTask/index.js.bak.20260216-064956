@@ -1,6 +1,3 @@
-﻿// [CHANGE] unify userRights writes
-const { mergeUserRights } = require('../../utils/userRights')
-
 // pages/fissionTask/index.js 
 const app = getApp();
 const { API_BASE } = require('../../config.js'); // ✅ 统一从 config.js 读取 API_BASE
@@ -245,7 +242,7 @@ Page({
         if (totalRewardTimes && totalRewardTimes > 0) {
           userRights.serverTotalRewardTimes = totalRewardTimes;
           userRights.fissionSyncedTimes = totalRewardTimes; // 兼容
-          mergeUserRights(userRights); // [CHANGE] unify write
+          wx.setStorageSync('userRights', userRights);
         }
         return;
       }
@@ -258,7 +255,7 @@ Page({
       userRights.freeCalcTimes = newFreeTimes;
       userRights.serverTotalRewardTimes = totalRewardTimes; // 新字段
       userRights.fissionSyncedTimes = totalRewardTimes;     // 兼容旧字段
-      mergeUserRights(userRights); // [CHANGE] unify write
+      wx.setStorageSync('userRights', userRights);
 
       console.log('[fissionTask] syncRewardsToUserRights', {
         totalRewardTimes,
@@ -646,5 +643,3 @@ Page({
     };
   }
 });
-
-

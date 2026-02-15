@@ -1,6 +1,3 @@
-﻿// [CHANGE] unify userRights writes
-const { mergeUserRights } = require('../../utils/userRights')
-
 // pages/campIntro/index.js
 const { getLevelInfo } = require('../../utils/grade.js');
 const { API_BASE } = require('../../config.js'); // ✅ 统一从 config 读取
@@ -217,7 +214,7 @@ Page({
         userRights.freeCalcTimes = newTimes;
         userRights.campRewardDone = true;
         userRights.campRewardCount = rewardRounds;
-        mergeUserRights(userRights); // [CHANGE] unify write
+        wx.setStorageSync('userRights', userRights);
 
         wx.showToast({
           title: `恭喜完成第 ${rewardRounds} 轮训练，获赠 ${CAMP_REWARD_TIMES} 次完整方案`,
@@ -419,7 +416,7 @@ Page({
 
       if (rewardRounds < MAX_REWARD_ROUNDS) {
         userRights.campRewardDone = false;
-        mergeUserRights(userRights); // [CHANGE] unify write
+        wx.setStorageSync('userRights', userRights);
       }
 
       const firstTask = tasks[0] || { day: 'D1', name: '止亏觉醒' };
@@ -620,5 +617,3 @@ Page({
     };
   }
 });
-
-
