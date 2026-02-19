@@ -200,16 +200,35 @@ Page({
     return 'VIP_MONTH';
   },
 
-  callMockPaid(openid, productCode) {
+  // ===== 支付：金额转分（兼容 ¥99 / 99 / 9.9 / "9.9" 等）=====
+  toFen(v) {
+    if (v === null || typeof v === 'undefined') return 0;
+    const raw = String(v).trim();
+    if (!raw) return 0;
+
+    // 去掉非数字/小数点字符（例如 "¥99" -> "99"）
+    const s = raw.replace(/[^\d.]/g, '');
+    if (!s) return 0;
+
+    const n = Number(s);
+    if (!isFinite(n)) return 0;
+
+    // 含小数点：按元转分；不含小数点：默认按元转分（适配 99/999/2999/9999）
+    if (s.includes('.')) return Math.round(n * 100);
+    return Math.round(n * 100);
+  },
+
+  // ===== 调后端预下单，拿 payParams（timeStamp/nonceStr/package/paySign）=====
+  callPayJsapi(openid, productCode, amountFen, description) {
     return new Promise((resolve, reject) => {
       wx.request({
-        url: this.getApiBase() + '/api/pay/mock/paid',
+        url: this.getApiBase() + '/api/pay/jsapi',
         method: 'POST',
         header: { 'Content-Type': 'application/json' },
-        data: { openid, productCode },
+        data: { openid, productCode, amount: amountFen, description },
         success: (res) => {
-          if (res.data && res.data.ok) resolve(res.data);
-          else reject(res.data || { message: 'mock/paid 返回异常' });
+          if (res.data && res.data.ok && res.data.payParams) resolve(res.data);
+          else reject(res.data || { message: '/api/pay/jsapi 返回异常' });
         },
         fail: (err) => reject(err)
       });
@@ -229,69 +248,91 @@ Page({
     }
 
     wx.showModal({
-      title: '开通会员（演示环境）',
-      content: `将调用后端 mock/paid 开通「${plan.name}」。`,
-      confirmText: '确认开通',
+      title: '开通会员',
+      content: `将唤起微信支付，开通「${plan.name}」。`,
+      confirmText: '去支付',
       success: (r) => {
         if (!r.confirm) return;
 
         const productCode = this.planIdToProductCode(plan.id);
 
+        // 金额（分）：优先从 plan.priceText 解析；兜底用页面 price
+        const amountFen = this.toFen(plan.priceText || price || 0);
+        if (!amountFen || amountFen <= 0) {
+          return wx.showToast({ title: '支付金额异常', icon: 'none' });
+        }
+
+        const description = `开通${plan.name}`;
+
         this.ensureOpenid((openid) => {
-          this.callMockPaid(openid, productCode)
+          wx.showLoading({ title: '拉起支付中…' });
+
+          this.callPayJsapi(openid, productCode, amountFen, description)
             .then((data) => {
-              // ✅ 不信任后端 freeCalcTimes（因为你要“按天无限”）
-              // ✅ 不信任后端 expireAt（年卡你要求 360 天，直接由前端规则生成）
-              const now = Date.now();
-              const expireAt = plan.durationDays
-                ? now + Number(plan.durationDays) * 24 * 60 * 60 * 1000
-                : 0;
+              wx.hideLoading();
 
-              const mpc = data.membershipProductCode || data.productCode || productCode;
+              const payParams = data.payParams || {};
+              wx.requestPayment({
+                timeStamp: String(payParams.timeStamp || ''),
+                nonceStr: payParams.nonceStr || '',
+                package: payParams.package || '',
+                signType: payParams.signType || 'RSA',
+                paySign: payParams.paySign || '',
+                success: () => {
+                  // ✅ MVP：支付成功后立即本地发放权益（后续可再做 notify/查单“后端确权”）
+                  const now = Date.now();
+                  const expireAt = plan.durationDays
+                    ? now + Number(plan.durationDays) * 24 * 60 * 60 * 1000
+                    : 0;
 
-              const patch = {
-                openid,
+                  const patch = {
+                    openid,
+                    membershipName: plan.name,
+                    membershipPlan: plan.id,
+                    membershipEntryType: type,
 
-                membershipName: data.membershipName || plan.name,
-                membershipPlan: plan.id,
-                membershipEntryType: type,
+                    membershipProductCode: productCode,
+                    productCode: productCode,
 
-                membershipProductCode: mpc,
-                productCode: mpc,
+                    membershipExpireAt: expireAt,
 
-                membershipExpireAt: expireAt,
+                    // ✅ 权限：季/年才开加强版
+                    advancedEnabled: (plan.id === 'quarter' || plan.id === 'year'),
 
-                // ✅ 权限：季/年才开加强版
-                advancedEnabled: (plan.id === 'quarter' || plan.id === 'year'),
+                    // ✅ 次数：只给按次包，其它一律 0（按天无限）
+                    freeCalcTimes: (upperCode(productCode) === 'VIP_ONCE3') ? 3 : 0
+                  };
 
-                // ✅ 次数：只给按次包，其它一律 0（按天无限）
-                freeCalcTimes: (upperCode(mpc) === 'VIP_ONCE3') ? 3 : 0
-              };
+                  const nextRights = UR.mergeUserRights(patch);
+                  this.refreshRights();
 
-              if (typeof data.inviteCode !== 'undefined') patch.inviteCode = data.inviteCode;
+                  wx.showToast({ title: '支付成功', icon: 'success', duration: 1200 });
 
-              const nextRights = UR.mergeUserRights(patch);
-              this.refreshRights();
+                  const membershipTypeText = buildMembershipTypeText(nextRights) + ` · ${planLabel}`;
+                  const query =
+                    `?balance=${encodeURIComponent(balance)}` +
+                    `&price=${encodeURIComponent(price)}` +
+                    `&code=${encodeURIComponent(code || '')}` +
+                    `&membershipType=${encodeURIComponent(membershipTypeText)}`;
 
-              wx.showToast({ title: '开通成功（mock）', icon: 'success', duration: 1200 });
-
-              const membershipTypeText = buildMembershipTypeText(nextRights) + ` · ${planLabel}`;
-              const query =
-                `?balance=${encodeURIComponent(balance)}` +
-                `&price=${encodeURIComponent(price)}` +
-                `&code=${encodeURIComponent(code || '')}` +
-                `&membershipType=${encodeURIComponent(membershipTypeText)}`;
-
-              if (type === 'steady') {
-                wx.navigateTo({ url: '/pages/planSteady/index' + query });
-              } else {
-                wx.navigateTo({ url: '/pages/planAdvanced/index' + query });
-              }
+                  if (type === 'steady') {
+                    wx.navigateTo({ url: '/pages/planSteady/index' + query });
+                  } else {
+                    wx.navigateTo({ url: '/pages/planAdvanced/index' + query });
+                  }
+                },
+                fail: (err) => {
+                  console.error('[membership] requestPayment fail =>', err);
+                  const msg = (err && (err.errMsg || err.message)) ? (err.errMsg || err.message) : '支付失败';
+                  wx.showToast({ title: msg, icon: 'none', duration: 2000 });
+                }
+              });
             })
             .catch((err) => {
-              console.error('[membership] mock/paid failed =>', err);
+              wx.hideLoading();
+              console.error('[membership] /api/pay/jsapi failed =>', err);
               wx.showToast({
-                title: (err && err.message) ? err.message : 'mock/paid 失败',
+                title: (err && err.message) ? err.message : '拉起支付失败',
                 icon: 'none'
               });
             });

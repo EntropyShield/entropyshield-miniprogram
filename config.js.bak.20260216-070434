@@ -1,4 +1,4 @@
-﻿// config.js
+// config.js
 // MOD: CONFIG_API_BASE_COMPAT_20260102
 // Strategy:
 // - Default to PROD (https) so preview/real device works.
@@ -29,8 +29,6 @@ const envVersion =
 
 const systemInfo = safeGetSystemInfo();
 const platform = systemInfo.platform || ''; // devtools / ios / android
-// [MOD] DevTools 兜底：brand=devtools 更稳定；避免 platform 取不到导致永远不走本地
-const isDevtools = (platform === 'devtools') || (systemInfo.brand === 'devtools');
 const runtime = { platform, envVersion };
 
 // Local dev base (use the production domain for local testing)
@@ -53,7 +51,7 @@ try {
 // - DevTools: PROD by default, local only if useLocalApi=1
 let API_BASE = PROD_API_BASE;  // 默认使用生产环境地址
 
-if (isDevtools) {
+if (platform === 'devtools') {
   // 仅在开发者工具中，并且本地 API 被启用时，使用本地开发地址
   API_BASE = useLocalApi ? DEV_API_BASE : PROD_API_BASE;
 } else {
