@@ -51,9 +51,6 @@ Page({
     // 我的专属邀请码
     myInviteCode: '',
 
-
-    // [ADD-QR] 我的专属二维码（临时文件路径）
-    myQrPath: '',
     // 绑定好友邀请码输入框
     bindInviteCodeInput: '',
     hasBoundInviter: false,
@@ -210,8 +207,6 @@ Page({
           invitedByCode,
           totalRewardTimes
         });
-        /*[ADD-QR]CALL_REFRESH*/
-        if (myInviteCode) { this.refreshMyQr(myInviteCode); }
 
         // 把邀请码信息写入本地缓存，训练营页会读取
         try {
@@ -731,47 +726,6 @@ Page({
   /**
    * 顶部右上角“转发”时，自动带上我的邀请码
    */
-  // [ADD-QR] 拉取并展示我的专属二维码（后端返回 image/jpeg 或 image/png 都可）
-  refreshMyQr(forceCode) {
-    
-    // [ADD-QR] 兼容 WXML bindtap 传入事件对象
-    if (forceCode && typeof forceCode === 'object') { forceCode = ''; }
-const code = (forceCode || this.data.myInviteCode || (wx.getStorageSync('fissionMyInviteCode') || ''))
-      .toString()
-      .toUpperCase()
-      .trim();
-
-    if (!code) {
-      wx.showToast({ title: '邀请码暂未生成', icon: 'none' });
-      return;
-    }
-
-    const base = wx.getStorageSync('API_BASE') || wx.getStorageSync('apiBaseUrl') || '';
-    const url = `${base}/api/fission/qrcode?inviteCode=${encodeURIComponent(code)}&t=${Date.now()}`;
-
-    wx.downloadFile({
-      url,
-      success: (res) => {
-        if (res.statusCode === 200 && res.tempFilePath) {
-          this.setData({ myQrPath: res.tempFilePath });
-        } else {
-          wx.showToast({ title: '二维码获取失败', icon: 'none' });
-          console.error('[fissionTask] qrcode download status:', res.statusCode);
-        }
-      },
-      fail: (e) => {
-        wx.showToast({ title: '二维码下载失败', icon: 'none' });
-        console.error('[fissionTask] qrcode download fail:', e);
-      }
-    });
-  },
-
-  // [ADD-QR] 点击二维码预览
-  onPreviewQr() {
-    const p = this.data.myQrPath;
-    if (!p) return;
-    wx.previewImage({ urls: [p] });
-  },
   onShareAppMessage() {
     let code = (this.data.myInviteCode || '').toUpperCase();
     if (!code) {

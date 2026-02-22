@@ -1,16 +1,7 @@
 // pages/campReport/index.js 
 
-
 Page({
-  onShow: function() {
-      // [ADD-REPORT] CALL_GLOBAL_FINISH_FN
-    try {
-      if (wx.__tryFinishRewardOnReportNav) {
-        wx.__tryFinishRewardOnReportNav('/pages/campReport/index');
-      }
-    } catch (e) {}
-},
-data: {
+  data: {
     // 顶部总览
     summary: {
       score: 0,
@@ -41,7 +32,9 @@ data: {
   },
 
   onShow() {
-    this.buildReport();
+        // [ADD-FINISH] auto call finish
+    this.tryFinishReward && this.tryFinishReward();
+this.buildReport();
   },
 
   /**
@@ -111,6 +104,33 @@ data: {
         scoreText,
         desc
       };
+
+  // [ADD-FINISH] 结营兜底：进入报告页自动触发 finish（后端幂等，重复不重复发奖）
+  async tryFinishReward() {
+    try {
+      const base = wx.getStorageSync('API_BASE') || wx.getStorageSync('apiBaseUrl') || '';
+      let clientId = wx.getStorageSync('clientId') || '';
+      // 尝试调用 ensureClientId（如果项目里有）
+      if (!clientId) {
+        try {
+          const clientIdUtil = require('../../utils/clientId.js');
+          if (clientIdUtil && clientIdUtil.ensureClientId) clientId = await clientIdUtil.ensureClientId();
+        } catch (e) {}
+      }
+      if (!base || !clientId) return;
+
+      wx.request({
+        url: `${base}/api/fission/camp/finish`,
+        method: 'POST',
+        header: { 'content-type': 'application/json' },
+        data: { clientId },
+        success: (res) => console.log('[campFinish] finish resp:', res.data),
+        fail: (err) => console.error('[campFinish] finish fail:', err)
+      });
+    } catch (e) {
+      console.error('[campFinish] tryFinishReward error:', e);
+    }
+  },
     });
 
     // 计算平均分

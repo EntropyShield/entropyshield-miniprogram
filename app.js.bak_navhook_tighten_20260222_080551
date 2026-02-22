@@ -68,81 +68,30 @@ App({
         function _tryFinishRewardOnReportNav(url) {
           try {
             if (!url || typeof url !== 'string') return;
+            // 命中 campReport
             if (url.indexOf('/pages/campReport/index') === -1) return;
 
-            // 只触发一次（本次小程序运行期）
-            if (wx.__campFinishNavDone) return;
-
-            // 7/7 判断：优先 campFinishedMap，其次 campDailyLogs
-            var doneMap = wx.getStorageSync('campFinishedMap') || {};
-            var done7 = !!(doneMap.D7 || doneMap['D7'] || (Object.keys(doneMap || {}).length >= 7));
-            if (!done7) {
-              var logs = wx.getStorageSync('campDailyLogs') || {};
-              var keys = Object.keys(logs || {}).filter(function(k){ return /^D[1-7]$/.test(k); });
-              done7 = keys.length >= 7;
-            }
+            const done = wx.getStorageSync('campFinishedMap') || {};
+            const done7 = !!(done.D7 || done['D7'] || Object.keys(done).length >= 7);
+            // 只在“完成 7/7”时触发（你也可以临时注释掉这一行做验收）
             if (!done7) return;
 
-            var base = wx.getStorageSync('API_BASE') || wx.getStorageSync('apiBaseUrl') || '';
-            var clientId = wx.getStorageSync('clientId') || '';
+            const base = wx.getStorageSync('API_BASE') || wx.getStorageSync('apiBaseUrl') || '';
+            const clientId = wx.getStorageSync('clientId') || '';
             if (!base || !clientId) return;
 
-            function _sendFinish() {
-              if (wx.__campFinishNavDone) return;
-              wx.__campFinishNavDone = true;
-              wx.request({
-                url: base + '/api/fission/camp/finish',
-                method: 'POST',
-                header: { 'content-type': 'application/json' },
-                data: { clientId: clientId },
-                success: function(res){ console.log('[NAV-HOOK] camp/finish resp:', res.data); },
-                fail: function(err){ console.error('[NAV-HOOK] camp/finish fail:', err); }
-              });
-            }
-
-            // inviter guard：若本地没写入，自动拉 profile 补齐 invited_by_code 再触发
-            var invitedBy = wx.getStorageSync('fissionInvitedByCode') || '';
-            if (!invitedBy) {
-              if (wx.__campFinishInviterHydrating) return;
-              wx.__campFinishInviterHydrating = true;
-
-              wx.request({
-                url: base + '/api/fission/profile?clientId=' + encodeURIComponent(clientId),
-                method: 'GET',
-                success: function(r) {
-                  try {
-                    var prof = r && r.data && (r.data.profile || r.data.user);
-                    var code = '';
-                    if (prof) {
-                      code = prof.invited_by_code || prof.invitedByCode || prof.invited_by_code || '';
-                    }
-                    code = code ? String(code).trim().toUpperCase() : '';
-                    if (code) {
-                      wx.setStorageSync('fissionInvitedByCode', code);
-                      invitedBy = code;
-                    }
-                    if (!invitedBy) return; // 仍未绑定则不触发 finish（避免噪音）
-                    _sendFinish();
-                  } finally {
-                    wx.__campFinishInviterHydrating = false;
-                  }
-                },
-                fail: function() {
-                  wx.__campFinishInviterHydrating = false;
-                }
-              });
-              return;
-            }
-
-            _sendFinish();
+            wx.request({
+              url: base + '/api/fission/camp/finish',
+              method: 'POST',
+              header: { 'content-type': 'application/json' },
+              data: { clientId: clientId },
+              success: (res) => console.log('[NAV-HOOK] camp/finish resp:', res.data),
+              fail: (err) => console.error('[NAV-HOOK] camp/finish fail:', err)
+            });
           } catch (e) {
             console.log('[NAV-HOOK] err:', e);
           }
         }
-        // [ADD-NAV-HOOK] EXPOSE_FINISH_FN
-        // 允许页面直达/编译直达时手动触发同一套逻辑
-        wx.__tryFinishRewardOnReportNav = _tryFinishRewardOnReportNav;
-
 
         // hook navigateTo / redirectTo / reLaunch
         const _nav = wx.navigateTo;

@@ -463,6 +463,25 @@ Page({
       targetDay,
       targetName
     });
+// [ADD-FINISH] CALL_FINISH_BEFORE_REPORT_V2
+try {
+  const done = wx.getStorageSync('campFinishedMap') || {};
+  const done7 = !!(done.D7 || done['D7'] || Object.keys(done).length >= 7);
+  if (done7) {
+    const base = wx.getStorageSync('API_BASE') || wx.getStorageSync('apiBaseUrl') || '';
+    const clientId = wx.getStorageSync('clientId') || (this.data && this.data.clientId) || '';
+    if (base && clientId) {
+      wx.request({
+        url: base + '/api/fission/camp/finish',
+        method: 'POST',
+        header: { 'content-type': 'application/json' },
+        data: { clientId: clientId },
+        success: (res) => console.log('[ADD-FINISH] finish resp:', res.data),
+        fail: (err) => console.error('[ADD-FINISH] finish fail:', err)
+      });
+    }
+  }
+} catch (e) { console.error('[ADD-FINISH] err:', e); }
 
 
     wx.navigateTo({
@@ -575,24 +594,6 @@ Page({
       },
       success: res => {
         console.log('[campIntro] fission profile:', res.data);
-        // [ADD-BIND-SYNC] campIntro sync invited_by_code
-        try {
-          const data = (res && res.data) || {};
-          const prof = data.profile || data.user || null;
-          const code = prof ? String((prof.invited_by_code || prof.invitedByCode || prof.invited_by_code || '')).trim().toUpperCase() : '';
-          if (code) wx.setStorageSync('fissionInvitedByCode', code);
-          // 多字段兼容：防止 WXML 用的是不同字段名导致“未绑定”
-          if (this && this.setData) {
-            this.setData({
-              invitedByCode: code,
-              invited_by_code: code,
-              hasInviter: !!code,
-              hasBoundInviter: !!code,
-              invitedBound: !!code
-            });
-          }
-        } catch (e) {}
-
 
         if (!res.data || !res.data.ok || !res.data.user) {
           return;

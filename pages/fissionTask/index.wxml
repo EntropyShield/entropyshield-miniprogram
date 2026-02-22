@@ -1,6 +1,18 @@
 <view class="page">
 
-<!-- 卡片 1：我的专属邀请码 -->
+<!-- [ADD] 我的专属二维码（扫码自动绑定） -->
+<view class="card">
+  <view class="card-title">我的专属二维码</view>
+  <view class="card-sub">好友扫码进入后将自动绑定你的邀请码</view>
+
+  <image wx:if="{{myQrPath}}" class="qr-img" src="{{myQrPath}}" mode="widthFix" bindtap="onPreviewQr" />
+  <view wx:else class="qr-placeholder">二维码生成中…</view>
+
+  <view class="qr-actions">
+    <button class="qr-btn" bindtap="refreshMyQr">刷新二维码</button>
+    <button class="qr-btn primary" open-type="share">分享给好友</button>
+  </view>
+</view>
 <view class="card card-invite">
   <view class="title">熵盾 · 裂变任务</view>
   <view class="subtitle">

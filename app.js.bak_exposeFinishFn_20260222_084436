@@ -139,10 +139,6 @@ App({
             console.log('[NAV-HOOK] err:', e);
           }
         }
-        // [ADD-NAV-HOOK] EXPOSE_FINISH_FN
-        // 允许页面直达/编译直达时手动触发同一套逻辑
-        wx.__tryFinishRewardOnReportNav = _tryFinishRewardOnReportNav;
-
 
         // hook navigateTo / redirectTo / reLaunch
         const _nav = wx.navigateTo;

@@ -1,15 +1,43 @@
 // pages/campReport/index.js 
 
 
+// [ADD-FINISH-REPORT] CAMP_FINISH_ONSHOW
+function __campReportTryFinishOnce() {
+  try {
+    if (wx.__campFinishOnReportSent) return;
+    // 判定是否完成 7/7（优先 campFinishedMap，其次 campDailyLogs）
+    var doneMap = wx.getStorageSync('campFinishedMap') || {};
+    var done7 = !!(doneMap.D7 || doneMap['D7'] || (Object.keys(doneMap || {}).length >= 7));
+    if (!done7) {
+      var logs = wx.getStorageSync('campDailyLogs') || {};
+      var keys = Object.keys(logs || {}).filter(function(k){ return /^D[1-7]$/.test(k); });
+      done7 = keys.length >= 7;
+    }
+    if (!done7) return;
+
+    var base = wx.getStorageSync('API_BASE') || wx.getStorageSync('apiBaseUrl') || '';
+    var clientId = wx.getStorageSync('clientId') || '';
+    if (!base || !clientId) return;
+
+    wx.__campFinishOnReportSent = true;
+    wx.request({
+      url: base + '/api/fission/camp/finish',
+      method: 'POST',
+      header: { 'content-type': 'application/json' },
+      data: { clientId: clientId },
+      success: function(res){ console.log('[ADD-FINISH-REPORT] camp/finish resp:', res.data); },
+      fail: function(err){ console.error('[ADD-FINISH-REPORT] camp/finish fail:', err); }
+    });
+  } catch (e) {
+    console.error('[ADD-FINISH-REPORT] error:', e);
+  }
+}
+
 Page({
+    // [ADD-FINISH-REPORT] trigger finish
   onShow: function() {
-      // [ADD-REPORT] CALL_GLOBAL_FINISH_FN
-    try {
-      if (wx.__tryFinishRewardOnReportNav) {
-        wx.__tryFinishRewardOnReportNav('/pages/campReport/index');
-      }
-    } catch (e) {}
-},
+    __campReportTryFinishOnce();
+  },
 data: {
     // 顶部总览
     summary: {

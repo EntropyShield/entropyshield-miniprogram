@@ -3,13 +3,7 @@
 
 Page({
   onShow: function() {
-      // [ADD-REPORT] CALL_GLOBAL_FINISH_FN
-    try {
-      if (wx.__tryFinishRewardOnReportNav) {
-        wx.__tryFinishRewardOnReportNav('/pages/campReport/index');
-      }
-    } catch (e) {}
-},
+  },
 data: {
     // 顶部总览
     summary: {
