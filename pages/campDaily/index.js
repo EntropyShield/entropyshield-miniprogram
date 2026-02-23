@@ -121,6 +121,50 @@ Page({
     if (isFinished) finishedMap[day] = true;
 
     wx.setStorageSync('campDailyLogs', logs);
+    // [PATCH-D1-AUTO-REWARD] 被邀请人 D1 打卡成功后，自动通知后端给邀请人发奖励（幂等）
+    try {
+      const _day =
+        ((typeof dayKey !== 'undefined') && dayKey) ||
+        ((typeof day !== 'undefined') && day) ||
+        (this.data && (this.data.dayKey || this.data.day || this.data.currentDay)) ||
+        '';
+    
+      if (String(_day).toUpperCase() === 'D1') {
+        const _apiBase =
+          wx.getStorageSync('API_BASE') ||
+          wx.getStorageSync('apiBaseUrl') ||
+          ((getApp && getApp().globalData && getApp().globalData.API_BASE) || '');
+    
+        const _clientId = wx.getStorageSync('clientId') || '';
+        const _invitedBy =
+          (wx.getStorageSync('fissionInvitedByCode') ||
+           wx.getStorageSync('pendingInviteCode') ||
+           wx.getStorageSync('fissionInvitedBy') ||
+           wx.getStorageSync('invitedByCode') ||
+           '') + '';
+    
+        const _sentKey = _clientId ? ('campD1InviteRewardSent_' + _clientId) : 'campD1InviteRewardSent';
+        const _sent = Number(wx.getStorageSync(_sentKey) || 0) || 0;
+    
+        if (_apiBase && _clientId && _invitedBy && !_sent) {
+          wx.request({
+            url: _apiBase + '/api/camp/finish-day',
+            method: 'POST',
+            data: { clientId: _clientId, day: 'D1', invitedByCode: _invitedBy },
+            success: (res) => {
+              const d = res && res.data;
+              console.log('[D1-AUTO-REWARD] resp=', d);
+              // 后端 ok=true 即视为已触发（credited 可能为 0 也算触达）
+              if (d && d.ok) wx.setStorageSync(_sentKey, 1);
+            },
+            fail: (e) => console.warn('[D1-AUTO-REWARD] fail=', e)
+          });
+        } else {
+          console.log('[D1-AUTO-REWARD] skip', { hasApiBase: !!_apiBase, hasClientId: !!_clientId, hasInvitedBy: !!_invitedBy, sent: _sent });
+        }
+      }
+    } catch (e) { console.warn('[D1-AUTO-REWARD] err', e); }
+
     wx.setStorageSync('campFinishedMap', finishedMap);
 
     console.log('[campDaily] saveLog 写入后的 campDailyLogs:', logs);

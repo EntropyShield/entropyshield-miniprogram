@@ -44,6 +44,82 @@ const PENDING_INVITE_KEY = 'pendingInviteCode';
 const FISSION_MY_INVITE_KEY = 'fissionMyInviteCode';
 const FISSION_INVITED_BY_KEY = 'fissionInvitedByCode';
 
+
+// [PATCH-FISSIONTASK-FINAL-20260224] global helpers: reward sync + modal gating + api base
+function __es_getApiBase() {
+  try {
+    return wx.getStorageSync('API_BASE') || wx.getStorageSync('apiBaseUrl') ||
+      ((getApp && getApp().globalData && getApp().globalData.API_BASE) || '');
+  } catch(e) { return ''; }
+}
+
+function __es_syncRewards(total, clientId, ctx) {
+  try {
+    var RIGHTS_KEY = 'userRights';
+    var cid = clientId || (ctx && ctx.data && ctx.data.clientId) || wx.getStorageSync('clientId') || '';
+    var SYNC_KEY = 'fission_total_reward_times_synced_' + cid;
+
+    // 兼容旧 key（不再用，但用于迁移）
+    var legacy = Number(wx.getStorageSync('fission_total_reward_times_synced') || 0) || 0;
+
+    var rights = wx.getStorageSync(RIGHTS_KEY) || {};
+    var cur = Number(rights.freeCalcTimes || 0) || 0;
+    var last = Number(wx.getStorageSync(SYNC_KEY) || 0) || 0;
+    if (!last && legacy) last = legacy;
+
+    var t = Number(total || 0) || 0;
+    var delta = Math.max(t - last, 0);
+
+    if (delta > 0) {
+      rights.freeCalcTimes = cur + delta;
+      if (!rights.membershipName) rights.membershipName = 'FREE';
+      wx.setStorageSync(RIGHTS_KEY, rights);
+    }
+    wx.setStorageSync(SYNC_KEY, t);
+    try { wx.removeStorageSync('fission_total_reward_times_synced'); } catch(e) {}
+
+    try {
+      ctx && ctx.setData && ctx.setData({
+        userRights: rights,
+        freeCalcTimes: Number(rights.freeCalcTimes||0)||0,
+        membershipName: rights.membershipName || ''
+      });
+    } catch(e) {}
+
+    return { delta: delta, after: Number(rights.freeCalcTimes||0)||0, total: t, last: last, syncKey: SYNC_KEY };
+  } catch(e) {
+    return { delta: 0, after: 0, total: Number(total||0)||0, last: 0, syncKey: '' };
+  }
+}
+
+// 兼容你之前散落的调用（彻底不再报 ReferenceError）
+
+
+// [PATCH-SYNCREWARDS2-GLOBAL] stable global syncRewards2 (no ctx needed)
+function syncRewards2(total, clientId) {
+  try {
+    var RIGHTS_KEY = 'userRights';
+    var cid = String(clientId || wx.getStorageSync('clientId') || '').trim();
+    var SYNC_KEY = 'fission_total_reward_times_synced_' + cid;
+    var rights = wx.getStorageSync(RIGHTS_KEY) || {};
+    var cur = Number(rights.freeCalcTimes || 0) || 0;
+    var last = Number(wx.getStorageSync(SYNC_KEY) || 0) || 0;
+    var t = Number(total || 0) || 0;
+    var delta = Math.max(t - last, 0);
+
+    if (delta > 0) {
+      rights.freeCalcTimes = cur + delta;
+      if (!rights.membershipName) rights.membershipName = 'FREE';
+      wx.setStorageSync(RIGHTS_KEY, rights);
+    }
+    wx.setStorageSync(SYNC_KEY, t);
+
+    return { delta: delta, after: Number(rights.freeCalcTimes||0)||0, total: t, last: last, syncKey: SYNC_KEY };
+  } catch(e) {
+    return { delta: 0, after: 0, total: Number(total||0)||0, last: 0, syncKey: '' };
+  }
+}
+
 Page({
   data: {
     loading: true,
@@ -94,148 +170,106 @@ Page({
   },
 
   onShow() {
-    console.log('[FINAL] fissionTask onShow start');
-    
+    console.log('[PATCH-FISSIONTASK-FINAL-20260224] onShow start');
     var self = this;
-    try { self.setData && self.setData({ loading: true }); } catch (e) {}
+    try { self.setData && self.setData({ loading: true }); } catch(e) {}
     
-    var apiBase =
-      wx.getStorageSync('API_BASE') ||
-      wx.getStorageSync('apiBaseUrl') ||
-      ((getApp && getApp().globalData && getApp().globalData.API_BASE) || '');
-    
+    var apiBase = __es_getApiBase();
     if (!apiBase) {
-      console.log('[FINAL] API_BASE empty');
-      try { self.setData && self.setData({ loading: false }); } catch (e) {}
+      console.warn('[PATCH-FISSIONTASK-FINAL-20260224] API_BASE empty');
+      try { self.setData && self.setData({ loading: false }); } catch(e) {}
       return;
     }
     
-    function stopLoadingSoon() {
-      var t = 0;
-      var timer = setInterval(function() {
-        t++;
-        try {
-          if (self.data && self.data.myQrPath) {
-            clearInterval(timer);
-            self.setData && self.setData({ loading: false });
-          }
-        } catch (e) {}
-        if (t >= 10) {
-          clearInterval(timer);
-          try { self.setData && self.setData({ loading: false }); } catch (e) {}
-        }
-      }, 200);
-    }
+    var __initedOnce = false;
     
-    function syncRewards(total) {
+    function __showRewardModalOnce(r, cid) {
       try {
-        var RIGHTS_KEY = 'userRights';
-        var SYNC_KEY = 'fission_total_reward_times_synced';
-        var rights = wx.getStorageSync(RIGHTS_KEY) || {};
-        var currentFree = Number(rights.freeCalcTimes || 0) || 0;
-        var lastSynced = Number(wx.getStorageSync(SYNC_KEY) || 0) || 0;
-    
-        if (lastSynced === 0 && currentFree > 0) {
-          wx.setStorageSync(SYNC_KEY, total);
-          lastSynced = total;
-        }
-    
-        var delta = total - lastSynced;
-        if (delta > 0) {
-          rights.freeCalcTimes = currentFree + delta;
-          if (!rights.membershipName) rights.membershipName = 'FREE';
-          wx.setStorageSync(RIGHTS_KEY, rights);
-          wx.setStorageSync(SYNC_KEY, total);
-        }
-    
-        try { self.setData && self.setData({ userRights: rights, freeCalcTimes: Number(rights.freeCalcTimes || 0) || currentFree, membershipName: rights.membershipName || '' }); } catch (e) {}
-      } catch (e) {}
+        if (!r || !r.delta || r.delta <= 0) return;
+        var key = 'fission_reward_modal_total_' + cid;
+        var shown = Number(wx.getStorageSync(key) || 0) || 0;
+        if (shown >= r.total) return;
+        wx.setStorageSync(key, r.total);
+        wx.showModal({ title: '邀请奖励已到账', content: '本次 +' + r.delta + ' 次完整方案\n当前剩余：' + r.after + ' 次', showCancel: false });
+      } catch(e) {}
     }
     
-    function setInvite(inv) {
-      if (!inv) return;
-      wx.setStorageSync('fissionMyInviteCode', inv);
-      try { self.setData && self.setData({ myInviteCode: inv, inviteCode: inv, fissionMyInviteCode: inv }); } catch (e) {}
-    }
+    function __afterProfile(cid, data) {
+      var d = data || {};
+      var p = d.profile || d.user || {};
+      var total = Number(
+        d.total_reward_times ?? d.totalRewardTimes ??
+        p.total_reward_times ?? p.totalRewardTimes ?? p.totalRewardTimes ?? 0
+      ) || 0;
     
-    function genQr() {
+      // inviteCode 兼容字段
+      var invite =
+        p.inviteCode || p.invite_code ||
+        d.inviteCode || d.invite_code ||
+        wx.getStorageSync('fissionMyInviteCode') || '';
+    
+      if (invite) {
+        try { wx.setStorageSync('fissionMyInviteCode', invite); } catch(e) {}
+        try { self.setData && self.setData({ myInviteCode: invite, inviteCode: invite, fissionMyInviteCode: invite }); } catch(e) {}
+      }
+    
+      var r = __es_syncRewards(total, cid, self);
+      __showRewardModalOnce(r, cid);
+    
+      // 没 invite 就 init 一次再拉
+      if (!invite && !__initedOnce) {
+        __initedOnce = true;
+        wx.request({
+          url: apiBase + '/api/fission/init',
+          method: 'POST',
+          data: { clientId: cid },
+          success: function() {
+            __fetchProfile(cid);
+          },
+          fail: function(e) {
+            console.warn('[PATCH-FISSIONTASK-FINAL-20260224] init fail', e);
+            try { self.setData && self.setData({ loading: false }); } catch(e2) {}
+          }
+        });
+        return;
+      }
+    
       try {
         if (typeof self.refreshMyQr === 'function') self.refreshMyQr();
-      } catch (e) {}
-      stopLoadingSoon();
+      } catch(e) {}
+    
+      try { self.setData && self.setData({ loading: false }); } catch(e) {}
     }
     
-    function fetchProfile(clientId, cb) {
+    function __fetchProfile(cid) {
+      try { self.setData && self.setData({ clientId: cid }); } catch(e) {}
       wx.request({
-        url: apiBase + '/api/fission/profile',
+        url: apiBase + '/api/fission/profile?_t=' + Date.now(),
         method: 'GET',
-        data: { clientId: clientId },
-        success: function(res) { cb && cb(null, res && res.data); },
-        fail: function(err) { cb && cb(err); }
-      });
-    }
-    
-    function initFission(clientId, cb) {
-      wx.request({
-        url: apiBase + '/api/fission/init',
-        method: 'POST',
-        data: { clientId: clientId },
-        success: function(res) { cb && cb(null, res && res.data); },
-        fail: function(err) { cb && cb(err); }
-      });
-    }
-    
-    function ensureAll(clientId) {
-      console.log('[FINAL] ensure clientId=', clientId);
-      try { self.setData && self.setData({ clientId: clientId }); } catch (e) {}
-    
-      fetchProfile(clientId, function(err, d) {
-        if (err) {
-          console.log('[FINAL] profile request fail', err);
-          try { self.setData && self.setData({ loading: false }); } catch (e) {}
-          return;
+        data: { clientId: cid },
+        success: function(res) {
+          __afterProfile(cid, (res && res.data) || {});
+        },
+        fail: function(e) {
+          console.error('[PATCH-FISSIONTASK-FINAL-20260224] profile fail', e);
+          try { self.setData && self.setData({ loading: false }); } catch(e2) {}
         }
-    
-        var data = d || {};
-        var p = data.profile || {};
-        var total = Number(data.total_reward_times ?? p.total_reward_times ?? 0) || 0;
-        syncRewards(total);
-    
-        var inv = p.inviteCode || p.invite_code || p.myInviteCode || p.my_invite_code || data.inviteCode || data.invite_code || wx.getStorageSync('fissionMyInviteCode') || '';
-        if (!data.profile || !inv) {
-          console.log('[FINAL] profile missing invite -> init then refetch');
-          initFission(clientId, function() {
-            fetchProfile(clientId, function(_e2, d2) {
-              var data2 = d2 || {};
-              var p2 = data2.profile || {};
-              var total2 = Number(data2.total_reward_times ?? p2.total_reward_times ?? total) || total;
-              syncRewards(total2);
-    
-              var inv2 = p2.inviteCode || p2.invite_code || p2.myInviteCode || p2.my_invite_code || data2.inviteCode || data2.invite_code || inv || wx.getStorageSync('fissionMyInviteCode') || '';
-              setInvite(inv2);
-              genQr();
-            });
-          });
-          return;
-        }
-    
-        setInvite(inv);
-        genQr();
       });
     }
     
-    var cid = wx.getStorageSync('clientId');
+    var cid = '';
+    try { cid = wx.getStorageSync('clientId') || ''; } catch(e) {}
     if (cid) {
-      ensureAll(cid);
+      __fetchProfile(cid);
       return;
     }
     
-    console.log('[FINAL] no clientId, do wx.login');
+    console.log('[PATCH-FISSIONTASK-FINAL-20260224] no clientId -> wx.login');
     wx.login({
       success: function(r) {
         if (!r || !r.code) {
-          console.log('[FINAL] wx.login no code');
-          try { self.setData && self.setData({ loading: false }); } catch (e) {}
+          console.warn('[PATCH-FISSIONTASK-FINAL-20260224] wx.login no code');
+          try { self.setData && self.setData({ loading: false }); } catch(e2) {}
           return;
         }
         wx.request({
@@ -245,30 +279,25 @@ Page({
           success: function(res) {
             var d = (res && res.data) || {};
             var openid = d.openid || d.clientId || (d.data && (d.data.openid || d.data.clientId)) || '';
-            console.log('[FINAL] /api/wx/login openid=', openid ? 'OK' : 'EMPTY');
             if (!openid) {
-              try { self.setData && self.setData({ loading: false }); } catch (e) {}
+              console.warn('[PATCH-FISSIONTASK-FINAL-20260224] /api/wx/login openid empty');
+              try { self.setData && self.setData({ loading: false }); } catch(e3) {}
               return;
             }
-            wx.setStorageSync('clientId', openid);
-            ensureAll(openid);
+            try { wx.setStorageSync('clientId', openid); } catch(e4) {}
+            __fetchProfile(openid);
           },
           fail: function(e) {
-            console.log('[FINAL] /api/wx/login fail', e);
-            try { self.setData && self.setData({ loading: false }); } catch (e2) {}
+            console.error('[PATCH-FISSIONTASK-FINAL-20260224] /api/wx/login fail', e);
+            try { self.setData && self.setData({ loading: false }); } catch(e2) {}
           }
         });
       },
       fail: function(e) {
-        console.log('[FINAL] wx.login fail', e);
-        try { self.setData && self.setData({ loading: false }); } catch (e2) {}
+        console.error('[PATCH-FISSIONTASK-FINAL-20260224] wx.login fail', e);
+        try { self.setData && self.setData({ loading: false }); } catch(e2) {}
       }
     });
-  
-    // [FINAL-INJECT-CALL] ensure invite+qr
-    try {
-      this.__finalEnsureFission && this.__finalEnsureFission();
-    } catch (e) {}
   },
 
   /**
@@ -914,35 +943,48 @@ Page({
    */
   // [ADD-QR] 拉取并展示我的专属二维码（后端返回 image/jpeg 或 image/png 都可）
   refreshMyQr(forceCode) {
+    // [PATCH-REFRESHMYQR-FINAL] robust QR generation: apiBase from Storage, invite from multiple sources, single-flight
+    var self = this;
+    if (self.__qrInFlight) return;
+    self.__qrInFlight = true;
     
-    // [ADD-QR] 兼容 WXML bindtap 传入事件对象
-    if (forceCode && typeof forceCode === 'object') { forceCode = ''; }
-const code = (forceCode || this.data.myInviteCode || (wx.getStorageSync('fissionMyInviteCode') || ''))
-      .toString()
-      .toUpperCase()
-      .trim();
-
-    if (!code) {
-      wx.showToast({ title: '邀请码暂未生成', icon: 'none' });
+    try { self.setData && self.setData({ loading: true }); } catch(e) {}
+    
+    var apiBase = wx.getStorageSync('API_BASE') || wx.getStorageSync('apiBaseUrl') || '';
+    var rights = wx.getStorageSync('userRights') || {};
+    var invite =
+      (self.data && (self.data.myInviteCode || self.data.inviteCode || self.data.fissionMyInviteCode)) ||
+      wx.getStorageSync('fissionMyInviteCode') ||
+      rights.inviteCode || rights.invite_code || '';
+    
+    invite = String(invite || '').trim();
+    
+    if (!apiBase || !invite) {
+      console.warn('[QRCODE] missing apiBase/invite', { apiBase: apiBase, invite: invite });
+      try { self.setData && self.setData({ loading: false }); } catch(e) {}
+      self.__qrInFlight = false;
       return;
     }
-
-    const base = wx.getStorageSync('API_BASE') || wx.getStorageSync('apiBaseUrl') || '';
-    const url = `${base}/api/fission/qrcode?inviteCode=${encodeURIComponent(code)}&t=${Date.now()}`;
-
+    
+    var url = apiBase + '/api/fission/qrcode?inviteCode=' + encodeURIComponent(invite) + '&t=' + Date.now();
+    
     wx.downloadFile({
-      url,
-      success: (res) => {
-        if (res.statusCode === 200 && res.tempFilePath) {
-          this.setData({ myQrPath: res.tempFilePath });
+      url: url,
+      success: function(r) {
+        if (r && r.statusCode === 200 && r.tempFilePath) {
+          try { self.setData && self.setData({ myQrPath: r.tempFilePath, loading: false }); } catch(e) {}
+          console.log('[QRCODE] OK', r.statusCode, r.tempFilePath);
         } else {
-          wx.showToast({ title: '二维码获取失败', icon: 'none' });
-          console.error('[fissionTask] qrcode download status:', res.statusCode);
+          console.warn('[QRCODE] bad', r && r.statusCode, r);
+          try { self.setData && self.setData({ loading: false }); } catch(e) {}
         }
       },
-      fail: (e) => {
-        wx.showToast({ title: '二维码下载失败', icon: 'none' });
-        console.error('[fissionTask] qrcode download fail:', e);
+      fail: function(e) {
+        console.error('[QRCODE] download fail', e);
+        try { self.setData && self.setData({ loading: false }); } catch(e2) {}
+      },
+      complete: function() {
+        self.__qrInFlight = false;
       }
     });
   },
@@ -1024,12 +1066,8 @@ const code = (forceCode || this.data.myInviteCode || (wx.getStorageSync('fission
             let lastSynced = Number(wx.getStorageSync(SYNC_KEY) || 0) || 0;
 
             // 初始化对齐：避免重复加
-            if (lastSynced === 0 && currentFree > 0) {
-              wx.setStorageSync(SYNC_KEY, total);
-              lastSynced = total;
-            }
-
-            const delta = total - lastSynced;
+    // [PATCH-STAGEB-SYNC-FIX] removed: do NOT swallow first delta when user already has freeCalcTimes
+const delta = total - lastSynced;
             if (delta > 0) {
               rights.freeCalcTimes = currentFree + delta;
               if (!rights.membershipName) rights.membershipName = 'FREE';
@@ -1161,7 +1199,7 @@ const code = (forceCode || this.data.myInviteCode || (wx.getStorageSync('fission
           data.inviteCode || data.invite_code ||
           wx.getStorageSync('fissionMyInviteCode') || '';
 
-        if (!data.profile || !inv) {
+        if ((!data.profile && !data.user) || !inv) { // [PATCH-STAGEB-SYNC-FIX]
           console.log('[FINAL] missing invite -> init then refetch');
           initFission(clientId, () => {
             fetchProfile(clientId, (_e2, d2) => {
@@ -1263,12 +1301,8 @@ const code = (forceCode || this.data.myInviteCode || (wx.getStorageSync('fission
         let lastSynced = Number(wx.getStorageSync(SYNC_KEY) || 0) || 0;
 
         // 初始化对齐：避免重复加
-        if (lastSynced === 0 && currentFree > 0) {
-          wx.setStorageSync(SYNC_KEY, total);
-          lastSynced = total;
-        }
-
-        const delta = total - lastSynced;
+    // [PATCH-STAGEB-SYNC-FIX] removed: do NOT swallow first delta when user already has freeCalcTimes
+const delta = total - lastSynced;
         if (delta > 0) {
           rights.freeCalcTimes = currentFree + delta;
           if (!rights.membershipName) rights.membershipName = 'FREE';
@@ -1345,7 +1379,7 @@ const code = (forceCode || this.data.myInviteCode || (wx.getStorageSync('fission
           data.inviteCode || data.invite_code ||
           wx.getStorageSync('fissionMyInviteCode') || '';
 
-        if (!data.profile || !inv) {
+        if ((!data.profile && !data.user) || !inv) { // [PATCH-STAGEB-SYNC-FIX]
           initFission(clientId, () => {
             fetchProfile(clientId, (_e2, d2) => {
               const data2 = d2 || {};

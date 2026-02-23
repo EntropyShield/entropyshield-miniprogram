@@ -2,8 +2,68 @@
 
 const { API_BASE, ENV, runtime } = require('./config');  // 从 config.js 获取 API_BASE 和环境配置
 
+// [PATCH-DEV-API-BASE-LOCK] DevTools only: if __DEV_API_BASE__ exists, lock API_BASE/apiBaseUrl to it (avoid compile override)
+try {
+  const __devBase = wx.getStorageSync('__DEV_API_BASE__') || '';
+  if (__devBase) {
+    const __origSet = wx.setStorageSync;
+    wx.setStorageSync = function(k, v) {
+      if (k === 'API_BASE' || k === 'apiBaseUrl') return __origSet.call(wx, k, __devBase);
+      return __origSet.call(wx, k, v);
+    };
+    __origSet.call(wx, 'API_BASE', __devBase);
+    __origSet.call(wx, 'apiBaseUrl', __devBase);
+    console.log('[BOOT] dev api base locked:', __devBase);
+  }
+} catch(e) {}
+
 App({
   onLaunch(options) {
+  // [PATCH-DEV-BASE-GLOBALDATA] DevTools: if __DEV_API_BASE__ exists, lock globalData.API_BASE + Storage
+  try {
+    const __devBase = wx.getStorageSync('__DEV_API_BASE__') || '';
+    if (__devBase) {
+      this.globalData = this.globalData || {};
+      this.globalData.API_BASE = __devBase;
+      wx.setStorageSync('API_BASE', __devBase);
+      wx.setStorageSync('apiBaseUrl', __devBase);
+      console.log('[BOOT] globalData.API_BASE locked to', __devBase);
+    }
+  } catch(e) {}
+
+    // [PATCH-DEVTOOLS-FORCE-LOCAL-API] DevTools 环境强制使用本机后端，避免编译后被覆盖回线上
+    try {
+      const sys = wx.getSystemInfoSync ? wx.getSystemInfoSync() : {};
+      if (sys && sys.platform === 'devtools') {
+        const local = 'http://127.0.0.1:3001';
+        try {
+  const __keep = wx.getStorageSync('API_BASE') || wx.getStorageSync('apiBaseUrl') || '';
+  if (!__keep) wx.setStorageSync('API_BASE', local);
+} catch(e) {}
+// [PATCH-KEEP-API-BASE]
+
+        try {
+  const __keep = wx.getStorageSync('API_BASE') || wx.getStorageSync('apiBaseUrl') || '';
+  if (!__keep) wx.setStorageSync('apiBaseUrl', local);
+} catch(e) {}
+// [PATCH-KEEP-API-BASE]
+
+        this.globalData = this.globalData || {};
+        this.globalData.API_BASE = local;
+        console.log('[BOOT][DEVTOOLS] force API_BASE=', local);
+      }
+    } catch (e) {}
+
+    // [PATCH-KEEP-API-BASE-ONLAUNCH] capture manual API_BASE override (DevTools)
+    try {
+      const __b = wx.getStorageSync('API_BASE') || wx.getStorageSync('apiBaseUrl') || '';
+      if (__b) {
+        wx.__API_BASE_OVERRIDE = __b;
+        this.globalData = this.globalData || {};
+        this.globalData.API_BASE = __b;
+      }
+    } catch (e) {}
+
     // [ADD] 统一接收分享/扫码携带的邀请码，落地 pendingInviteCode（供裂变页自动绑定）
     try {
       const q = (options && options.query) ? options.query : {};
@@ -23,8 +83,18 @@ App({
     // 1) 启动时强制写入最新 API_BASE，彻底干掉旧缓存/旧兜底
     try {
       // 这里确保写入最新的生产环境地址
-      wx.setStorageSync('apiBaseUrl', API_BASE); // 确保 API_BASE 是 https://api.entropyshield.com
-      wx.setStorageSync('API_BASE', API_BASE);    // 确保 API_BASE 是 https://api.entropyshield.com
+      try {
+  const __keep = wx.getStorageSync('API_BASE') || wx.getStorageSync('apiBaseUrl') || '';
+  if (!__keep) wx.setStorageSync('apiBaseUrl', API_BASE);
+} catch(e) {}
+// [PATCH-KEEP-API-BASE]
+ // 确保 API_BASE 是 https://api.entropyshield.com
+      try {
+  const __keep = wx.getStorageSync('API_BASE') || wx.getStorageSync('apiBaseUrl') || '';
+  if (!__keep) wx.setStorageSync('API_BASE', API_BASE);
+} catch(e) {}
+// [PATCH-KEEP-API-BASE]
+    // 确保 API_BASE 是 https://api.entropyshield.com
 
       console.log('[BOOT] ENV=', ENV, 'platform=', runtime && runtime.platform, 'envVersion=', runtime && runtime.envVersion);
       console.log('[BOOT] API_BASE=', API_BASE); // 打印出 API_BASE，确保使用的是正确的后端地址
@@ -167,6 +237,27 @@ App({
       console.log('[NAV-HOOK] install failed:', e);
     }
 
+  
+    // [PATCH-KEEP-API-BASE-ONLAUNCH] restore override after app boot (avoid being overwritten on compile)
+    try {
+      const __b2 = wx.__API_BASE_OVERRIDE || wx.getStorageSync('API_BASE') || wx.getStorageSync('apiBaseUrl') || '';
+      if (__b2) {
+        try {
+  const __keep = wx.getStorageSync('API_BASE') || wx.getStorageSync('apiBaseUrl') || '';
+  if (!__keep) wx.setStorageSync('API_BASE', __b2);
+} catch(e) {}
+// [PATCH-KEEP-API-BASE]
+
+        try {
+  const __keep = wx.getStorageSync('API_BASE') || wx.getStorageSync('apiBaseUrl') || '';
+  if (!__keep) wx.setStorageSync('apiBaseUrl', __b2);
+} catch(e) {}
+// [PATCH-KEEP-API-BASE]
+
+        this.globalData = this.globalData || {};
+        this.globalData.API_BASE = __b2;
+      }
+    } catch (e) {}
   },
 
   globalData: {
