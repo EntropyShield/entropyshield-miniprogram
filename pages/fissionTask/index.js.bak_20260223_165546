@@ -86,45 +86,22 @@ Page({
         wx.setStorageSync(PENDING_INVITE_KEY, normInviteCode(options.inviteCode));
       }
     } catch (e) {}
-  
-    // [FINAL-INJECT-CALL] ensure invite+qr
-    try {
-      this.__finalEnsureFission && this.__finalEnsureFission();
-    } catch (e) {}
   },
 
   onShow() {
-    console.log('[FINAL] fissionTask onShow start');
-    
+    // [PATCH-FISSIONTASK-ONSHOW-FINAL] Ensure openid -> fetch profile -> sync rights -> set invite -> gen QR
     var self = this;
+    
+    // keep optional polling if exists
+    try { if (typeof self.startRightsAutoSync === 'function') self.startRightsAutoSync(); } catch (e) {}
+    
     try { self.setData && self.setData({ loading: true }); } catch (e) {}
     
-    var apiBase =
-      wx.getStorageSync('API_BASE') ||
-      wx.getStorageSync('apiBaseUrl') ||
-      ((getApp && getApp().globalData && getApp().globalData.API_BASE) || '');
-    
+    var apiBase = wx.getStorageSync('API_BASE') || wx.getStorageSync('apiBaseUrl') || ((getApp && getApp().globalData && getApp().globalData.API_BASE) || '');
     if (!apiBase) {
-      console.log('[FINAL] API_BASE empty');
+      try { wx.showToast({ title: 'API_BASE 为空', icon: 'none' }); } catch (e) {}
       try { self.setData && self.setData({ loading: false }); } catch (e) {}
       return;
-    }
-    
-    function stopLoadingSoon() {
-      var t = 0;
-      var timer = setInterval(function() {
-        t++;
-        try {
-          if (self.data && self.data.myQrPath) {
-            clearInterval(timer);
-            self.setData && self.setData({ loading: false });
-          }
-        } catch (e) {}
-        if (t >= 10) {
-          clearInterval(timer);
-          try { self.setData && self.setData({ loading: false }); } catch (e) {}
-        }
-      }, 200);
     }
     
     function syncRewards(total) {
@@ -134,12 +111,10 @@ Page({
         var rights = wx.getStorageSync(RIGHTS_KEY) || {};
         var currentFree = Number(rights.freeCalcTimes || 0) || 0;
         var lastSynced = Number(wx.getStorageSync(SYNC_KEY) || 0) || 0;
-    
         if (lastSynced === 0 && currentFree > 0) {
           wx.setStorageSync(SYNC_KEY, total);
           lastSynced = total;
         }
-    
         var delta = total - lastSynced;
         if (delta > 0) {
           rights.freeCalcTimes = currentFree + delta;
@@ -147,22 +122,35 @@ Page({
           wx.setStorageSync(RIGHTS_KEY, rights);
           wx.setStorageSync(SYNC_KEY, total);
         }
-    
+        // refresh UI if bound
         try { self.setData && self.setData({ userRights: rights, freeCalcTimes: Number(rights.freeCalcTimes || 0) || currentFree, membershipName: rights.membershipName || '' }); } catch (e) {}
       } catch (e) {}
     }
     
-    function setInvite(inv) {
-      if (!inv) return;
-      wx.setStorageSync('fissionMyInviteCode', inv);
-      try { self.setData && self.setData({ myInviteCode: inv, inviteCode: inv, fissionMyInviteCode: inv }); } catch (e) {}
-    }
-    
-    function genQr() {
+    function setInviteAndQr(invite, total) {
       try {
-        if (typeof self.refreshMyQr === 'function') self.refreshMyQr();
+        if (invite) {
+          wx.setStorageSync('fissionMyInviteCode', invite);
+          try { self.setData && self.setData({ myInviteCode: invite, inviteCode: invite, fissionMyInviteCode: invite }); } catch (e) {}
+          try { if (typeof self.refreshMyQr === 'function') self.refreshMyQr(); } catch (e) {}
+        }
+        if (typeof total === 'number') syncRewards(total);
+        // stop loading after QR ready (or timeout)
+        var t = 0;
+        var timer = setInterval(function() {
+          t++;
+          try {
+            if (self.data && self.data.myQrPath) {
+              clearInterval(timer);
+              self.setData && self.setData({ loading: false });
+            }
+          } catch (e) {}
+          if (t >= 10) {
+            clearInterval(timer);
+            try { self.setData && self.setData({ loading: false }); } catch (e) {}
+          }
+        }, 200);
       } catch (e) {}
-      stopLoadingSoon();
     }
     
     function fetchProfile(clientId, cb) {
@@ -170,8 +158,12 @@ Page({
         url: apiBase + '/api/fission/profile',
         method: 'GET',
         data: { clientId: clientId },
-        success: function(res) { cb && cb(null, res && res.data); },
-        fail: function(err) { cb && cb(err); }
+        success: function(res) {
+          cb && cb(null, res && res.data);
+        },
+        fail: function(err) {
+          cb && cb(err);
+        }
       });
     }
     
@@ -185,56 +177,48 @@ Page({
       });
     }
     
-    function ensureAll(clientId) {
-      console.log('[FINAL] ensure clientId=', clientId);
+    function ensureProfile(clientId) {
       try { self.setData && self.setData({ clientId: clientId }); } catch (e) {}
-    
-      fetchProfile(clientId, function(err, d) {
+      fetchProfile(clientId, function(err, data) {
         if (err) {
-          console.log('[FINAL] profile request fail', err);
+          try { wx.showToast({ title: 'profile 请求失败', icon: 'none' }); } catch (e) {}
           try { self.setData && self.setData({ loading: false }); } catch (e) {}
           return;
         }
+        var d = data || {};
+        var p = d.profile || {};
+        var total = Number(d.total_reward_times ?? p.total_reward_times ?? 0) || 0;
+        var invite = p.inviteCode || p.invite_code || p.myInviteCode || p.my_invite_code || d.inviteCode || d.invite_code || wx.getStorageSync('fissionMyInviteCode') || '';
     
-        var data = d || {};
-        var p = data.profile || {};
-        var total = Number(data.total_reward_times ?? p.total_reward_times ?? 0) || 0;
-        syncRewards(total);
-    
-        var inv = p.inviteCode || p.invite_code || p.myInviteCode || p.my_invite_code || data.inviteCode || data.invite_code || wx.getStorageSync('fissionMyInviteCode') || '';
-        if (!data.profile || !inv) {
-          console.log('[FINAL] profile missing invite -> init then refetch');
+        // if profile null or invite missing -> init then re-fetch
+        if (!d.profile || !invite) {
           initFission(clientId, function() {
             fetchProfile(clientId, function(_e2, d2) {
-              var data2 = d2 || {};
-              var p2 = data2.profile || {};
-              var total2 = Number(data2.total_reward_times ?? p2.total_reward_times ?? total) || total;
-              syncRewards(total2);
-    
-              var inv2 = p2.inviteCode || p2.invite_code || p2.myInviteCode || p2.my_invite_code || data2.inviteCode || data2.invite_code || inv || wx.getStorageSync('fissionMyInviteCode') || '';
-              setInvite(inv2);
-              genQr();
+              var dd = d2 || {};
+              var pp = dd.profile || {};
+              var total2 = Number(dd.total_reward_times ?? pp.total_reward_times ?? 0) || total;
+              var invite2 = pp.inviteCode || pp.invite_code || pp.myInviteCode || pp.my_invite_code || dd.inviteCode || dd.invite_code || invite || wx.getStorageSync('fissionMyInviteCode') || '';
+              setInviteAndQr(invite2, total2);
             });
           });
           return;
         }
     
-        setInvite(inv);
-        genQr();
+        setInviteAndQr(invite, total);
       });
     }
     
-    var cid = wx.getStorageSync('clientId');
-    if (cid) {
-      ensureAll(cid);
+    var clientId = wx.getStorageSync('clientId');
+    if (clientId) {
+      ensureProfile(clientId);
       return;
     }
     
-    console.log('[FINAL] no clientId, do wx.login');
+    // no clientId -> login -> /api/wx/login to get openid
     wx.login({
       success: function(r) {
         if (!r || !r.code) {
-          console.log('[FINAL] wx.login no code');
+          try { wx.showToast({ title: 'wx.login 无 code', icon: 'none' }); } catch (e) {}
           try { self.setData && self.setData({ loading: false }); } catch (e) {}
           return;
         }
@@ -245,30 +229,25 @@ Page({
           success: function(res) {
             var d = (res && res.data) || {};
             var openid = d.openid || d.clientId || (d.data && (d.data.openid || d.data.clientId)) || '';
-            console.log('[FINAL] /api/wx/login openid=', openid ? 'OK' : 'EMPTY');
             if (!openid) {
+              try { wx.showToast({ title: 'login 无 openid', icon: 'none' }); } catch (e) {}
               try { self.setData && self.setData({ loading: false }); } catch (e) {}
               return;
             }
             wx.setStorageSync('clientId', openid);
-            ensureAll(openid);
+            ensureProfile(openid);
           },
-          fail: function(e) {
-            console.log('[FINAL] /api/wx/login fail', e);
-            try { self.setData && self.setData({ loading: false }); } catch (e2) {}
+          fail: function() {
+            try { wx.showToast({ title: '/api/wx/login 失败', icon: 'none' }); } catch (e) {}
+            try { self.setData && self.setData({ loading: false }); } catch (e) {}
           }
         });
       },
-      fail: function(e) {
-        console.log('[FINAL] wx.login fail', e);
-        try { self.setData && self.setData({ loading: false }); } catch (e2) {}
+      fail: function() {
+        try { wx.showToast({ title: 'wx.login 失败', icon: 'none' }); } catch (e) {}
+        try { self.setData && self.setData({ loading: false }); } catch (e) {}
       }
     });
-  
-    // [FINAL-INJECT-CALL] ensure invite+qr
-    try {
-      this.__finalEnsureFission && this.__finalEnsureFission();
-    } catch (e) {}
   },
 
   /**
@@ -984,11 +963,6 @@ const code = (forceCode || this.data.myInviteCode || (wx.getStorageSync('fission
 ,
   onShow() {
     // [PATCH-20260223-B1] 权益实时刷新：onShow 拉取 /api/fission/profile 并增量同步 freeCalcTimes\n    try {\n      const apiBase =\n        wx.getStorageSync('API_BASE') ||\n        wx.getStorageSync('apiBaseUrl') ||\n        ((getApp && getApp().globalData && getApp().globalData.API_BASE) || '');\n      const clientId = wx.getStorageSync('clientId');\n      if (apiBase && clientId) {\n        wx.request({\n          url: `${apiBase}/api/fission/profile`,\n          method: 'GET',\n          data: { clientId },\n          success: (res) => {\n            const d = res && res.data;\n            if (!d || !d.ok) return;\n            const total = Number((d.total_reward_times ?? (d.profile && d.profile.total_reward_times) ?? 0)) || 0;\n    \n            const rights = wx.getStorageSync('userRights') || {};\n            const currentFree = Number(rights.freeCalcTimes || 0) || 0;\n            let lastSynced = Number(wx.getStorageSync('fission_total_reward_times_synced') || 0) || 0;\n    \n            // 初始化：如果之前已有 freeCalcTimes，但没记录 lastSynced，则直接对齐到服务端，避免重复加\n            if (lastSynced === 0 && currentFree > 0) {\n              wx.setStorageSync('fission_total_reward_times_synced', total);\n              lastSynced = total;\n            }\n    \n            const delta = total - lastSynced;\n            if (delta > 0) {\n              rights.freeCalcTimes = currentFree + delta;\n              if (!rights.membershipName) rights.membershipName = 'FREE';\n              wx.setStorageSync('userRights', rights);\n              wx.setStorageSync('fission_total_reward_times_synced', total);\n            }\n    \n            // 无论是否新增，都刷新一下 UI（不影响你现有骨架）\n            if (this && this.setData) {\n              this.setData({\n                userRights: rights,\n                freeCalcTimes: Number(rights.freeCalcTimes || 0) || currentFree,\n                membershipName: rights.membershipName || ''\n              });\n            }\n          }\n        });\n      }\n    } catch (e) {}
-  
-    // [FINAL-INJECT-CALL] ensure invite+qr
-    try {
-      this.__finalEnsureFission && this.__finalEnsureFission();
-    } catch (e) {}
   }
 ,
 
@@ -1067,346 +1041,4 @@ const code = (forceCode || this.data.myInviteCode || (wx.getStorageSync('fission
   onUnload() {
     this.stopRightsAutoSync && this.stopRightsAutoSync();
   },
-  // [FINAL-ENSURE-FISSION] auto ensure openid/profile/invite/qr
-  __finalEnsureFission() {
-    if (this.__finalEnsuring) return;
-    this.__finalEnsuring = true;
-
-    const self = this;
-    try { self.setData && self.setData({ loading: true }); } catch (e) {}
-
-    const apiBase =
-      wx.getStorageSync('API_BASE') ||
-      wx.getStorageSync('apiBaseUrl') ||
-      ((getApp && getApp().globalData && getApp().globalData.API_BASE) || '');
-
-    const finish = () => {
-      self.__finalEnsuring = false;
-      try { self.setData && self.setData({ loading: false }); } catch (e) {}
-    };
-
-    if (!apiBase) {
-      console.log('[FINAL] API_BASE empty');
-      return finish();
-    }
-
-    const setInvite = (inv) => {
-      if (!inv) return;
-      wx.setStorageSync('fissionMyInviteCode', inv);
-      try {
-        self.setData && self.setData({
-          myInviteCode: inv,
-          inviteCode: inv,
-          fissionMyInviteCode: inv
-        });
-      } catch (e) {}
-    };
-
-    const genQr = () => {
-      try {
-        if (typeof self.refreshMyQr === 'function') self.refreshMyQr();
-      } catch (e) {}
-
-      // 2 秒内看见 myQrPath 就收口 loading
-      let t = 0;
-      const timer = setInterval(() => {
-        t++;
-        try {
-          if (self.data && self.data.myQrPath) {
-            clearInterval(timer);
-            finish();
-          }
-        } catch (e) {}
-        if (t >= 10) {
-          clearInterval(timer);
-          finish();
-        }
-      }, 200);
-    };
-
-    const fetchProfile = (clientId, cb) => {
-      wx.request({
-        url: `${apiBase}/api/fission/profile`,
-        method: 'GET',
-        data: { clientId },
-        success: (res) => cb && cb(null, res && res.data),
-        fail: (err) => cb && cb(err)
-      });
-    };
-
-    const initFission = (clientId, cb) => {
-      wx.request({
-        url: `${apiBase}/api/fission/init`,
-        method: 'POST',
-        data: { clientId },
-        success: (res) => cb && cb(null, res && res.data),
-        fail: (err) => cb && cb(err)
-      });
-    };
-
-    const ensureProfile = (clientId) => {
-      console.log('[FINAL] ensure clientId=', clientId);
-      try { self.setData && self.setData({ clientId }); } catch (e) {}
-
-      fetchProfile(clientId, (err, d) => {
-        if (err) {
-          console.log('[FINAL] profile fail', err);
-          return finish();
-        }
-        const data = d || {};
-        const p = data.profile || {};
-
-        const inv =
-          p.inviteCode || p.invite_code || p.myInviteCode || p.my_invite_code ||
-          data.inviteCode || data.invite_code ||
-          wx.getStorageSync('fissionMyInviteCode') || '';
-
-        if (!data.profile || !inv) {
-          console.log('[FINAL] missing invite -> init then refetch');
-          initFission(clientId, () => {
-            fetchProfile(clientId, (_e2, d2) => {
-              const data2 = d2 || {};
-              const p2 = data2.profile || {};
-              const inv2 =
-                p2.inviteCode || p2.invite_code || p2.myInviteCode || p2.my_invite_code ||
-                data2.inviteCode || data2.invite_code ||
-                inv || wx.getStorageSync('fissionMyInviteCode') || '';
-              setInvite(inv2);
-              genQr();
-            });
-          });
-          return;
-        }
-
-        setInvite(inv);
-        genQr();
-      });
-    };
-
-    const cid = wx.getStorageSync('clientId');
-    if (cid) return ensureProfile(cid);
-
-    console.log('[FINAL] no clientId -> wx.login');
-    wx.login({
-      success: (r) => {
-        if (!r || !r.code) {
-          console.log('[FINAL] wx.login no code');
-          return finish();
-        }
-        wx.request({
-          url: `${apiBase}/api/wx/login`,
-          method: 'POST',
-          data: { code: r.code },
-          success: (res) => {
-            const d = (res && res.data) || {};
-            const openid = d.openid || d.clientId || (d.data && (d.data.openid || d.data.clientId)) || '';
-            console.log('[FINAL] /api/wx/login openid=', openid ? 'OK' : 'EMPTY');
-            if (!openid) return finish();
-            wx.setStorageSync('clientId', openid);
-            ensureProfile(openid);
-          },
-          fail: (e) => {
-            console.log('[FINAL] /api/wx/login fail', e);
-            finish();
-          }
-        });
-      },
-      fail: (e) => {
-        console.log('[FINAL] wx.login fail', e);
-        finish();
-      }
-    });
-  },
-
-// [CLEAN-FISSIONTASK-FINAL-BEGIN]
-  // 说明：本块是 fissionTask 的“唯一生效入口”，后续只维护这里即可。
-  //      onShow/onHide/onUnload 统一收口；确保 openid→profile→invite→qr 自动完成。
-
-  __finalEnsureFission() {
-    if (this.__finalEnsuring) return;
-    this.__finalEnsuring = true;
-
-    const self = this;
-
-    const apiBase =
-      wx.getStorageSync('API_BASE') ||
-      wx.getStorageSync('apiBaseUrl') ||
-      ((getApp && getApp().globalData && getApp().globalData.API_BASE) || '');
-
-    const finish = () => {
-      self.__finalEnsuring = false;
-      try { self.setData && self.setData({ loading: false }); } catch (e) {}
-    };
-
-    if (!apiBase) return finish();
-
-    try { self.setData && self.setData({ loading: true }); } catch (e) {}
-
-    const setInvite = (inv) => {
-      if (!inv) return;
-      wx.setStorageSync('fissionMyInviteCode', inv);
-      try {
-        self.setData && self.setData({
-          myInviteCode: inv,
-          inviteCode: inv,
-          fissionMyInviteCode: inv
-        });
-      } catch (e) {}
-    };
-
-    const syncRewards = (total) => {
-      try {
-        const RIGHTS_KEY = 'userRights';
-        const SYNC_KEY = 'fission_total_reward_times_synced';
-        const rights = wx.getStorageSync(RIGHTS_KEY) || {};
-        const currentFree = Number(rights.freeCalcTimes || 0) || 0;
-        let lastSynced = Number(wx.getStorageSync(SYNC_KEY) || 0) || 0;
-
-        // 初始化对齐：避免重复加
-        if (lastSynced === 0 && currentFree > 0) {
-          wx.setStorageSync(SYNC_KEY, total);
-          lastSynced = total;
-        }
-
-        const delta = total - lastSynced;
-        if (delta > 0) {
-          rights.freeCalcTimes = currentFree + delta;
-          if (!rights.membershipName) rights.membershipName = 'FREE';
-          wx.setStorageSync(RIGHTS_KEY, rights);
-          wx.setStorageSync(SYNC_KEY, total);
-        }
-
-        try {
-          self.setData && self.setData({
-            userRights: rights,
-            freeCalcTimes: Number(rights.freeCalcTimes || 0) || currentFree,
-            membershipName: rights.membershipName || ''
-          });
-        } catch (e) {}
-      } catch (e) {}
-    };
-
-    const genQr = () => {
-      try {
-        if (typeof self.refreshMyQr === 'function') self.refreshMyQr();
-      } catch (e) {}
-
-      // 2 秒内看到 myQrPath 就收口；否则超时也收口
-      let t = 0;
-      const timer = setInterval(() => {
-        t++;
-        try {
-          if (self.data && self.data.myQrPath) {
-            clearInterval(timer);
-            finish();
-          }
-        } catch (e) {}
-        if (t >= 10) {
-          clearInterval(timer);
-          finish();
-        }
-      }, 200);
-    };
-
-    const fetchProfile = (clientId, cb) => {
-      wx.request({
-        url: `${apiBase}/api/fission/profile`,
-        method: 'GET',
-        data: { clientId },
-        success: (res) => cb && cb(null, res && res.data),
-        fail: (err) => cb && cb(err)
-      });
-    };
-
-    const initFission = (clientId, cb) => {
-      wx.request({
-        url: `${apiBase}/api/fission/init`,
-        method: 'POST',
-        data: { clientId },
-        success: (res) => cb && cb(null, res && res.data),
-        fail: (err) => cb && cb(err)
-      });
-    };
-
-    const ensureProfile = (clientId) => {
-      try { self.setData && self.setData({ clientId }); } catch (e) {}
-
-      fetchProfile(clientId, (err, d) => {
-        if (err) return finish();
-
-        const data = d || {};
-        const p = data.profile || {};
-
-        const total = Number((data.total_reward_times ?? p.total_reward_times ?? 0)) || 0;
-        syncRewards(total);
-
-        const inv =
-          p.inviteCode || p.invite_code || p.myInviteCode || p.my_invite_code ||
-          data.inviteCode || data.invite_code ||
-          wx.getStorageSync('fissionMyInviteCode') || '';
-
-        if (!data.profile || !inv) {
-          initFission(clientId, () => {
-            fetchProfile(clientId, (_e2, d2) => {
-              const data2 = d2 || {};
-              const p2 = data2.profile || {};
-              const total2 = Number((data2.total_reward_times ?? p2.total_reward_times ?? total)) || total;
-              syncRewards(total2);
-
-              const inv2 =
-                p2.inviteCode || p2.invite_code || p2.myInviteCode || p2.my_invite_code ||
-                data2.inviteCode || data2.invite_code ||
-                inv || wx.getStorageSync('fissionMyInviteCode') || '';
-
-              setInvite(inv2);
-              genQr();
-            });
-          });
-          return;
-        }
-
-        setInvite(inv);
-        genQr();
-      });
-    };
-
-    const cid = wx.getStorageSync('clientId');
-    if (cid) return ensureProfile(cid);
-
-    wx.login({
-      success: (r) => {
-        if (!r || !r.code) return finish();
-        wx.request({
-          url: `${apiBase}/api/wx/login`,
-          method: 'POST',
-          data: { code: r.code },
-          success: (res) => {
-            const d = (res && res.data) || {};
-            const openid = d.openid || d.clientId || (d.data && (d.data.openid || d.data.clientId)) || '';
-            if (!openid) return finish();
-            wx.setStorageSync('clientId', openid);
-            ensureProfile(openid);
-          },
-          fail: () => finish()
-        });
-      },
-      fail: () => finish()
-    });
-  },
-
-  // 唯一生效入口：每次进入页都确保邀请码+二维码+权益同步
-  onShow() {
-    try { if (typeof this.startRightsAutoSync === 'function') this.startRightsAutoSync(); } catch (e) {}
-    try { this.__finalEnsureFission && this.__finalEnsureFission(); } catch (e) {}
-  },
-
-  onHide() {
-    try { this.stopRightsAutoSync && this.stopRightsAutoSync(); } catch (e) {}
-  },
-
-  onUnload() {
-    try { this.stopRightsAutoSync && this.stopRightsAutoSync(); } catch (e) {}
-  },
-// [CLEAN-FISSIONTASK-FINAL-END]
-
 });

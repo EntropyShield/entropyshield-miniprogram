@@ -1,16 +1,7 @@
-// pages/campReport/index.js 
-
+// pages/campReport/index.js
 
 Page({
-  onShow: function() {
-      // [ADD-REPORT] CALL_GLOBAL_FINISH_FN
-    try {
-      if (wx.__tryFinishRewardOnReportNav) {
-        wx.__tryFinishRewardOnReportNav('/pages/campReport/index');
-      }
-    } catch (e) {}
-},
-data: {
+  data: {
     // 顶部总览
     summary: {
       score: 0,
@@ -40,8 +31,61 @@ data: {
     this.buildReport();
   },
 
+  // ==============================
+  // [PATCH-A] 触发点：campReport onShow
+  // 1) 尝试全局补发（你原来那段）
+  // 2) buildReport（可能会本地发放 freeCalcTimes）
+  // 3) 奖励到账弹窗（只弹一次，靠 KEY 防重复）
+  // ==============================
   onShow() {
+    // [PATCH-A] CALL_GLOBAL_FINISH_FN（保留你原来逻辑）
+    try {
+      if (wx.__tryFinishRewardOnReportNav) {
+        wx.__tryFinishRewardOnReportNav('/pages/campReport/index');
+      }
+    } catch (e) {}
+
+    // 先构建报告（内部会调用 handleCampMultiRoundReward，可能会写入 userRights.freeCalcTimes）
     this.buildReport();
+
+    // 再做“奖励到账提示”（必须在 buildReport 后面）
+    this.notifyRewardArrived();
+  },
+
+  // ==============================
+  // [PATCH-A] 奖励到账提示（只提示新增次数，避免反复弹）
+  // 触发条件：userRights.freeCalcTimes 比上次记录 KEY 更大
+  // ==============================
+  notifyRewardArrived() {
+    const KEY = 'campReport_last_notified_freeCalcTimes';
+
+    const rights = wx.getStorageSync('userRights') || {};
+    const now = Number(rights.freeCalcTimes || 0);
+    const last = Number(wx.getStorageSync(KEY) || 0);
+
+    // 如果用户消耗了次数导致 now < last，修正 last，避免后续异常
+    if (now < last) {
+      wx.setStorageSync(KEY, now);
+      return;
+    }
+
+    const delta = now - last;
+    if (delta <= 0) return;
+
+    // 先写入，避免 onShow 连续触发重复弹窗
+    wx.setStorageSync(KEY, now);
+
+    wx.showModal({
+      title: '结营奖励已到账',
+      content: `恭喜结营！完整方案次数 +${delta}\n当前剩余：${now} 次`,
+      confirmText: '去使用',
+      cancelText: '知道了',
+      success: (r) => {
+        if (r.confirm) {
+          wx.navigateTo({ url: '/pages/riskCalculator/index' });
+        }
+      }
+    });
   },
 
   /**
@@ -67,8 +111,7 @@ data: {
 
     const dayStats = dayMeta.map(meta => {
       const log = logs[meta.day] || {};
-      const score =
-        typeof log.score === 'number' ? log.score : 0;
+      const score = typeof log.score === 'number' ? log.score : 0;
 
       const hasContent = !!(
         log.dailyNote ||
@@ -90,10 +133,8 @@ data: {
 
       let scoreText = '暂无有效记录';
       if (isFinished) {
-        scoreText =
-          score > 0 ? `得分 ${score} 分` : '已记录，未评分';
+        scoreText = score > 0 ? `得分 ${score} 分` : '已记录，未评分';
       } else if (hasContent) {
-        // 有内容但未标记 finished 的情况
         scoreText = '有记录，建议补充完成评分';
       }
 
@@ -115,31 +156,25 @@ data: {
 
     // 计算平均分
     const avgScore =
-      effectiveDays > 0
-        ? Math.round(totalScore / effectiveDays)
-        : 0;
+      effectiveDays > 0 ? Math.round(totalScore / effectiveDays) : 0;
 
     // 等级&标签&总体描述
     let levelName = 'Lv.0 尚未成型';
     let levelTag = '记录起步';
-    let brief =
-      '建议先坚持连续记录 7 天，再来看账户和心态的变化。';
+    let brief = '建议先坚持连续记录 7 天，再来看账户和心态的变化。';
 
     if (avgScore >= 80 && effectiveDays >= 5) {
       levelName = 'Lv.3 稳健执行者';
       levelTag = '执行较稳定';
-      brief =
-        '你已经具备比较稳定的风控执行节奏，可以开始把自己的规则固化下来。';
+      brief = '你已经具备比较稳定的风控执行节奏，可以开始把自己的规则固化下来。';
     } else if (avgScore >= 60 && effectiveDays >= 4) {
       levelName = 'Lv.2 记录养成者';
       levelTag = '记录有起步';
-      brief =
-        '你已经可以在部分交易日留下记录，只要把记录做满一周，画像会更加清晰。';
+      brief = '你已经可以在部分交易日留下记录，只要把记录做满一周，画像会更加清晰。';
     } else if (effectiveDays >= 3) {
       levelName = 'Lv.1 觉察启动者';
       levelTag = '开始关注风控';
-      brief =
-        '你已经开始注意自己的回撤与仓位，接下来重点是「每天都留下一条记录」。';
+      brief = '你已经开始注意自己的回撤与仓位，接下来重点是「每天都留下一条记录」。';
     }
 
     // 补充标签
@@ -162,29 +197,19 @@ data: {
     // AI 建议文案（简单按情况组合）
     const suggestions = [];
     if (effectiveDays < 4) {
-      suggestions.push(
-        '先把「记录习惯」打牢，目标是一周内至少完成 5 天有效打卡。'
-      );
+      suggestions.push('先把「记录习惯」打牢，目标是一周内至少完成 5 天有效打卡。');
     } else {
-      suggestions.push(
-        '记录已经基本养成习惯，可以开始把固定的风控清单写在手机或本子里，交易前后对照执行。'
-      );
+      suggestions.push('记录已经基本养成习惯，可以开始把固定的风控清单写在手机或本子里，交易前后对照执行。');
     }
 
     if (avgScore < 60) {
-      suggestions.push(
-        '目前风控执行还有明显漏网之鱼，建议先把「单笔最大亏损」「单日最大回撤」这两条铁律写清楚并严格遵守。'
-      );
+      suggestions.push('目前风控执行还有明显漏网之鱼，建议先把「单笔最大亏损」「单日最大回撤」这两条铁律写清楚并严格遵守。');
     } else {
-      suggestions.push(
-        '你的止损与仓位控制已经有一定执行力，可以在保证回撤可控的前提下，适当提高盈利目标。'
-      );
+      suggestions.push('你的止损与仓位控制已经有一定执行力，可以在保证回撤可控的前提下，适当提高盈利目标。');
     }
 
     if (badDays > 0) {
-      suggestions.push(
-        '可以给自己设定「情绪减震器」：例如每天限制看盘次数、下单前强制等待 3 分钟等，降低情绪交易冲动。'
-      );
+      suggestions.push('可以给自己设定「情绪减震器」：例如每天限制看盘次数、下单前强制等待 3 分钟等，降低情绪交易冲动。');
     }
 
     const advice = { suggestions };
@@ -196,7 +221,7 @@ data: {
       advice
     });
 
-    // ===== 新增：多轮训练营奖励逻辑 =====
+    // ===== 多轮训练营奖励逻辑 =====
     // 用有效完成天数作为 doneDays（你这套逻辑里即 7/7）
     const doneDays = effectiveDays;
     this.handleCampMultiRoundReward(doneDays, logs);
@@ -207,10 +232,6 @@ data: {
    * - 第 1 轮 7/7：+4 次
    * - 第 2 / 3 轮 7/7：各 +2 次
    * - 第 4 轮及以后：不再发次数，只记录轮次
-   *
-   * 参数：
-   *  - doneDays: 已完成天数（整数）
-   *  - campDailyLogs: 打卡日志对象（用于生成“签名”，防止同一轮重复发奖）
    */
   handleCampMultiRoundReward(doneDays, campDailyLogs) {
     // 不是 7/7，直接只更新轮数展示，不发奖励
@@ -231,15 +252,14 @@ data: {
     let roundCount = Number(campStatus.campRoundCount || 0);
     const lastSign = campStatus.lastRewardedSign || '';
 
-    // 2）用 campDailyLogs 生成一个“签名”，避免同一批日志重复领奖
+    // 2）生成签名，避免同一轮重复领奖
     let currentSign = '';
     try {
       currentSign = JSON.stringify(campDailyLogs || {});
     } catch (e) {
-      currentSign = String(Date.now()); // 极端情况下兜底
+      currentSign = String(Date.now());
     }
 
-    // 如果签名相同，说明这轮已经发过奖了，什么都不做
     if (currentSign === lastSign) {
       this.setData({
         campRoundCount: roundCount,
@@ -261,7 +281,7 @@ data: {
       rewardTimes = 0;
     }
 
-    // 4）给用户发放完整方案次数
+    // 4）发放次数（写入 userRights）
     if (rewardTimes > 0) {
       const RIGHTS_KEY = 'userRights';
       const rights = wx.getStorageSync(RIGHTS_KEY) || {};
@@ -270,7 +290,6 @@ data: {
 
       rights.freeCalcTimes = newTimes;
 
-      // 如果目前没有会员名称，则默认标记为“7天风控训练营奖励”
       if (!rights.membershipName) {
         rights.membershipName = '7天风控训练营奖励';
       }
@@ -283,7 +302,6 @@ data: {
         duration: 2600
       });
     } else {
-      // 第 4 轮及以后，不发次数，只给一个荣誉提示（可选）
       wx.showToast({
         title: `你已完成第 ${thisRound} 轮 7 天训练，这已经远超大多数交易者！`,
         icon: 'none',
@@ -291,14 +309,13 @@ data: {
       });
     }
 
-    // 5）更新 campStatus，记录当前轮次 & 本轮签名
+    // 5）更新 campStatus
     campStatus.campRoundCount = thisRound;
     campStatus.lastRewardedSign = currentSign;
     campStatus.lastRewardedAt = Date.now();
-
     wx.setStorageSync(CAMP_STATUS_KEY, campStatus);
 
-    // 6）更新页面数据（后续要展示可以直接用）
+    // 6）更新页面展示
     this.setData({
       campRoundCount: thisRound,
       rewardThisRound: rewardTimes

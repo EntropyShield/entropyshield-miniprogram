@@ -1,21 +1,49 @@
 {
   "appid": "wxaaafd6a01d1cc238",
   "compileType": "miniprogram",
-  "libVersion": "trial",
+  "libVersion": "3.11.1",
   "packOptions": {
     "ignore": [
-      { "type": "folder", "value": "funnelLogs" },
-      { "type": "folder", "value": "logs" },
-      { "type": "folder", "value": ".git" },
-      { "type": "folder", "value": ".vscode" },
-
-      { "type": "folder", "value": "testEmotionIndex" },
-      { "type": "folder", "value": "testLossPersonality" },
-      { "type": "folder", "value": "testLossResult" },
-      { "type": "folder", "value": "testMarketRisk" },
-      { "type": "folder", "value": "testRiskScore" },
-
-      { "type": "file", "value": "project.private.config.json" }
+      {
+        "value": "funnelLogs",
+        "type": "folder"
+      },
+      {
+        "value": "logs",
+        "type": "folder"
+      },
+      {
+        "value": ".git",
+        "type": "folder"
+      },
+      {
+        "value": ".vscode",
+        "type": "folder"
+      },
+      {
+        "value": "testEmotionIndex",
+        "type": "folder"
+      },
+      {
+        "value": "testLossPersonality",
+        "type": "folder"
+      },
+      {
+        "value": "testLossResult",
+        "type": "folder"
+      },
+      {
+        "value": "testMarketRisk",
+        "type": "folder"
+      },
+      {
+        "value": "testRiskScore",
+        "type": "folder"
+      },
+      {
+        "value": "project.private.config.json",
+        "type": "file"
+      }
     ],
     "include": []
   },
@@ -34,21 +62,16 @@
     },
     "compileWorklet": true,
     "uglifyFileName": false,
-
     "uploadWithSourceMap": false,
     "packNpmManually": false,
-
     "minifyWXSS": true,
     "minifyWXML": true,
-
     "localPlugins": false,
     "condition": true,
-
     "swc": true,
     "disableSWC": false,
     "disableUseStrict": false,
     "useCompilerPlugins": false,
-
     "ignoreUploadUnusedFiles": true
   },
   "condition": {},

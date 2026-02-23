@@ -19,46 +19,6 @@
     "checkInvalidKey": true,
     "ignoreDevUnusedFiles": false
   },
-  "libVersion": "3.11.1",
-  "condition": {
-    "miniprogram": {
-      "list": [
-        {
-          "name": "FissionTask",
-          "pathName": "pages/fissionTask/index",
-          "query": "scene=II0X4J",
-          "scene": null,
-          "launchMode": "default"
-        },
-        {
-          "name": "MembershipTest",
-          "pathName": "pages/membership/index",
-          "query": "type=steady&balance=100000&price=10&code=",
-          "launchMode": "default",
-          "scene": null
-        },
-        {
-          "name": "pages/fissionTask/index",
-          "pathName": "pages/fissionTask/index",
-          "query": "",
-          "launchMode": "default",
-          "scene": null
-        },
-        {
-          "name": "来访管理页",
-          "pathName": "pages/visitAdmin/index",
-          "query": "",
-          "launchMode": "default",
-          "scene": null
-        },
-        {
-          "name": "测试结果页",
-          "pathName": "pages/index/index",
-          "query": "type=loss&score=72&level=high",
-          "launchMode": "default",
-          "scene": null
-        }
-      ]
-    }
-  }
+  "libVersion": "3.14.2",
+  "condition": {}
 }
