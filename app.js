@@ -1,3 +1,5 @@
+const __CFG__ = require('./config');
+const __API_BASE_SAFE__ = (__CFG__.API_BASE || __CFG__.PROD_API_BASE || __CFG__.DEV_API_BASE || '').replace(/\/$/, '');
 // app.js - 启动应用并确保环境变量与数据库配置
 
 const { API_BASE, ENV, runtime } = require('./config');  // 从 config.js 获取 API_BASE 和环境配置
@@ -35,7 +37,7 @@ App({
     try {
       const sys = wx.getSystemInfoSync ? wx.getSystemInfoSync() : {};
       if (sys && sys.platform === 'devtools') {
-        const local = 'http://127.0.0.1:3001';
+        const local = 'https://api.entropyshield.com';
         try {
   const __keep = wx.getStorageSync('API_BASE') || wx.getStorageSync('apiBaseUrl') || '';
   if (!__keep) wx.setStorageSync('API_BASE', local);

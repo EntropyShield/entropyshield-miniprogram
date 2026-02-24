@@ -5,14 +5,27 @@
   <view class="card-title">我的专属二维码</view>
   <view class="card-sub">好友扫码进入后将自动绑定你的邀请码</view>
 
-  <image wx:if="{{myQrPath}}" class="qr-img" src="{{myQrPath}}" mode="widthFix" bindtap="onPreviewQr" />
+  <!-- ✅ 兼容：myQrPath / qrcodeImage / qrcodeUrl -->
+  <image
+    wx:if="{{myQrPath || qrcodeImage || qrcodeUrl}}"
+    class="qr-img"
+    src="{{myQrPath || qrcodeImage || qrcodeUrl}}"
+    mode="widthFix"
+    bindtap="onPreviewQr"
+  />
   <view wx:else class="qr-placeholder">二维码生成中…</view>
 
   <view class="qr-actions">
-    <button class="qr-btn" bindtap="refreshMyQr">刷新二维码</button>
+    <button bindtap="onTapRefreshQrcode" class="qr-btn">刷新二维码</button>
     <button class="qr-btn primary" open-type="share">分享给好友</button>
   </view>
+
+  <!-- ✅ 仅 DevTools：快速切换身份(B)用于验证绑定链路（不影响真机） -->
+  <view wx:if="{{isDevtools}}" style="margin-top:10px;">
+    <button bindtap="onTapSwitchIdentity" class="qr-btn">切换身份(B)</button>
+  </view>
 </view>
+
 <view class="card card-invite">
   <view class="title">熵盾 · 裂变任务</view>
   <view class="subtitle">
@@ -20,12 +33,11 @@
   </view>
 
   <view class="invite-row">
+    <!-- ✅ 兼容：myInviteCode / inviteCode / inviteCodeText -->
     <text class="invite-code">
-      {{myInviteCode || '邀请码生成中…'}}
+      {{(myInviteCode || inviteCode || inviteCodeText) || '邀请码生成中…'}}
     </text>
-    <button class="btn-copy" bindtap="onCopyMyInviteCode">
-      复制
-    </button>
+    <button bindtap="onTapCopyInviteCode" class="btn-copy">复制</button>
   </view>
 
   <view class="tips">
@@ -40,12 +52,14 @@
   <view class="section-title">绑定好友邀请码</view>
 
   <input
+    bindinput="onInputBindCode"
+    bindconfirm="onTapBind"
+    confirm-type="done"
     class="input"
     type="text"
     placeholder="输入好友的邀请码（例如 TEST01）"
     placeholder-style="color:#5f6368"
     value="{{bindInviteCodeInput}}"
-    bindinput="onInputBindCode"
   />
 
   <view wx:if="{{hasBoundInviter}}" class="bound-info">
@@ -54,19 +68,17 @@
 
   <!-- 未绑定时可以点击“绑定” -->
   <button
+    bindtap="onTapBind"
     wx:if="{{!hasBoundInviter}}"
     class="btn-primary"
-    bindtap="onBindInviteCode"
+    loading="{{bindLoading}}"
+    disabled="{{bindLoading}}"
   >
     绑定
   </button>
 
   <!-- 已绑定后按钮置灰，仅做提示 -->
-  <button
-    wx:else
-    class="btn-disabled"
-    disabled="true"
-  >
+  <button wx:else class="btn-disabled" disabled="true">
     已绑定邀请人
   </button>
 
@@ -91,11 +103,7 @@
   </view>
 
   <!-- 奖励明细列表 -->
-  <scroll-view
-    wx:if="{{rewardLogs.length}}"
-    scroll-y="true"
-    class="reward-list"
-  >
+  <scroll-view wx:if="{{rewardLogs.length}}" scroll-y="true" class="reward-list">
     <block wx:for="{{rewardLogs}}" wx:key="id">
       <view class="reward-item">
         <view class="reward-top">
@@ -120,13 +128,8 @@
 
 <!-- 卡片 4：底部操作 -->
 <view class="card card-actions">
-  <button class="btn-primary" bindtap="goUseCalc">
-    立即使用风控计算器
-  </button>
-
-  <button class="btn-ghost" bindtap="goHome">
-    返回熵盾首页
-  </button>
+  <button class="btn-primary">立即使用风控计算器</button>
+  <button class="btn-ghost">返回熵盾首页</button>
 </view>
 
 </view>

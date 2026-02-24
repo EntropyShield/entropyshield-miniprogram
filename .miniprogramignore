@@ -1,0 +1,6 @@
+# auto-generated
+.patch_backups/**
+_patch_backups_archive/**
+scripts/**
+node_modules/**
+.git/**

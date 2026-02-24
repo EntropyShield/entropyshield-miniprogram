@@ -1,54 +1,3 @@
-
-// ===================== [ADD] AUTO_BIND_FROM_SCENE_V1 BEGIN =====================
-const __CFG_BIND__ = require('../../config');
-
-function __BIND_API_BASE__() {
-  const app = getApp ? getApp() : null;
-  const gd = app && app.globalData ? app.globalData : null;
-  const base = (gd && gd.API_BASE) || __CFG_BIND__.API_BASE || __CFG_BIND__.PROD_API_BASE || __CFG_BIND__.DEV_API_BASE || '';
-  return String(base || '').replace(/\/$/, '');
-}
-function __BIND_URL__(path) { return __BIND_API_BASE__() + path; }
-
-// 从扫码参数解析 inviteCode（优先 scene，其次 inviteCode）
-function __PARSE_INVITE_CODE__(options) {
-  if (!options) return '';
-  let v = options.scene || options.inviteCode || '';
-  try { v = decodeURIComponent(v); } catch(e) {}
-  v = String(v || '').trim();
-  // 兼容 scene 可能是 "i=XXXXXX"
-  const m = v.match(/(?:^|[?&])(i|inviteCode)=([^&]+)/i);
-  if (m && m[2]) v = m[2];
-  v = String(v).trim().toUpperCase();
-  // 只保留字母数字，避免脏数据
-  v = v.replace(/[^0-9A-Z]/g, '');
-  return v;
-}
-
-// 获取当前用户 openid/clientId（你后端用 openid 字段，但前端一般叫 clientId）
-function __GET_CLIENT_ID__() {
-  const app = getApp ? getApp() : null;
-  const gd = app && app.globalData ? app.globalData : null;
-  return (gd && (gd.clientId || gd.openid)) || wx.getStorageSync('clientId') || wx.getStorageSync('openid') || '';
-}
-// ===================== [ADD] AUTO_BIND_FROM_SCENE_V1 END =====================
-
-
-// ===================== [ADD] QR_API_BASE_HELPER BEGIN =====================
-const __CFG__ = require('../../config');
-function __QR_API_BASE__() {
-  const app = getApp ? getApp() : null;
-  const gd = app && app.globalData ? app.globalData : null;
-  const base = (gd && gd.API_BASE) || __CFG__.API_BASE || __CFG__.PROD_API_BASE || __CFG__.DEV_API_BASE || '';
-  return String(base || '').replace(/\/$/, '');
-}
-function __QR_URL__(inviteCode) {
-  const b = __QR_API_BASE__();
-  const t = Date.now();
-  return b + '/api/fission/qrcode?inviteCode=' + encodeURIComponent(inviteCode) + '&t=' + t;
-}
-// ===================== [ADD] QR_API_BASE_HELPER END =====================
-
 // pages/fissionTask/index.js
 const { API_BASE } = require('../../config');
 
@@ -124,77 +73,6 @@ function normalizeQrcode(raw) {
 }
 
 Page({
-  onShow() {
-    // [ADD] AUTO_BIND_FROM_SCENE_ONSHOW
-    this.__tryAutoBind__ && this.__tryAutoBind__('onShow');
-  },
-
-  pendingInviteCode: '',
-
-  // ===================== [ADD] __tryAutoBind__ BEGIN =====================
-  __tryAutoBind__(reason) {
-    try {
-      if (this.__bindingInvite__) return;
-      const pending = (this.data && this.data.pendingInviteCode) || wx.getStorageSync('pendingInviteCode') || '';
-      if (!pending) return;
-
-      // 如果页面已显示“已绑定邀请人”，直接清 pending
-      if (this.data && this.data.hasBoundInviter) {
-        wx.removeStorageSync('pendingInviteCode');
-        this.setData({ pendingInviteCode: '' });
-        return;
-      }
-
-      const clientId = String(__GET_CLIENT_ID__() || '').trim();
-      if (!clientId) return; // 等 profile/init 把 clientId 写入 globalData 后自动重试
-
-      const myCode = String((this.data && (this.data.myInviteCode || this.data.inviteCode)) || '').trim().toUpperCase();
-      if (myCode && pending === myCode) {
-        wx.removeStorageSync('pendingInviteCode');
-        this.setData({ pendingInviteCode: '' });
-        wx.showToast({ title: '不能绑定自己', icon: 'none' });
-        return;
-      }
-
-      this.__bindingInvite__ = true;
-
-      wx.request({
-        url: __BIND_URL__('/api/fission/bind'),
-        method: 'POST',
-        header: { 'Content-Type': 'application/json' },
-        data: { clientId, inviteCode: pending },
-        success: (res) => {
-          const d = (res && res.data) || {};
-          if (d.ok) {
-            // 后端已硬化：bound / duplicated
-            if (d.bound) wx.showToast({ title: '绑定成功', icon: 'success' });
-            else if (d.duplicated) wx.showToast({ title: '已绑定过邀请人', icon: 'none' });
-
-            // 清 pending，避免反复触发
-            wx.removeStorageSync('pendingInviteCode');
-            this.setData({ pendingInviteCode: '' });
-
-            // 可选：如果后端返回 profile，直接更新页面状态
-            if (d.profile) {
-              const invitedByCode = d.profile.invited_by_code || '';
-              this.setData({
-                hasBoundInviter: !!invitedByCode,
-                invitedByCode
-              });
-            }
-          } else {
-            wx.showToast({ title: d.message || '绑定失败', icon: 'none' });
-          }
-        },
-        fail: () => wx.showToast({ title: '网络错误', icon: 'none' }),
-        complete: () => { this.__bindingInvite__ = false; }
-      });
-    } catch (e) {
-      this.__bindingInvite__ = false;
-    }
-  },
-  // ===================== [ADD] __tryAutoBind__ END =====================
-
   data: {
     clientId: '',
     inviteCode: '',
@@ -316,31 +194,9 @@ Page({
     });
   },
 
-  
   onTapRefreshQrcode() {
-    const inviteCode = (this.data && (this.data.myInviteCode || this.data.inviteCode)) || '';
-    if (!inviteCode) {
-      wx.showToast({ title: '邀请码生成中…', icon: 'none' });
-      return;
-    }
-    const url = __QR_URL__(inviteCode);
-    this.setData({ myQrPath: '' });
-
-    wx.showLoading({ title: '生成二维码…' });
-    wx.downloadFile({
-      url,
-      success: (r) => {
-        if (r.statusCode === 200 && r.tempFilePath) {
-          this.setData({ myQrPath: r.tempFilePath });
-        } else {
-          wx.showToast({ title: '二维码下载失败', icon: 'none' });
-        }
-      },
-      fail: () => wx.showToast({ title: '网络错误', icon: 'none' }),
-      complete: () => wx.hideLoading()
-    });
+    if (this.data.inviteCode) this.fetchQrcode(this.data.inviteCode);
   },
-
 
   onTapCopyInviteCode() {
     const code = upperTrim(this.data.inviteCode);
