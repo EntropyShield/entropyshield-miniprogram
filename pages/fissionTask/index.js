@@ -10,22 +10,22 @@ function __BIND_API_BASE__() {
 }
 function __BIND_URL__(path) { return __BIND_API_BASE__() + path; }
 
-// 浠庢壂鐮佸弬鏁拌В鏋?inviteCode锛堜紭鍏?scene锛屽叾娆?inviteCode锛?
+// 娴犲孩澹傞惍浣稿棘閺佹媽袙閺?inviteCode閿涘牅绱崗?scene閿涘苯鍙惧▎?inviteCode閿?
 function __PARSE_INVITE_CODE__(options) {
   if (!options) return '';
   let v = options.scene || options.inviteCode || '';
   try { v = decodeURIComponent(v); } catch(e) {}
   v = String(v || '').trim();
-  // 鍏煎 scene 鍙兘鏄?"i=XXXXXX"
+  // 閸忕厧顔?scene 閸欘垵鍏橀弰?"i=XXXXXX"
   const m = v.match(/(?:^|[?&])(i|inviteCode)=([^&]+)/i);
   if (m && m[2]) v = m[2];
   v = String(v).trim().toUpperCase();
-  // 鍙繚鐣欏瓧姣嶆暟瀛楋紝閬垮厤鑴忔暟鎹?
+  // 閸欘亙绻氶悾娆忕摟濮ｅ秵鏆熺€涙绱濋柆鍨帳閼村繑鏆熼幑?
   v = v.replace(/[^0-9A-Z]/g, '');
   return v;
 }
 
-// 鑾峰彇褰撳墠鐢ㄦ埛 openid/clientId锛堜綘鍚庣鐢?openid 瀛楁锛屼絾鍓嶇涓€鑸彨 clientId锛?
+// 閼惧嘲褰囪ぐ鎾冲閻劍鍩?openid/clientId閿涘牅缍橀崥搴ｎ伂閻?openid 鐎涙顔岄敍灞肩稻閸撳秶顏稉鈧懜顒€褰?clientId閿?
 function __GET_CLIENT_ID__() {
   const app = getApp ? getApp() : null;
   const gd = app && app.globalData ? app.globalData : null;
@@ -124,12 +124,12 @@ function normalizeQrcode(raw) {
 }
 
   
-// ===== [P0-1] scene -> inviteCode 解析 START =====
+// ===== [P0-1] scene -> inviteCode 瑙ｆ瀽 START =====
 function _safeDecode(v) {
   try { return decodeURIComponent(String(v || '')); } catch (e) { return String(v || ''); }
 }
 /**
- * scene 可能是：
+ * scene 鍙兘鏄細
  * 1) "TEST01"
  * 2) "inviteCode=TEST01"
  * 3) "inviteCode=TEST01&x=y"
@@ -141,7 +141,7 @@ function parseInviteCodeFromScene(rawScene) {
   if (m && m[1]) return m[1].trim();
   return s.split('&')[0].trim();
 }
-// ===== [P0-1] scene -> inviteCode 解析 END =====
+// ===== [P0-1] scene -> inviteCode 瑙ｆ瀽 END =====
 Page({
   onShow() {
     // [ADD] AUTO_BIND_FROM_SCENE_ONSHOW
@@ -157,7 +157,7 @@ Page({
       const pending = (this.data && this.data.pendingInviteCode) || wx.getStorageSync('pendingInviteCode') || '';
       if (!pending) return;
 
-      // 濡傛灉椤甸潰宸叉樉绀衡€滃凡缁戝畾閭€璇蜂汉鈥濓紝鐩存帴娓?pending
+      // 婵″倹鐏夋い鐢告桨瀹稿弶妯夌粈琛♀偓婊冨嚒缂佹垵鐣鹃柇鈧拠铚傛眽閳ユ繐绱濋惄瀛樺复濞?pending
       if (this.data && this.data.hasBoundInviter) {
         wx.removeStorageSync('pendingInviteCode');
         this.setData({ pendingInviteCode: '' });
@@ -165,13 +165,13 @@ Page({
       }
 
       const clientId = String(__GET_CLIENT_ID__() || '').trim();
-      if (!clientId) return; // 绛?profile/init 鎶?clientId 鍐欏叆 globalData 鍚庤嚜鍔ㄩ噸璇?
+      if (!clientId) return; // 缁?profile/init 閹?clientId 閸愭瑥鍙?globalData 閸氬氦鍤滈崝銊╁櫢鐠?
 
       const myCode = String((this.data && (this.data.myInviteCode || this.data.inviteCode)) || '').trim().toUpperCase();
       if (myCode && pending === myCode) {
         wx.removeStorageSync('pendingInviteCode');
         this.setData({ pendingInviteCode: '' });
-        wx.showToast({ title: '涓嶈兘缁戝畾鑷繁', icon: 'none' });
+        wx.showToast({ title: '娑撳秷鍏樼紒鎴濈暰閼奉亜绻?, icon: 'none' });
         return;
       }
 
@@ -185,15 +185,15 @@ Page({
         success: (res) => {
           const d = (res && res.data) || {};
           if (d.ok) {
-            // 鍚庣宸茬‖鍖栵細bound / duplicated
-            if (d.bound) wx.showToast({ title: '缁戝畾鎴愬姛', icon: 'success' });
-            else if (d.duplicated) wx.showToast({ title: '宸茬粦瀹氳繃閭€璇蜂汉', icon: 'none' });
+            // 閸氬海顏鑼€栭崠鏍电窗bound / duplicated
+            if (d.bound) wx.showToast({ title: '缂佹垵鐣鹃幋鎰', icon: 'success' });
+            else if (d.duplicated) wx.showToast({ title: '瀹歌尙绮︾€规俺绻冮柇鈧拠铚傛眽', icon: 'none' });
 
-            // 娓?pending锛岄伩鍏嶅弽澶嶈Е鍙?
+            // 濞?pending閿涘矂浼╅崗宥呭冀婢跺秷袝閸?
             wx.removeStorageSync('pendingInviteCode');
             this.setData({ pendingInviteCode: '' });
 
-            // 鍙€夛細濡傛灉鍚庣杩斿洖 profile锛岀洿鎺ユ洿鏂伴〉闈㈢姸鎬?
+            // 閸欘垶鈧绱版俊鍌涚亯閸氬海顏潻鏂挎礀 profile閿涘瞼娲块幒銉︽纯閺備即銆夐棃銏㈠Ц閹?
             if (d.profile) {
               const invitedByCode = d.profile.invited_by_code || '';
               this.setData({
@@ -202,10 +202,10 @@ Page({
               });
             }
           } else {
-            wx.showToast({ title: d.message || '缁戝畾澶辫触', icon: 'none' });
+            wx.showToast({ title: d.message || '缂佹垵鐣炬径杈Е', icon: 'none' });
           }
         },
-        fail: () => wx.showToast({ title: '缃戠粶閿欒', icon: 'none' }),
+        fail: () => wx.showToast({ title: '缂冩垹绮堕柨娆掝嚖', icon: 'none' }),
         complete: () => { this.__bindingInvite__ = false; }
       });
     } catch (e) {
@@ -225,8 +225,30 @@ Page({
   },
 
   onLoad() {
+    // ===== [P0-1] 扫码落地：读取 scene 并写入 pendingInviteCode START =====
+    const __opt = (arguments && arguments[0]) || {};
+    const rawScene =
+      (__opt && __opt.scene) ||
+      (__opt && __opt.query && __opt.query.scene) ||
+      '';
+
+    const inviteFromScene = parseInviteCodeFromScene(rawScene);
+    const inviteFromQuery = (__opt && (__opt.inviteCode || __opt.invite_code || __opt.ic)) || '';
+    const incomingInviteCode = (inviteFromQuery || inviteFromScene || '').trim();
+
+    if (incomingInviteCode) {
+      wx.setStorageSync('pendingInviteCode', incomingInviteCode);
+      console.log('[P0-1] incomingInviteCode=', incomingInviteCode, 'rawScene=', rawScene);
+    } else {
+      console.log('[P0-1] no incoming invite code. rawScene=', rawScene, '__opt=', __opt);
+    }
+
+    setTimeout(() => {
+      try { if (this.tryAutoBindInvite) this.tryAutoBindInvite(); } catch(e) {}
+    }, 800);
+    // ===== [P0-1] 扫码落地：读取 scene 并写入 pendingInviteCode END =====
     const clientId = ensureClientId();
-    // DevTools 鐜绠€鍗曞垽瀹?
+    // DevTools 閻滎垰顣ㄧ粻鈧崡鏇炲灲鐎?
     const sys = wx.getSystemInfoSync ? wx.getSystemInfoSync() : {};
     const isDevtools = sys.platform === 'devtools';
 
@@ -306,12 +328,12 @@ Page({
     console.log('[fissionTask] onTapBind', { clientId, inviteCode });
 
     if (!inviteCode) {
-      wx.showToast({ title: '璇疯緭鍏ラ個璇风爜', icon: 'none' });
+      wx.showToast({ title: '鐠囩柉绶崗銉╁€嬬拠椋庣垳', icon: 'none' });
       return;
     }
     if (inviteCode === upperTrim(this.data.inviteCode)) {
       console.log('[fissionTask] self-invite blocked');
-      wx.showToast({ title: '涓嶈兘缁戝畾鑷繁鐨勯個璇风爜', icon: 'none' });
+      wx.showToast({ title: '娑撳秷鍏樼紒鎴濈暰閼奉亜绻侀惃鍕€嬬拠椋庣垳', icon: 'none' });
       return;
     }
 
@@ -324,13 +346,13 @@ Page({
       success: (res) => {
         const d = unwrap(res.data);
         if (d.ok || d.success || res.data.ok || res.data.success) {
-          wx.showToast({ title: '缁戝畾鎴愬姛', icon: 'success' });
+          wx.showToast({ title: '缂佹垵鐣鹃幋鎰', icon: 'success' });
           this.fetchProfile();
         } else {
-          wx.showToast({ title: d.message || res.data.message || '缁戝畾澶辫触', icon: 'none' });
+          wx.showToast({ title: d.message || res.data.message || '缂佹垵鐣炬径杈Е', icon: 'none' });
         }
       },
-      fail: () => wx.showToast({ title: '缃戠粶閿欒', icon: 'none' }),
+      fail: () => wx.showToast({ title: '缂冩垹绮堕柨娆掝嚖', icon: 'none' }),
       complete: () => this.setData({ bindLoading: false }),
     });
   },
@@ -339,23 +361,23 @@ Page({
   onTapRefreshQrcode() {
     const inviteCode = (this.data && (this.data.myInviteCode || this.data.inviteCode)) || '';
     if (!inviteCode) {
-      wx.showToast({ title: '閭€璇风爜鐢熸垚涓€?, icon: 'none' });
+      wx.showToast({ title: '闁偓鐠囬鐖滈悽鐔稿灇娑擃厸鈧?, icon: 'none' });
       return;
     }
     const url = __QR_URL__(inviteCode);
     this.setData({ myQrPath: '' });
 
-    wx.showLoading({ title: '鐢熸垚浜岀淮鐮佲€? });
+    wx.showLoading({ title: '閻㈢喐鍨氭禍宀€娣惍浣测偓? });
     wx.downloadFile({
       url,
       success: (r) => {
         if (r.statusCode === 200 && r.tempFilePath) {
           this.setData({ myQrPath: r.tempFilePath });
         } else {
-          wx.showToast({ title: '浜岀淮鐮佷笅杞藉け璐?, icon: 'none' });
+          wx.showToast({ title: '娴滃瞼娣惍浣风瑓鏉炶棄銇戠拹?, icon: 'none' });
         }
       },
-      fail: () => wx.showToast({ title: '缃戠粶閿欒', icon: 'none' }),
+      fail: () => wx.showToast({ title: '缂冩垹绮堕柨娆掝嚖', icon: 'none' }),
       complete: () => wx.hideLoading()
     });
   },
@@ -363,26 +385,26 @@ Page({
 
   onTapCopyInviteCode() {
     const code = upperTrim(this.data.inviteCode);
-    if (!code) return wx.showToast({ title: '鏆傛棤閭€璇风爜', icon: 'none' });
+    if (!code) return wx.showToast({ title: '閺嗗倹妫ら柇鈧拠椋庣垳', icon: 'none' });
     wx.setClipboardData({ data: code });
   },
 
-  // DevTools 涓撶敤锛氫竴閿垏鎹㈣韩浠斤紙鐢熸垚鏂扮殑 clientId锛岀浉褰撲簬 B锛?
+  // DevTools 娑撴挾鏁ら敍姘闁款喖鍨忛幑銏ｉ煩娴犳枻绱欓悽鐔稿灇閺傛壆娈?clientId閿涘瞼娴夎ぐ鎾茬艾 B閿?
   onTapSwitchIdentity() {
     const sys = wx.getSystemInfoSync ? wx.getSystemInfoSync() : {};
     if (sys.platform !== 'devtools') {
-      wx.showToast({ title: '浠呭紑鍙戣€呭伐鍏峰彲鐢?, icon: 'none' });
+      wx.showToast({ title: '娴犲懎绱戦崣鎴ｂ偓鍛紣閸忓嘲褰查悽?, icon: 'none' });
       return;
     }
     wx.removeStorageSync('clientId');
     const cid = ensureClientId();
     this.setData({ clientId: cid, bindInviteCode: '' });
-    wx.showToast({ title: '宸插垏鎹负鏂拌韩浠?B)', icon: 'success' });
+    wx.showToast({ title: '瀹告彃鍨忛幑顫礋閺傛媽闊╂禒?B)', icon: 'success' });
     this.initThenProfile();
   },
-  // ===== [P0-1] 自动绑定逻辑 START =====
+  // ===== [P0-1] 鑷姩缁戝畾閫昏緫 START =====
   tryAutoBindInvite: function () {
-    // 重试等待 clientId 就绪
+    // 閲嶈瘯绛夊緟 clientId 灏辩华
     this._p01_bindRetry = this._p01_bindRetry || 0;
 
     const pendingInviteCode = (wx.getStorageSync('pendingInviteCode') || '').trim();
@@ -397,7 +419,7 @@ Page({
       return;
     }
 
-    // 尽量拿 API_BASE（按你项目常见写法兜底）
+    // 灏介噺鎷?API_BASE锛堟寜浣犻」鐩父瑙佸啓娉曞厹搴曪級
     let API_BASE = '';
     try {
       const app = getApp && getApp();
@@ -409,12 +431,11 @@ Page({
     }
 
     if (!API_BASE) {
-      console.error('[P0-1] API_BASE missing. 请确认 config.js / globalData.API_BASE');
+      console.error('[P0-1] API_BASE missing. 璇风‘璁?config.js / globalData.API_BASE');
       return;
     }
 
-    // 避免自己扫自己（若已拿到 myInviteCode）
-    const myInviteCode =
+    // 閬垮厤鑷繁鎵嚜宸憋紙鑻ュ凡鎷垮埌 myInviteCode锛?    const myInviteCode =
       (this.data && (this.data.myInviteCode || this.data.inviteCode || this.data.invite_code)) ||
       (this.data && this.data.profile && (this.data.profile.inviteCode || this.data.profile.invite_code)) ||
       '';
@@ -437,14 +458,14 @@ Page({
 
         if (ok) {
           wx.removeStorageSync('pendingInviteCode');
-          wx.showToast({ title: '已自动绑定邀请关系', icon: 'success' });
+          wx.showToast({ title: '宸茶嚜鍔ㄧ粦瀹氶個璇峰叧绯?, icon: 'success' });
           if (typeof this.loadProfile === 'function') this.loadProfile();
           return;
         }
 
-        // 若后端提示已绑定/无需绑定，也清 pending，防止反复弹
+        // 鑻ュ悗绔彁绀哄凡缁戝畾/鏃犻渶缁戝畾锛屼篃娓?pending锛岄槻姝㈠弽澶嶅脊
         const msg = (res && res.data && (res.data.message || res.data.msg)) || '';
-        if (msg.match(/already|已绑定|无需|exists/i)) {
+        if (msg.match(/already|宸茬粦瀹殀鏃犻渶|exists/i)) {
           wx.removeStorageSync('pendingInviteCode');
         }
         if (msg) wx.showToast({ title: msg, icon: 'none' });
@@ -454,5 +475,5 @@ Page({
       }
     });
   }
-  // ===== [P0-1] 自动绑定逻辑 END =====
+  // ===== [P0-1] 鑷姩缁戝畾閫昏緫 END =====
 });
