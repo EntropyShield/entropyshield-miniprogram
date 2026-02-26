@@ -1,0 +1,25 @@
+﻿=== CLEANUP LOG 20260226_151943 ===
+proj=C:\Users\qiudo\WeChatProjects\miniprogram-3
+
+=== LIVE FILES ===
+C:\Users\qiudo\WeChatProjects\miniprogram-3\pages\fissionTask\index.js
+C:\Users\qiudo\WeChatProjects\miniprogram-3\pages\fissionTask\index.wxml
+C:\Users\qiudo\WeChatProjects\miniprogram-3\pages\fissionTask\index.wxss
+C:\Users\qiudo\WeChatProjects\miniprogram-3\pages\fissionTask\index.json
+
+=== DELETE fissionTask bak files ===
+C:\Users\qiudo\WeChatProjects\miniprogram-3\pages\fissionTask\index.js.bak_20260225_165315
+C:\Users\qiudo\WeChatProjects\miniprogram-3\pages\fissionTask\index.js.bak_autofixsyntax_20260225_214952
+C:\Users\qiudo\WeChatProjects\miniprogram-3\pages\fissionTask\index.js.bak_dedupe_20260224_044401
+C:\Users\qiudo\WeChatProjects\miniprogram-3\pages\fissionTask\index.js.bak_final_20260224_041327
+C:\Users\qiudo\WeChatProjects\miniprogram-3\pages\fissionTask\index.js.bak_final_fix_20260224_043427
+C:\Users\qiudo\WeChatProjects\miniprogram-3\pages\fissionTask\index.js.bak_fix_20260225_170305
+C:\Users\qiudo\WeChatProjects\miniprogram-3\pages\fissionTask\index.js.bak_recover_20260225_194431
+C:\Users\qiudo\WeChatProjects\miniprogram-3\pages\fissionTask\index.js.bak_restore_20260225_215706
+C:\Users\qiudo\WeChatProjects\miniprogram-3\pages\fissionTask\index.js.bak_syntaxfix_20260225_213939
+C:\Users\qiudo\WeChatProjects\miniprogram-3\pages\fissionTask\index.json.bak_titlefix_20260225_220541
+C:\Users\qiudo\WeChatProjects\miniprogram-3\pages\fissionTask\index.wxml.bak_remove_fixui_20260225_221212
+C:\Users\qiudo\WeChatProjects\miniprogram-3\pages\fissionTask\index.wxml.bak_titlefix_20260225_220541
+
+=== DELETE archive/patch dirs ===
+node --check exitcode = 0

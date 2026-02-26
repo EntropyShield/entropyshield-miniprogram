@@ -3,34 +3,46 @@
     "pages/index/index",
     "pages/controller/index",
     "pages/profile/index",
-
-    "pages/riskCalculator/index",
-    "pages/planSteady/index",
-    "pages/planAdvanced/index",
-    "pages/resultCommon/index",
-
-    "pages/campIntro/index",
     "pages/campDaily/index",
+    "pages/campIntro/index",
     "pages/campReport/index",
-
-    "pages/fissionTask/index",
-
+    "pages/club/index",
     "pages/course/index",
     "pages/courses/index",
-    "pages/course/detail",
-    "pages/course/progress",
-
-    "pages/visitBooking/index",
-    "pages/visitMyList/index",
-    "pages/visitAdmin/index",
-
+    "pages/fissionTask/index",
+    "pages/funnelLogs/index",
     "pages/membership/index",
-    "pages/payIntro/index",
     "pages/pay/index",
-    "pages/paySuccess/index"
+    "pages/payFail/index",
+    "pages/payIntro/index",
+    "pages/paymentSuccess/index",
+    "pages/paySuccess/index",
+    "pages/planAdvanced/index",
+    "pages/planBasic/index",
+    "pages/planPro/index",
+    "pages/planSteady/index",
+    "pages/resultCommon/index",
+    "pages/riskCalculator/index",
+    "pages/riskCalculator/pay/index",
+    "pages/riskCalculator/payFail/index",
+    "pages/taskDetail/index",
+    "pages/testDangerLevel/index",
+    "pages/testEmotionIndex/index",
+    "pages/testLossPersonality/index",
+    "pages/testLossResult/index",
+    "pages/testMarketRisk/index",
+    "pages/testRiskScore/index",
+    "pages/upsell/index",
+    "pages/visitAdmin/index",
+    "pages/visitBooking/index",
+    "pages/visitMyList/index"
   ],
   "window": {
-    "navigationBarTitleText": "熵盾研究院"
+    "navigationBarTitleText": "\u71B5\u76FE\u7814\u7A76\u9662",
+    "navigationBarBackgroundColor": "#0D0D0D",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#0D0D0D",
+    "backgroundTextStyle": "dark"
   },
   "tabBar": {
     "color": "#9ea0a4",
@@ -38,18 +50,10 @@
     "backgroundColor": "#0D0D0D",
     "borderStyle": "black",
     "list": [
-      {
-        "pagePath": "pages/index/index",
-        "text": "首页"
-      },
-      {
-        "pagePath": "pages/controller/index",
-        "text": "控局者"
-      },
-      {
-        "pagePath": "pages/profile/index",
-        "text": "个人中心"
-      }
+      { "pagePath": "pages/index/index",      "text": "\u9996\u9875" },
+      { "pagePath": "pages/controller/index", "text": "\u63A7\u5C40\u8005" },
+      { "pagePath": "pages/profile/index",    "text": "\u4E2A\u4EBA\u4E2D\u5FC3" }
     ]
-  }
+  },
+  "sitemapLocation": "sitemap.json"
 }

@@ -1,153 +1,28 @@
 <view class="page">
+  <view class="card">
+    <view class="title">裂变任务中心</view>
 
-<!-- [ADD] 我的专属二维码（扫码自动绑定） -->
-<view class="card">
-  <view class="card-title">我的专属二维码</view>
-  <view class="card-sub">好友扫码进入后将自动绑定你的邀请码</view>
+    <view class="row">
+      <text class="k">inviteCode:</text>
+      <text class="v">{{myInviteCode}}</text>
+    </view>
+    <view class="row">
+      <text class="k">clientId:</text>
+      <text class="v">{{clientId}}</text>
+    </view>
+    <view class="row">
+      <text class="k">incoming:</text>
+      <text class="v">{{incomingInviteCode}}</text>
+    </view>
+    <view class="row">
+      <text class="k">status:</text>
+      <text class="v">{{statusText}}</text>
+    </view>
 
-  <!-- ✅ 兼容：myQrPath / qrcodeImage / qrcodeUrl -->
-  <image
-    wx:if="{{myQrPath || qrcodeImage || qrcodeUrl}}"
-    class="qr-img"
-    src="{{myQrPath || qrcodeImage || qrcodeUrl}}"
-    mode="widthFix"
-    bindtap="onPreviewQr"
-  />
-  <view wx:else class="qr-placeholder">二维码生成中…</view>
+    <view class="qrwrap" wx:if="{{qrcodeUrl}}">
+      <image class="qr" src="{{qrcodeUrl}}" mode="widthFix"></image>
+    </view>
 
-  <view class="qr-actions">
-    <button bindtap="onTapRefreshQrcode" class="qr-btn">刷新二维码</button>
-    <button class="qr-btn primary" open-type="share">分享给好友</button>
+    <button class="btn" bindtap="copyInviteCode">复制我的邀请码</button>
   </view>
-
-  <!-- ✅ 仅 DevTools：快速切换身份(B)用于验证绑定链路（不影响真机） -->
-  <view wx:if="{{isDevtools}}" style="margin-top:10px;">
-    <button bindtap="onTapSwitchIdentity" class="qr-btn">切换身份(B)</button>
-  </view>
-</view>
-
-<view class="card card-invite">
-  <view class="title">熵盾 · 裂变任务</view>
-  <view class="subtitle">
-    将邀请码发给好友，让 TA 在训练营中填写并绑定你的邀请码。好友从绑定、完成 D1，到首次完成 7 天训练营的关键进度，都会为你带来完整方案次数奖励。
-  </view>
-
-  <view class="invite-row">
-    <!-- ✅ 兼容：myInviteCode / inviteCode / inviteCodeText -->
-    <text class="invite-code">
-      {{(myInviteCode || inviteCode || inviteCodeText) || '邀请码生成中…'}}
-    </text>
-    <button bindtap="onTapCopyInviteCode" class="btn-copy">复制</button>
-  </view>
-
-  <view class="tips">
-    <text>
-      每位控局者只有一个专属邀请码。好友首次绑定后，系统会记录邀请关系；之后好友完成 D1 / 完成 7 天训练营，都会按规则计入你的裂变奖励，具体规则见下方「奖励说明」。
-    </text>
-  </view>
-</view>
-
-<!-- 卡片 2：绑定好友的邀请码 -->
-<view class="card card-bind">
-  <view class="section-title">绑定好友邀请码</view>
-
-  <input
-    bindinput="onInputBindCode"
-    bindconfirm="onTapBind"
-    confirm-type="done"
-    class="input"
-    type="text"
-    placeholder="输入好友的邀请码（例如 TEST01）"
-    placeholder-style="color:#5f6368"
-    value="{{bindInviteCodeInput}}"
-  />
-
-  <view wx:if="{{hasBoundInviter}}" class="bound-info">
-    <text>已绑定邀请人：{{invitedByCode}}</text>
-  </view>
-
-  <!-- 未绑定时可以点击“绑定” -->
-  <button
-    bindtap="onTapBind"
-    wx:if="{{!hasBoundInviter}}"
-    class="btn-primary"
-    loading="{{bindLoading}}"
-    disabled="{{bindLoading}}"
-  >
-    绑定
-  </button>
-
-  <!-- 已绑定后按钮置灰，仅做提示 -->
-  <button wx:else class="btn-disabled" disabled="true">
-    已绑定邀请人
-  </button>
-
-  <view class="tips">
-    <text>
-      提示：每个账号只能绑定 1 位邀请人，绑定后无法修改，请谨慎确认。
-    </text>
-  </view>
-</view>
-
-<!-- 卡片 3：我的裂变奖励统计 -->
-<view class="card card-reward">
-  <view class="section-title">我的裂变奖励</view>
-
-  <view class="reward-summary">
-    <text class="reward-times">
-      累计获得完整方案 {{rewardStats.total}} 次
-    </text>
-    <text class="reward-desc">
-      {{rewardSummaryText}}
-    </text>
-  </view>
-
-  <!-- 奖励明细列表 -->
-  <scroll-view wx:if="{{rewardLogs.length}}" scroll-y="true" class="reward-list">
-    <block wx:for="{{rewardLogs}}" wx:key="id">
-      <view class="reward-item">
-        <view class="reward-top">
-          <text class="reward-title">{{item._title}}</text>
-          <text class="reward-tag">+{{item.reward_times}} 次</text>
-        </view>
-        <view class="reward-bottom">
-          <text class="reward-date">{{item._date}}</text>
-          <text class="reward-remark">{{item.remark}}</text>
-        </view>
-      </view>
-    </block>
-  </scroll-view>
-
-  <!-- 暂无奖励提示 -->
-  <view wx:else class="reward-empty">
-    <text>
-      暂时还没有获得裂变奖励，可以先邀请 1 位好友体验 7 天风控训练营。
-    </text>
-  </view>
-</view>
-
-<!-- 卡片 4：底部操作 -->
-<view class="card card-actions">
-  <button class="btn-primary">立即使用风控计算器</button>
-  <button class="btn-ghost">返回熵盾首页</button>
-</view>
-
-</view>
-
-<!-- 奖励说明（当前配置） -->
-<view class="card notice-card">
-<view class="notice-title">奖励说明（当前配置）</view>
-<view class="notice-text">
-  <text>· 自己参加训练营：</text>
-  <text>  完整打完一轮 7 天训练营，可获得 4 次完整风控方案次数；</text>
-  <text>  最多奖励 3 轮，共 12 次。</text>
-  <text> </text>
-  <text>· 邀请好友参加训练营（以 1 位好友为例）：</text>
-  <text>  1）好友成功填写并绑定你的邀请码 → 奖励 1 次；</text>
-  <text>  2）好友完成 D1 风控打卡 → 再奖励 1 次；</text>
-  <text>  3）好友首次完整完成 7/7 天训练营 → 再奖励 2 次；</text>
-  <text>  合计：每位完整参与一轮训练营的好友，会为你带来 4 次完整方案奖励。</text>
-  <text> </text>
-  <text>· 所有奖励都会自动累加到「剩余完整方案次数」中，在风控计算器里优先消耗奖励次数。</text>
-</view>
 </view>

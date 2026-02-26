@@ -1,0 +1,55 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/controller/index",
+    "pages/profile/index",
+
+    "pages/riskCalculator/index",
+    "pages/planSteady/index",
+    "pages/planAdvanced/index",
+    "pages/resultCommon/index",
+
+    "pages/campIntro/index",
+    "pages/campDaily/index",
+    "pages/campReport/index",
+
+    "",
+
+    "pages/course/index",
+    "pages/courses/index",
+    "pages/course/detail",
+    "pages/course/progress",
+
+    "pages/visitBooking/index",
+    "pages/visitMyList/index",
+    "pages/visitAdmin/index",
+
+    "pages/membership/index",
+    "pages/payIntro/index",
+    "pages/pay/index",
+    "pages/paySuccess/index"
+  ],
+  "window": {
+    "navigationBarTitleText": "鐔电浘鐮旂┒闄?
+  },
+  "tabBar": {
+    "color": "#9ea0a4",
+    "selectedColor": "#2AFF2A",
+    "backgroundColor": "#0D0D0D",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "棣栭〉"
+      },
+      {
+        "pagePath": "pages/controller/index",
+        "text": "鎺у眬鑰?
+      },
+      {
+        "pagePath": "pages/profile/index",
+        "text": "涓汉涓績"
+      }
+    ]
+  }
+}
