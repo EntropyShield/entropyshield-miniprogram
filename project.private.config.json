@@ -20,5 +20,17 @@
     "ignoreDevUnusedFiles": false
   },
   "libVersion": "3.14.2",
-  "condition": {}
+  "condition": {
+    "miniprogram": {
+      "list": [
+        {
+          "name": "B-扫码-7BZLN3",
+          "pathName": "pages/fissionTask/index",
+          "query": "scene=7BZLN3",
+          "scene": null,
+          "launchMode": "default"
+        }
+      ]
+    }
+  }
 }
