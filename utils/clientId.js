@@ -1,11 +1,33 @@
 // utils/clientId.js
-// [MOD-WX-OPENID-20251230] clientId 统一改为 openid（通过后端 /api/wx/login 换取）
+// clientId 统一改为 openid（通过后端 /api/wx/login 换取）
 // 兼容旧接口：仍导出 getOrCreateClientId（但现在返回 openid）
 // 新增：ensureClientId（推荐在 onLoad 里 await）
 
 const config = require('../config');
-
 const KEY = 'clientId';
+
+function getRuntimeApiBase() {
+  // [PATCH-API-BASE-PRIORITY] 优先 Storage，其次 globalData，再其次 config
+  try {
+    const s1 = wx.getStorageSync('API_BASE') || '';
+    if (s1) return String(s1).replace(/\/$/, '');
+  } catch (e) {}
+  try {
+    const s2 = wx.getStorageSync('apiBaseUrl') || '';
+    if (s2) return String(s2).replace(/\/$/, '');
+  } catch (e) {}
+
+  try {
+    const app = getApp ? getApp() : null;
+    const gd = app && app.globalData ? app.globalData : null;
+    const g = gd && (gd.API_BASE || gd.baseUrl);
+    if (g) return String(g).replace(/\/$/, '');
+  } catch (e) {}
+
+  const base =
+    (config && (config.API_BASE || config.BASE_URL || config.apiBaseUrl || config.baseUrl || config.PROD_API_BASE || config.DEV_API_BASE)) || '';
+  return String(base || '').replace(/\/$/, '');
+}
 
 function postJson(url, data) {
   return new Promise((resolve, reject) => {
@@ -13,7 +35,8 @@ function postJson(url, data) {
       url,
       method: 'POST',
       data,
-      timeout: 8000,
+      timeout: 10000,
+      header: { 'Content-Type': 'application/json' },
       success: (res) => resolve(res.data),
       fail: reject
     });
@@ -33,15 +56,9 @@ async function ensureClientId(forceRefresh = false) {
 
   if (!loginRes.code) throw new Error('wx.login 没有返回 code');
 
-  // 兼容你当前 config.js：API_BASE / BASE_URL 都可
-  const base =
-    (config && (config.API_BASE || config.BASE_URL || config.apiBaseUrl || config.baseUrl)) || '';
+  const base = getRuntimeApiBase();
+  if (!base) throw new Error('缺少 API_BASE（Storage/globalData/config 均未取到）');
 
-  if (!base) {
-    throw new Error('config.js 缺少 API_BASE（本地应为 https://api.entropyshield.com）');
-  }
-
-  // 使用动态构建的 API 地址
   const resp = await postJson(`${base}/api/wx/login`, { code: loginRes.code });
 
   if (!resp || !resp.ok || !resp.openid) {
@@ -52,17 +69,13 @@ async function ensureClientId(forceRefresh = false) {
   return resp.openid;
 }
 
-// 兼容旧调用：原来是同步返回 ST-xxx
-// 现在：优先返回缓存；没有缓存就触发 ensureClientId 并返回 Promise
 function getOrCreateClientId() {
   const cached = wx.getStorageSync(KEY);
   if (cached) return cached;
-
-  // 重要：这里返回 Promise，避免“假装同步”导致身份错乱
+  // 返回 Promise，避免假同步
   return ensureClientId();
 }
 
-// 可选：清理（调试用）
 function clearClientId() {
   wx.removeStorageSync(KEY);
 }
