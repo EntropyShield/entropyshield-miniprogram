@@ -1,4 +1,4 @@
-// pages/fissionTask/index.js
+﻿// pages/fissionTask/index.js
 let cfg = {}
 try { cfg = require('../../config') } catch (e) { cfg = {} }
 
@@ -137,6 +137,9 @@ Page({
   },
 
   async onLoad(options) {
+    // [PATCH-WS-ONLOAD] debug signals
+    console.log('[fissionTask] onLoad', options)
+    wx.showToast({ title: 'fissionTask onLoad', icon: 'none', duration: 1500 })
 
     safeSetData(this, { pageLoading: true, pageError: '', pageErrorWhere: '', statusText: '加载中…' })
     try {

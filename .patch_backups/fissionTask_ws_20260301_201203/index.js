@@ -1,4 +1,4 @@
-// pages/fissionTask/index.js
+﻿// pages/fissionTask/index.js
 let cfg = {}
 try { cfg = require('../../config') } catch (e) { cfg = {} }
 
@@ -137,7 +137,6 @@ Page({
   },
 
   async onLoad(options) {
-
     safeSetData(this, { pageLoading: true, pageError: '', pageErrorWhere: '', statusText: '加载中…' })
     try {
       this._envVersion = getEnvVersion()
