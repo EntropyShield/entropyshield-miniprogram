@@ -1,0 +1,9 @@
+.page{padding:24rpx;background:#0D0D0D;min-height:100vh;color:#E6E6E6;}
+.card{border:1px solid #1f3; border-radius:18rpx; padding:20rpx; background:#0b0b0b;}
+.title{font-size:34rpx;font-weight:700;margin-bottom:14rpx;color:#2AFF2A;}
+.row{display:flex;flex-direction:row;gap:10rpx;margin:6rpx 0;flex-wrap:wrap;}
+.k{color:#9ea0a4;}
+.v{color:#E6E6E6;word-break:break-all;}
+.qrwrap{margin-top:18rpx;display:flex;justify-content:center;}
+.qr{width:520rpx;}
+.btn{margin-top:18rpx;background:#2AFF2A;color:#000;border-radius:999rpx;}

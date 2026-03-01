@@ -1,0 +1,28 @@
+<view class="page">
+  <view class="card">
+    <view class="title">裂变任务中心</view>
+
+    <view class="row">
+      <text class="k">inviteCode:</text>
+      <text class="v">{{myInviteCode}}</text>
+    </view>
+    <view class="row">
+      <text class="k">clientId:</text>
+      <text class="v">{{clientId}}</text>
+    </view>
+    <view class="row">
+      <text class="k">incoming:</text>
+      <text class="v">{{incomingInviteCode}}</text>
+    </view>
+    <view class="row">
+      <text class="k">status:</text>
+      <text class="v">{{statusText}}</text>
+    </view>
+
+    <view class="qrwrap" wx:if="{{qrcodeUrl}}">
+      <image class="qr" src="{{qrcodeUrl}}" mode="widthFix"></image>
+    </view>
+
+    <button class="btn" bindtap="copyInviteCode">复制我的邀请码</button>
+  </view>
+</view>
