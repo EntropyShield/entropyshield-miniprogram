@@ -62,7 +62,7 @@ Page({
     const expireAt = Number(rights.membershipExpireAt || 0);
     const notExpired = !expireAt || Date.now() < expireAt;
 
-    const advancedEnabled = rights.advancedEnabled === true;
+    const advancedEnabled = UR.isAdvancedAllowed(rights); // [PATCH-ADV-USE-UR]
     const codeAllow = (productCode === 'VIP_QUARTER' || productCode === 'VIP_YEAR');
 
     const ok = (advancedEnabled || codeAllow) && notExpired;
