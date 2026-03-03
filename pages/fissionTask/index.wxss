@@ -1,1 +1,113 @@
-/* fissionTask wxss reset (clean utf-8, no bom) */
+/* pages/fissionTask/index.wxss - EntropyShield Dark Theme (NO BOM) */
+
+/* 关键：彻底消灭顶部白色横条 */
+page{ background:#0D0D0D; }
+
+.page{
+  min-height:100vh;
+  background:#0D0D0D;
+  padding:24rpx;
+  box-sizing:border-box;
+  color:#EDEDED;
+}
+
+/* card */
+.card{
+  background:#111111;
+  border-radius:18rpx;
+  padding:22rpx;
+  box-sizing:border-box;
+  border:1px solid rgba(42,255,42,0.18);
+  box-shadow:0 0 24rpx rgba(42,255,42,0.10);
+  margin-bottom:18rpx;
+}
+.card-title{
+  font-size:28rpx;
+  font-weight:800;
+  color:#F2F2F2;
+  text-align:center;
+}
+.card-sub{
+  margin-top:8rpx;
+  font-size:24rpx;
+  line-height:1.65;
+  color:rgba(255,255,255,0.58);
+}
+
+/* QR */
+.qr-wrap{
+  margin-top:18rpx;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+.qr-img{
+  width:560rpx;
+  border-radius:16rpx;
+  background:#0B0B0B;
+  border:1px solid rgba(42,255,42,0.18);
+}
+.qr-tip{
+  margin-top:10rpx;
+  font-size:22rpx;
+  color:rgba(255,255,255,0.50);
+}
+
+/* Metrics grid */
+.grid{ display:flex; gap:16rpx; }
+.metric{
+  flex:1;
+  background:#0B0B0B;
+  border-radius:14rpx;
+  padding:18rpx;
+  border:1px solid rgba(255,255,255,0.08);
+}
+
+/* 关键：框内整体居中（水平+垂直） */
+.metric-center{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  min-height:132rpx; /* 保证上下居中有空间 */
+  text-align:center;
+}
+
+.m-label{
+  font-size:22rpx;
+  color:rgba(255,255,255,0.55);
+}
+.m-value{
+  margin-top:10rpx;
+  font-size:30rpx;
+  font-weight:900;
+  color:#2AFF2A;
+  word-break:break-all;
+}
+
+/* Buttons */
+.btn-row,.footer{
+  margin-top:18rpx;
+  display:flex;
+  gap:16rpx;
+}
+.btn{
+  flex:1;
+  border-radius:14rpx;
+  font-size:26rpx;
+  font-weight:700;
+  line-height:1;
+  padding:22rpx 0;
+}
+button::after{ border:none; }
+
+.btn-primary{
+  background:#2AFF2A;
+  color:#0D0D0D;
+  box-shadow:0 0 22rpx rgba(42,255,42,0.25);
+}
+.btn-ghost{
+  background:transparent;
+  color:#EDEDED;
+  border:1px solid rgba(42,255,42,0.35);
+}

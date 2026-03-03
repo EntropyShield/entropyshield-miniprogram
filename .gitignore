@@ -15,3 +15,7 @@ node_modules/
 # local backups / patch scripts
 **/*.bak_*
 scripts/*.py
+_archive_noise_*.zip
+_archive_patches_*.zip
+.patch_backups/
+*.bak_*

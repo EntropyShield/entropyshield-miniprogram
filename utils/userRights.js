@@ -79,7 +79,22 @@ function sanitizeRights(r) {
 
 // 读取用户权益（带默认值）
 function getUserRights() {
-  const raw = wx.getStorageSync(STORAGE_KEY)
+    // [PATCH-LIFETIME-ADV-UNLOCK] LIFETIME => advancedEnabled=true + membershipPlan=VIP_YEAR (ASCII safe)
+  try {
+    const ur0 = wx.getStorageSync('userRights') || {};
+    const LIFE = '\u7ec8\u8eab\u4f1a\u5458';
+    const isLife = (ur0 && typeof ur0==='object' && (ur0.membershipLevel==='LIFETIME' || ur0.membershipName===LIFE));
+    if (isLife) {
+      ur0.membershipLevel = 'LIFETIME';
+      ur0.membershipName = LIFE;
+      ur0.advancedEnabled = true;
+      if (!ur0.membershipPlan) ur0.membershipPlan = 'VIP_YEAR';
+      if (typeof ur0.membershipExpireAt === 'undefined') ur0.membershipExpireAt = null;
+      wx.setStorageSync('userRights', ur0);
+    }
+  } catch(e) {}
+
+const raw = wx.getStorageSync(STORAGE_KEY)
   if (!raw || typeof raw !== 'object') {
     return Object.assign({}, defaultRights)
   }
@@ -168,7 +183,20 @@ function isAdvancedProductCode(pc) {
 }
 
 function isUnlimitedMember(rights) {
-  const r = rights || getUserRights()
+    // [PATCH-LIFETIME-MEMBER] treat membershipLevel=LIFETIME as unlimited (ASCII safe)
+  try {
+    const a0 = arguments[0];
+    const LIFE = '\u7ec8\u8eab\u4f1a\u5458';
+    // a0 may be planCode string OR rights object
+    if (typeof a0 === 'string' && String(a0).toUpperCase() === 'LIFETIME') return true;
+    if (a0 && typeof a0 === 'object') {
+      const nm = String(a0.membershipName || '');
+      const lv = String(a0.membershipLevel || '');
+      if (lv === 'LIFETIME' || nm === LIFE) return true;
+    }
+  } catch (e) {}
+
+const r = rights || getUserRights()
   const pc = normalizeProductCode(r)
   return isUnlimitedProductCode(pc) && isNotExpired(r)
 }
@@ -179,7 +207,14 @@ function isUnlimitedMember(rights) {
  * - 且 advancedEnabled=true 或 产品=季/年 或 membershipPlan=quarter/year 或 名称含季卡/年卡
  */
 function isAdvancedAllowed(rights) {
-  const r = rights || getUserRights()
+    // [PATCH-LIFETIME-ADV-UNLOCK] ADV: LIFETIME always allowed
+  try {
+    const a0 = arguments[0] || {};
+    const LIFE = '\u7ec8\u8eab\u4f1a\u5458';
+    if (a0 && typeof a0==='object' && (a0.membershipLevel==='LIFETIME' || a0.membershipName===LIFE)) return true;
+  } catch(e) {}
+
+const r = rights || getUserRights()
   if (!isNotExpired(r)) return false
 
   if (r.advancedEnabled === true) return true
@@ -246,7 +281,18 @@ function setMembership(options) {
 
 // 获取用于 UI 展示的会员标签（含剩余天数/是否无限）
 function getMembershipLabel() {
-  const rights = getUserRights()
+    // [PATCH-LIFETIME-MEMBER] label for LIFETIME (ASCII safe)
+  try {
+    const a0 = arguments[0];
+    const LIFE = '\u7ec8\u8eab\u4f1a\u5458';
+    if (a0 && typeof a0 === 'object') {
+      const nm = String(a0.membershipName || '');
+      const lv = String(a0.membershipLevel || '');
+      if (lv === 'LIFETIME' || nm === LIFE) return LIFE;
+    }
+  } catch (e) {}
+
+const rights = getUserRights()
   const now = Date.now()
   const { membershipName, membershipExpireAt } = rights
 

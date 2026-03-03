@@ -1,31 +1,43 @@
-<!-- pages/fissionTask/index.wxml -->
-<view style="padding:24rpx;">
-  <view style="font-size:34rpx;font-weight:600;">裂变任务中心</view>
-  <view style="margin-top:12rpx;color:#666;">{{statusText}}</view>
+﻿<!-- pages/fissionTask/index.wxml -->
+<view class="page">
+  <!-- 主卡：二维码 -->
+  <view class="card" wx:if="{{qrcodeUrl}}">
+    <view class="card-title">已建立邀请关系，可直接分享</view>
+    <view class="card-sub">保存二维码发给好友，对方扫码/识别进入即可自动绑定关系</view>
 
-  <view style="margin-top:20rpx;padding:18rpx;border:1px solid #eee;border-radius:12rpx;">
-    <view style="color:#666;">我的邀请码</view>
-    <view style="margin-top:8rpx;">{{myInviteCode ? myInviteCode : ''}}</view>
+    <view class="qr-wrap">
+      <image class="qr-img" mode="widthFix" src="{{qrcodeUrl}}" show-menu-by-longpress="true" />
+      <view class="qr-tip">长按二维码可保存/识别</view>
+    </view>
+
+    <view class="btn-row">
+      <button class="btn btn-primary" open-type="share">一键分享</button>
+      <button class="btn btn-ghost" bindtap="goCamp">去训练营</button>
+    </view>
   </view>
 
-  <view style="margin-top:20rpx;padding:18rpx;border:1px solid #eee;border-radius:12rpx;">
-    <view style="color:#666;">邀请关系</view>
-    <view style="margin-top:8rpx;">{{invitedByCode ? invitedByCode : '未绑定'}}</view>
+  <view class="card" wx:else>
+    <view class="card-title">二维码加载中</view>
+    <view class="card-sub">若长时间不显示，请返回重进或稍后再试</view>
   </view>
 
-  <view style="margin-top:20rpx;padding:18rpx;border:1px solid #eee;border-radius:12rpx;">
-    <view style="color:#666;">奖励累计</view>
-    <view style="margin-top:8rpx;">{{totalRewardTimes}}</view>
+  <!-- 数据卡：关系/奖励 -->
+  <view class="card">
+    <view class="grid">
+      <view class="metric metric-center">
+        <view class="m-label">邀请关系</view>
+        <view class="m-value">{{invitedByCode ? invitedByCode : '未绑定'}}</view>
+      </view>
+
+      <view class="metric metric-center">
+        <view class="m-label">奖励累计</view>
+        <view class="m-value">{{totalRewardTimes}}</view>
+      </view>
+    </view>
   </view>
 
-  <view wx:if="{{qrcodeUrl}}" style="margin-top:24rpx;">
-    <view style="color:#666;margin-bottom:12rpx;">我的邀请二维码</view>
-    <image mode="widthFix" src="{{qrcodeUrl}}" style="width:420rpx;" />
-  </view>
-
-  <view style="margin-top:28rpx;display:flex;gap:16rpx;flex-wrap:wrap;">
-    <button open-type="share">一键分享</button>
-    <button bindtap="goCamp">去训练营</button>
-    <button bindtap="goHome">回首页</button>
+  <!-- 底部 -->
+  <view class="footer">
+    <button class="btn btn-ghost" bindtap="goHome">回首页</button>
   </view>
 </view>
