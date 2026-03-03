@@ -134,6 +134,53 @@ Page({
   // 点击：加强版
   onClickAdvanced() {
     console.log('[riskCalculator] click advanced');
+    // [PATCH-ADV-CLICK-SERVERGATE] decide advanced access by server profile (VIP_MONTH/QUARTER/YEAR/LIFETIME allowed)
+    try {
+      const base = String(wx.getStorageSync('API_BASE') || wx.getStorageSync('apiBaseUrl') || '').replace(/\/$/, '');
+      const cid  = String(wx.getStorageSync('clientId') || '').trim();
+      if (base && cid) {
+        wx.request({
+          url: base + '/api/fission/profile?clientId=' + encodeURIComponent(cid),
+          method: 'GET',
+          timeout: 10000,
+          success: (r) => {
+            try {
+              const p = r && r.data && (r.data.profile || r.data.user || r.data.data);
+              const lv = String((p && p.membership_level) || '').toUpperCase();
+              const allow = (lv==='VIP_MONTH'||lv==='VIP_QUARTER'||lv==='VIP_YEAR'||lv==='LIFETIME');
+              if (allow) {
+                console.log('[riskCalculator] adv allowed by server level=', lv);
+                try {
+                  const ur0 = wx.getStorageSync('userRights');
+                  const obj = (ur0 && typeof ur0 === 'object') ? ur0 : {};
+                  const NAME = {
+                    VIP_MONTH:   '\u6708\u5361',
+                    VIP_QUARTER: '\u5b63\u5361',
+                    VIP_YEAR:    '\u5e74\u5361',
+                    LIFETIME:    '\u7ec8\u8eab\u4f1a\u5458'
+                  };
+                  const next = Object.assign({}, obj, {
+                    membershipLevel: lv,
+                    membershipPlan: lv,
+                    membershipName: NAME[lv] || obj.membershipName,
+                    membershipExpireAt: (lv==='LIFETIME') ? null : ((p && p.membership_expire_at) || null),
+                    advancedEnabled: true
+                  });
+                  wx.setStorageSync('userRights', next);
+                } catch(e) {}
+                this.handleGeneratePlan('advanced');
+              } else {
+                console.log('[riskCalculator] adv blocked by server level=', lv);
+                this.promptAdvancedBlocked();
+              }
+            } catch(e) { this.promptAdvancedBlocked(); }
+          },
+          fail: () => this.promptAdvancedBlocked()
+        });
+        return; // ???????????????????
+      }
+    } catch(e) {}
+
     funnel.log('CALC_CLICK_ADVANCED', {});
     this.handleGeneratePlan('advanced');
   },
