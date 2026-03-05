@@ -1,6 +1,157 @@
-// pages/riskCalculator/index.js
+﻿// pages/riskCalculator/index.js
 const funnel = require('../../utils/funnel.js');
 const UR = require('../../utils/userRights.js');
+/* ====== RC_V41_CLICK_DEDUPE (v4.1.2 / 2026-03-05) ======
+目标：同一 clientId + 同一输入 + 同一按钮(稳健/加强) 只扣 1 次；第二次点击直接“复用跳转”，不再触发扣次
+实现：sig = hash(picked inputs + __btn)，storage 写 rc_v41_consumed_{cid}_{sig}
+====================================================== */
+
+const __RCV41_PREFIX = 'rc_v41';
+
+function rcV41GetClientId() {
+  const g = (typeof getApp === 'function') ? getApp() : null;
+  const gd = g && g.globalData ? g.globalData : {};
+  return wx.getStorageSync('clientId') || wx.getStorageSync('openid') || gd.clientId || 'UNKNOWN';
+}
+
+function rcV41Hash32(str) {
+  let h = 5381;
+  for (let i = 0; i < str.length; i++) h = ((h << 5) + h) + str.charCodeAt(i);
+  return (h >>> 0).toString(16);
+}
+
+function rcV41Normalize(v) {
+  if (v === null || v === undefined) return '';
+  if (typeof v === 'number') return isFinite(v) ? String(Number(v)) : '';
+  if (typeof v === 'boolean') return v ? '1' : '0';
+  if (typeof v === 'string') return v.trim();
+  return '';
+}
+
+function rcV41PickKeys(data) {
+  const allow = /(balance|amount|money|fund|price|buy|buyPrice|first|code|symbol|ticker|name|mode|type|risk|loss|profit|step|qty|count|__btn)/i;
+  const deny  = /(^_|loading|disabled|plan|result|rights|freeCalc|membership|modal|show|err|error|toast|tips|log)/i;
+  const keys = Object.keys(data || {});
+  const picked = [];
+
+  for (const k of keys) {
+    if (deny.test(k)) continue;
+    const v = data[k];
+    if (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean') {
+      if (allow.test(k)) picked.push(k);
+    }
+  }
+  if (picked.length === 0) {
+    for (const k of keys) {
+      if (deny.test(k)) continue;
+      const v = data[k];
+      if (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean') picked.push(k);
+    }
+  }
+  picked.sort();
+  return picked;
+}
+
+function rcV41BuildSig(data) {
+  const keys = rcV41PickKeys(data);
+  const parts = [];
+  for (const k of keys) parts.push(`${k}=${rcV41Normalize(data[k])}`);
+  return rcV41Hash32(parts.join('&'));
+}
+
+function rcV41ConsumedKey(cid, sig) { return `${__RCV41_PREFIX}_consumed_${cid}_${sig}`; }
+function rcV41IsConsumed(sig) {
+  const cid = rcV41GetClientId();
+  return !!wx.getStorageSync(rcV41ConsumedKey(cid, sig));
+}
+function rcV41MarkConsumed(sig) {
+  const cid = rcV41GetClientId();
+  wx.setStorageSync(rcV41ConsumedKey(cid, sig), Date.now());
+}
+
+function rcV41GetTimes() {
+  const ur = wx.getStorageSync('userRights') || {};
+  return (typeof ur.freeCalcTimes === 'number') ? ur.freeCalcTimes : null;
+}
+
+function rcV41PickNumber(data, patterns) {
+  const keys = Object.keys(data || {});
+  for (const re of patterns) {
+    const k = keys.find(x => re.test(x));
+    if (!k) continue;
+    const v = data[k];
+    const n = Number(v);
+    if (isFinite(n) && n > 0) return n;
+  }
+  // fallback: 任意正数
+  for (const k of keys) {
+    const v = data[k];
+    const n = Number(v);
+    if (isFinite(n) && n > 0) return n;
+  }
+  return null;
+}
+
+function rcV41PickString(data, patterns) {
+  const keys = Object.keys(data || {});
+  for (const re of patterns) {
+    const k = keys.find(x => re.test(x));
+    if (!k) continue;
+    const v = data[k];
+    if (v !== null && v !== undefined && String(v).trim() !== '') return String(v).trim();
+  }
+  // fallback: 任意非空串
+  for (const k of keys) {
+    const v = data[k];
+    if (typeof v === 'string' && v.trim() !== '') return v.trim();
+  }
+  return '';
+}
+
+function rcV41ReuseNavigate(pageThis, btn, sig) {
+  // 复用跳转：绕开扣次链路
+  const data = pageThis.data || {};
+  const balance = rcV41PickNumber(data, [/balance/i, /amount/i, /money/i, /fund/i]);
+  const price   = rcV41PickNumber(data, [/buyprice/i, /first/i, /price/i]);
+  const code    = rcV41PickString(data, [/code/i, /symbol/i, /ticker/i, /name/i]);
+
+  if (!balance || !price || !code) {
+    wx.showToast({ title: '复用跳转缺少参数，继续走原流程', icon: 'none' });
+    return false;
+  }
+
+  const membershipType = encodeURIComponent('按次/奖励 · 已扣次复用');
+  const url = (btn === 'advanced')
+    ? `/pages/planAdvanced/index?balance=${encodeURIComponent(balance)}&price=${encodeURIComponent(price)}&code=${encodeURIComponent(code)}&membershipType=${membershipType}`
+    : `/pages/planSteady/index?balance=${encodeURIComponent(balance)}&price=${encodeURIComponent(price)}&code=${encodeURIComponent(code)}&membershipType=${membershipType}`;
+
+  try { console.log('[riskCalculator][v4.1] reuse navigate sig=', sig, 'url=', url); } catch(e) {}
+  wx.navigateTo({ url });
+  return true;
+}
+
+function rcV41OnClickGate(pageThis, btn) {
+  const sig = rcV41BuildSig(Object.assign({}, pageThis.data || {}, { __btn: btn }));
+  if (rcV41IsConsumed(sig)) {
+    // 已扣过：直接复用跳转，不再触发扣次
+    const ok = rcV41ReuseNavigate(pageThis, btn, sig);
+    if (ok) return { blocked: true, sig };
+  }
+
+  // 未扣过：记录扣前次数，稍后观察是否真的扣了（不依赖你项目的扣次函数实现）
+  const before = rcV41GetTimes();
+  // 延迟检查：如果 freeCalcTimes 真的减少了，才标记 consumed
+  setTimeout(()=>{
+    const after = rcV41GetTimes();
+    if (before !== null && after !== null && after < before) {
+      rcV41MarkConsumed(sig);
+      try { console.log('[riskCalculator][v4.1] marked consumed sig=', sig, 'before=', before, 'after=', after); } catch(e) {}
+    }
+  },2500);
+
+  return { blocked: false, sig };
+}
+/* ====== RC_V41_CLICK_DEDUPE END ====== */
 
 Page({
   data: {
@@ -127,6 +278,9 @@ Page({
   // 点击：稳健版
   onClickSteady() {
     console.log('[riskCalculator] click steady');
+    // [RC_V41_CLICK_DEDUPE] gate: 同一输入同按钮只扣一次
+    const __rcGate = rcV41OnClickGate(this, 'steady');
+    if (__rcGate && __rcGate.blocked) return;
     funnel.log('CALC_CLICK_STEADY', {});
     this.handleGeneratePlan('steady');
   },
@@ -134,6 +288,9 @@ Page({
   // 点击：加强版
   onClickAdvanced() {
     console.log('[riskCalculator] click advanced');
+    // [RC_V41_CLICK_DEDUPE] gate: 同一输入同按钮只扣一次
+    const __rcGate = rcV41OnClickGate(this, 'advanced');
+    if (__rcGate && __rcGate.blocked) return;
     // [PATCH-ADV-CLICK-SERVERGATE] decide advanced access by server profile (VIP_MONTH/QUARTER/YEAR/LIFETIME allowed)
     try {
       const base = String(wx.getStorageSync('API_BASE') || wx.getStorageSync('apiBaseUrl') || '').replace(/\/$/, '');
@@ -361,3 +518,5 @@ Page({
     // [PATCH-20260223-B1] 权益实时刷新：onShow 拉取 /api/fission/profile 并增量同步 freeCalcTimes\n    try {\n      const apiBase =\n        wx.getStorageSync('API_BASE') ||\n        wx.getStorageSync('apiBaseUrl') ||\n        ((getApp && getApp().globalData && getApp().globalData.API_BASE) || '');\n      const clientId = wx.getStorageSync('clientId');\n      if (apiBase && clientId) {\n        wx.request({\n          url: `${apiBase}/api/fission/profile`,\n          method: 'GET',\n          data: { clientId },\n          success: (res) => {\n            const d = res && res.data;\n            if (!d || !d.ok) return;\n            const total = Number((d.total_reward_times ?? (d.profile && d.profile.total_reward_times) ?? 0)) || 0;\n    \n            const rights = wx.getStorageSync('userRights') || {};\n            const currentFree = Number(rights.freeCalcTimes || 0) || 0;\n            let lastSynced = Number(wx.getStorageSync('fission_total_reward_times_synced') || 0) || 0;\n    \n            // 初始化：如果之前已有 freeCalcTimes，但没记录 lastSynced，则直接对齐到服务端，避免重复加\n            if (lastSynced === 0 && currentFree > 0) {\n              wx.setStorageSync('fission_total_reward_times_synced', total);\n              lastSynced = total;\n            }\n    \n            const delta = total - lastSynced;\n            if (delta > 0) {\n              rights.freeCalcTimes = currentFree + delta;\n              if (!rights.membershipName) rights.membershipName = 'FREE';\n              wx.setStorageSync('userRights', rights);\n              wx.setStorageSync('fission_total_reward_times_synced', total);\n            }\n    \n            // 无论是否新增，都刷新一下 UI（不影响你现有骨架）\n            if (this && this.setData) {\n              this.setData({\n                userRights: rights,\n                freeCalcTimes: Number(rights.freeCalcTimes || 0) || currentFree,\n                membershipName: rights.membershipName || ''\n              });\n            }\n          }\n        });\n      }\n    } catch (e) {}
   }
 });
+
+
