@@ -1,8 +1,323 @@
+﻿ // ====== [MOD:ENSURE_CLIENTID] START ======
+ function ensureClientId() {
+   try {
+     let cid = wx.getStorageSync('clientId');
+     if (typeof cid === 'string') cid = cid.trim();
+     if (cid) return cid;
+
+     // legacy keys
+     const keys = ['openid','OPENID','fissionClientId','wx_openid','userOpenid'];
+     for (const k of keys) {
+       const v = wx.getStorageSync(k);
+       if (v && String(v).trim()) { cid = String(v).trim(); break; }
+     }
+
+     // cached profile
+     if (!cid) {
+       const p = wx.getStorageSync('fissionProfile') || {};
+       const v = p.clientId || p.openid || p.openId || p.client_id;
+       if (v && String(v).trim()) cid = String(v).trim();
+     }
+
+     if (!cid) cid = 'ST-' + Date.now() + '-' + Math.floor(Math.random()*1e6);
+     wx.setStorageSync('clientId', cid);
+     return cid;
+   } catch (e) {
+     const cid = 'ST-' + Date.now() + '-' + Math.floor(Math.random()*1e6);
+     try { wx.setStorageSync('clientId', cid); } catch(e2) {}
+     return cid;
+   }
+ }
+ // ====== [MOD:ENSURE_CLIENTID] END ======
 // app.js - 稳定版启动（不重写 wx.getStorageSync / wx.setStorageSync，避免递归爆栈）
 const { API_BASE, ENV, runtime } = require('./config');
+/* ====== ST_P0_BIND_INVITE_APPJS (P0 手收敛 / 2026-03-06) ======
+目标：扫码进入即绑定邀请关系（不付费也绑定）
+流程：extract inviteCode -> storage.pendingInviteCode -> 等 clientId ready -> POST /api/fission/init {clientId, inviteCode}
+幂等：__st_bound_<clientId> = 1 后不再重复
+============================================================== */
+function __stGetApiBase() {
+  try {
+    const cfg = require('./config');
+    return cfg.API_BASE || cfg.API_BASE_URL || cfg.PROD_API_BASE || cfg.DEV_API_BASE || '';
+  } catch (e) {}
+  try {
+    const app = getApp && getApp();
+    const g = app && app.globalData ? app.globalData : {};
+    return g.API_BASE || g.API_BASE_URL || '';
+  } catch (e) {}
+  return '';
+}
+
+function __stExtractInviteCode(options) {
+  try {
+    const q = (options && options.query) ? options.query : {};
+    if (q.inviteCode) return String(q.inviteCode).trim();
+    if (q.invite_code) return String(q.invite_code).trim();
+    if (q.scene) {
+      const s = decodeURIComponent(String(q.scene));
+      const m = s.match(/inviteCode=([A-Za-z0-9]+)/) || s.match(/invite_code=([A-Za-z0-9]+)/);
+      if (m && m[1]) return m[1];
+    }
+  } catch (e) {}
+  return '';
+}
+
+function __stCapturePendingInvite(options) {
+  const code = __stExtractInviteCode(options);
+  if (!code) return '';
+  try {
+    const old = wx.getStorageSync('pendingInviteCode');
+    if (!old) wx.setStorageSync('pendingInviteCode', code);
+  } catch (e) {}
+  return code;
+}
+
+function __stTryBindInviteOnce() {
+  const apiBase = __stGetApiBase();
+  const cid = wx.getStorageSync('clientId') || wx.getStorageSync('openid');
+  const inviteCode = wx.getStorageSync('pendingInviteCode');
+  if (!apiBase || !cid || !inviteCode) return;
+
+  const boundKey = '__st_bound_' + cid;
+  if (wx.getStorageSync(boundKey)) return;
+
+  wx.request({
+    url: apiBase + '/api/fission/init',
+    method: 'POST',
+    header: { 'content-type': 'application/json' },
+    data: { clientId: cid, inviteCode },
+    success(res) {
+      wx.setStorageSync(boundKey, 1);
+      wx.removeStorageSync('pendingInviteCode');
+      try { console.log('[ST_P0_BIND] ok', { cid, inviteCode, res: res && res.data }); } catch(e){}
+    },
+    fail(err) {
+      try { console.log('[ST_P0_BIND] fail', { cid, inviteCode, err }); } catch(e){}
+    }
+  });
+}
+/* ====== ST_P0_BIND_INVITE_APPJS END ====== */
 
 App({
   onLaunch(options) {
+    // [ST_P0_BIND_INVITE_APPJS] capture inviteCode at launch (do not wait payment)
+    try { __stCapturePendingInvite(options); } catch(e) {}
+    // [ST_P0_BIND_INVITE_APPJS] retry bind after clientId ready
+    try {
+      setTimeout(__stTryBindInviteOnce, 300);
+      setTimeout(__stTryBindInviteOnce, 1200);
+      setTimeout(__stTryBindInviteOnce, 3000);
+      setTimeout(__stTryBindInviteOnce, 6000);
+    } catch(e) {}
+    // ====== [MOD:BOOT_OPENID_PROFILE_RIGHTS_SYNC] START ======
+    try {
+      if (!wx.__bootSyncProfileDone) {
+        wx.__bootSyncProfileDone = true;
+
+        const base = (wx.getStorageSync('API_BASE') || wx.getStorageSync('apiBaseUrl') || 'https://api.entropyshield.com').replace(/\/$/,'');
+
+        const up = (v) => String(v || '').toUpperCase();
+        const toMs = (v) => {
+          if (v == null) return null;
+          if (typeof v === 'number') return (v > 0 && v < 1e12) ? v * 1000 : v;
+          const s = String(v);
+          const su = s.toUpperCase();
+          if (su === 'LIFETIME') return 4102444800000;
+          if (/^\d+$/.test(s)) {
+            const n = Number(s);
+            return (n > 0 && n < 1e12) ? n * 1000 : n;
+          }
+          const t = Date.parse(s.replace(/-/g,'/'));
+          return isNaN(t) ? null : t;
+        };
+
+        const mergeRights = (p) => {
+          try {
+            const cur = wx.getStorageSync('userRights');
+            const curObj = (cur && typeof cur === 'object') ? cur : {};
+            const ur = Object.assign({}, curObj);
+
+            // free times：优先用 profile.total_reward_times
+            const freeRaw = (p && (p.total_reward_times || p.totalRewardTimes || p.free_calc_times || p.freeCalcTimes)) || ur.freeCalcTimes || 0;
+            const free = Number(freeRaw) || 0;
+            ur.freeCalcTimes = free;
+
+            // membership: level/name/expire
+            ur.membershipLevel = up((p && (p.membership_level || p.membershipLevel)) || ur.membershipLevel || '');
+            const nameRaw = (p && (p.membership_name || p.membershipName)) || ur.membershipName || ur.membership_name || '';
+            if (nameRaw) ur.membershipName = nameRaw;
+
+            const expRaw = (p && (p.membership_expire_at != null ? p.membership_expire_at : p.membershipExpireAt)) ?? ur.membershipExpireAt ?? ur.membership_expire_at ?? null;
+            ur.membershipExpireAt = toMs(expRaw);
+
+            // 终身兜底：level / expire / name 任一命中
+            const nm = String(ur.membershipName || '');
+            const isLife = (ur.membershipLevel === 'LIFETIME') || (up(expRaw) === 'LIFETIME') || (nm.indexOf('终身') >= 0) || (nm.indexOf('终生') >= 0) || (nm.indexOf('永久') >= 0);
+            if (isLife) {
+              ur.membershipLevel = 'LIFETIME';
+              ur.membershipName = '终身会员';
+              ur.membershipExpireAt = 4102444800000;
+            }
+
+            wx.setStorageSync('fissionProfile', p || {});
+
+
+// ====== [MOD:FREECALC_PRESERVE_MAX] START ======
+try {
+  const __cur = wx.getStorageSync('userRights');
+  const __curObj = (__cur && typeof __cur === 'object') ? __cur : {};
+  const __curTimes = Number(__curObj.freeCalcTimes || __curObj.free_calc_times || 0) || 0;
+  const __newTimes = Number(ur.freeCalcTimes || ur.free_calc_times || 0) || 0;
+  ur.freeCalcTimes = Math.max(__curTimes, __newTimes);
+} catch (e) {}
+// ====== [MOD:FREECALC_PRESERVE_MAX] END ======
+
+wx.setStorageSync('userRights', ur);
+            console.log('[BOOT][SYNC] merged userRights:', ur);
+          } catch(e) {
+            console.log('[BOOT][SYNC] merge error:', e);
+          }
+        };
+
+        const syncByClientId = (cid) => {
+          if (!cid) return;
+          wx.request({
+            url: base + '/api/fission/profile?clientId=' + encodeURIComponent(cid),
+            success: (res) => {
+                            const d = (res && res.data) ? res.data : {};
+              const ok = !!d.ok;
+              const p0 = d.profile || d.data || null;
+
+              // ✅ total_reward_times 在响应根部（不在 profile 里），这里必须从 d 取
+              const total = (d.total_reward_times || d.totalRewardTimes ||
+                            (p0 && (p0.total_reward_times || p0.totalRewardTimes)) || 0);
+
+              // 把 total_reward_times 塞回去，确保 mergeRights 能写入 freeCalcTimes
+              const p = p0 ? Object.assign({}, p0, { total_reward_times: total }) : { total_reward_times: total };
+
+              console.log('[BOOT][SYNC] profile resp:', d);
+              if (ok) mergeRights(p);
+            },
+            fail: (e) => console.log('[BOOT][SYNC] profile fail:', e)
+          });
+        };
+
+        const cid0 = wx.getStorageSync('clientId') || '';
+        if (cid0 && /^o[A-Za-z0-9_-]+$/.test(cid0)) {
+          syncByClientId(cid0);
+        } else {
+          wx.login({
+            success: (r) => {
+              if (!r || !r.code) return;
+              wx.request({
+                url: base + '/api/wx/login',
+                method: 'POST',
+                header: { 'content-type': 'application/json' },
+                data: { code: r.code },
+                success: (res) => {
+                  const openid = (res && res.data && (res.data.openid || res.data.openId)) || (res.data && res.data.data && res.data.data.openid);
+                  console.log('[BOOT] wx/login resp:', res && res.data);
+                  if (openid) {
+                    wx.setStorageSync('clientId', openid);
+                    console.log('[BOOT] clientId(openid)=', openid);
+                    syncByClientId(openid);
+                  }
+                },
+                fail: (e) => console.log('[BOOT] wx/login request fail:', e)
+              });
+            },
+            fail: (e) => console.log('[BOOT] wx.login fail:', e)
+          });
+        }
+      }
+    } catch(e) {}
+    // ====== [MOD:BOOT_OPENID_PROFILE_RIGHTS_SYNC] END ======
+     // ====== [MOD:WX_LOGIN_SET_CLIENTID] START ======
+     try {
+       // 1) 先保证本地一定有 clientId（避免 /profile 400）
+       const __cid0 = ensureClientId();
+
+       // 2) 再尝试 wx.login 换 openid，升级为稳定 clientId（支付/权益不会丢）
+       const __base = (wx.getStorageSync('API_BASE') || wx.getStorageSync('apiBaseUrl') || '').toString().replace(/\/$/,'');
+       if (__base && !wx.__clientIdLoginDone) {
+         wx.__clientIdLoginDone = true;
+         wx.login({
+           success: (lr) => {
+             if (!lr || !lr.code) return;
+             wx.request({
+               url: __base + '/api/wx/login',
+               method: 'POST',
+               header: { 'content-type': 'application/json' },
+               data: { code: lr.code },
+               success: (rr) => {
+                 const d = (rr && rr.data && (rr.data.data || rr.data)) || {};
+                 const oid = (d.openid || d.openId || d.clientId || d.client_id);
+                 if (!oid) return;
+                 const __cid = String(oid).trim();
+                 if (!__cid) return;
+                 wx.setStorageSync('clientId', __cid);
+
+                 // 3) 立刻拉 profile 同步到 userRights（合并不覆盖）
+                 wx.request({
+                   url: __base + '/api/fission/profile?clientId=' + encodeURIComponent(__cid),
+                   success: (pr) => {
+                     const body = pr && pr.data ? pr.data : {};
+                     if (!body || body.ok === false) return;
+                     const p = body.profile || body.data || body;
+
+                     const cur = wx.getStorageSync('userRights');
+                     const curObj = (cur && typeof cur === 'object') ? cur : {};
+                     const ur = Object.assign({}, curObj);
+
+                     const t = (p.total_reward_times != null ? p.total_reward_times : (p.totalRewardTimes != null ? p.totalRewardTimes : null));
+                     if (t != null && !Number.isNaN(Number(t))) ur.freeCalcTimes = Number(t);
+
+                     const lv = (p.membership_level || p.membershipLevel || ur.membershipLevel || '');
+                     const exp = (p.membership_expire_at == null ? (p.membershipExpireAt == null ? null : p.membershipExpireAt) : p.membership_expire_at);
+                     const nm = (p.membership_name || p.membershipName || ur.membershipName || '');
+                     if (nm) ur.membershipName = nm;
+                     if (lv) ur.membershipLevel = String(lv).toUpperCase();
+                     if (exp != null) ur.membershipExpireAt = exp;
+
+                     // 终身兜底：level/expire/name 任一命中 -> 2100
+                     const expUp = String(exp || '').toUpperCase();
+                     const isLife =
+                       (String(ur.membershipLevel || '').toUpperCase() === 'LIFETIME') ||
+                       (expUp === 'LIFETIME') ||
+                       (String(ur.membershipName || '').indexOf('终身') >= 0);
+
+                     if (isLife) {
+                       ur.membershipLevel = 'LIFETIME';
+                       ur.membershipName = '终身会员';
+                       ur.membershipExpireAt = 4102444800000;
+                     }
+
+                     if (p.inviteCode) ur.inviteCode = p.inviteCode;
+
+// ====== [MOD:FREECALC_PRESERVE_MAX] START ======
+try {
+  const __cur = wx.getStorageSync('userRights');
+  const __curObj = (__cur && typeof __cur === 'object') ? __cur : {};
+  const __curTimes = Number(__curObj.freeCalcTimes || __curObj.free_calc_times || 0) || 0;
+  const __newTimes = Number(ur.freeCalcTimes || ur.free_calc_times || 0) || 0;
+  ur.freeCalcTimes = Math.max(__curTimes, __newTimes);
+} catch (e) {}
+// ====== [MOD:FREECALC_PRESERVE_MAX] END ======
+
+wx.setStorageSync('userRights', ur);
+                     wx.setStorageSync('fissionProfile', p);
+                     console.log('[BOOT][SYNC] userRights merged:', ur);
+                   }
+                 });
+               }
+             });
+           }
+         });
+       }
+     } catch(e) {}
+     // ====== [MOD:WX_LOGIN_SET_CLIENTID] END ======
+
     // 基础信息
     let sys = {};
     let isDevtools = false;
@@ -181,10 +496,42 @@ App({
               const cur = wx.getStorageSync('userRights');
               const curObj = (cur && typeof cur === 'object') ? cur : {};
               const ur = Object.assign({}, curObj);
-              ur.membershipLevel = (p.membership_level || ur.membershipLevel || '').toString();
-              ur.membershipExpireAt = (p.membership_expire_at == null ? null : p.membership_expire_at);
-              if (ur.membershipLevel === 'LIFETIME') ur.membershipName = '\u7ec8\u8eab\u4f1a\u5458';
-              wx.setStorageSync('userRights', ur);
+                                // ====== [MOD:LIFETIME_MAP_NEVER_EXPIRE] START ======
+              ur.membershipLevel = (p.membership_level || p.membershipLevel || ur.membershipLevel || '').toString().toUpperCase();
+
+              const expRaw = (p.membership_expire_at == null
+                ? (p.membershipExpireAt == null ? null : p.membershipExpireAt)
+                : p.membership_expire_at);
+              const expUp  = String(expRaw || '').toUpperCase();
+
+              const nameRaw = (p.membership_name || p.membershipName || ur.membershipName || ur.membership_name || '');
+              if (nameRaw) ur.membershipName = nameRaw;
+
+              ur.membershipExpireAt = expRaw;
+
+              // ✅ 终身识别兜底：level / expire_at / name 任一命中 -> 强制终身 + 2100-01-01
+              const isLife =
+                (ur.membershipLevel === 'LIFETIME') ||
+                (expUp === 'LIFETIME') ||
+                (String(ur.membershipName || '').indexOf('终身') >= 0);
+
+              if (isLife) {
+                ur.membershipLevel = 'LIFETIME';
+                ur.membershipName = '终身会员';
+                ur.membershipExpireAt = 4102444800000; // 2100-01-01
+              }
+              // ====== [MOD:LIFETIME_MAP_NEVER_EXPIRE] END ======
+// ====== [MOD:FREECALC_PRESERVE_MAX] START ======
+try {
+  const __cur = wx.getStorageSync('userRights');
+  const __curObj = (__cur && typeof __cur === 'object') ? __cur : {};
+  const __curTimes = Number(__curObj.freeCalcTimes || __curObj.free_calc_times || 0) || 0;
+  const __newTimes = Number(ur.freeCalcTimes || ur.free_calc_times || 0) || 0;
+  ur.freeCalcTimes = Math.max(__curTimes, __newTimes);
+} catch (e) {}
+// ====== [MOD:FREECALC_PRESERVE_MAX] END ======
+
+wx.setStorageSync('userRights', ur);
               console.log('[BOOT][MEMBER] userRights synced:', ur);
             } catch (e) {}
           }
@@ -204,3 +551,4 @@ App({
 if (false) {
   require('./pages/visitAdmin/index.js');
 }
+
