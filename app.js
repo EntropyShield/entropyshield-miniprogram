@@ -1,4 +1,5 @@
-﻿ // ====== [MOD:ENSURE_CLIENTID] START ======
+// ST_WXLOGIN_USE_QUERY_CODE_20260306
+ // ====== [MOD:ENSURE_CLIENTID] START ======
  function ensureClientId() {
    try {
      let cid = wx.getStorageSync('clientId');
@@ -211,10 +212,9 @@ wx.setStorageSync('userRights', ur);
             success: (r) => {
               if (!r || !r.code) return;
               wx.request({
-                url: base + '/api/wx/login',
+                url: base + '/api/wx/login?code=' + encodeURIComponent(r.code),
                 method: 'POST',
                 header: { 'content-type': 'application/json' },
-                data: { code: r.code },
                 success: (res) => {
                   const openid = (res && res.data && (res.data.openid || res.data.openId)) || (res.data && res.data.data && res.data.data.openid);
                   console.log('[BOOT] wx/login resp:', res && res.data);
@@ -246,10 +246,9 @@ wx.setStorageSync('userRights', ur);
            success: (lr) => {
              if (!lr || !lr.code) return;
              wx.request({
-               url: __base + '/api/wx/login',
+               url: __base + '/api/wx/login?code=' + encodeURIComponent(lr.code),
                method: 'POST',
                header: { 'content-type': 'application/json' },
-               data: { code: lr.code },
                success: (rr) => {
                  const d = (rr && rr.data && (rr.data.data || rr.data)) || {};
                  const oid = (d.openid || d.openId || d.clientId || d.client_id);
