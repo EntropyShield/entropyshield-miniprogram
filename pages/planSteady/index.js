@@ -1,4 +1,4 @@
-// pages/planSteady/index.js
+﻿// pages/planSteady/index.js
 const funnel = require('../../utils/funnel.js');
 
 Page({
@@ -80,10 +80,10 @@ Page({
     const totalShares = available / P1; // N_total = A / P1
 
     // 4 次建仓股数（向下取整）
-    const N1 = Math.floor(totalShares * w1);
-    const N2 = Math.floor(totalShares * w2);
-    const N3 = Math.floor(totalShares * w3);
-    const N4 = Math.floor(totalShares * w4);
+    const N1 = Math.floor((totalShares * w1) / 100) * 100;
+    const N2 = Math.floor((totalShares * w2) / 100) * 100;
+    const N3 = Math.floor((totalShares * w3) / 100) * 100;
+    const N4 = Math.floor((totalShares * w4) / 100) * 100;
 
     // 4 次建仓价格
     const P2 = P1 * 1.03;

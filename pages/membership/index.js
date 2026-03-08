@@ -1,5 +1,11 @@
 // pages/membership/index.js
 const UR = require('../../utils/userRights.js');
+let clientIdUtil = null;
+try {
+  clientIdUtil = require('../../utils/clientId');
+} catch (e) {
+  clientIdUtil = null;
+}
 
 function upperCode(v) {
   return String(v || '').toUpperCase();
@@ -117,7 +123,9 @@ Page({
     });
 
     this.refreshRights();
-  },
+  
+    this.ensureOpenid(() => {});
+},
 
   onShow() {
     this.refreshRights();
@@ -159,36 +167,97 @@ Page({
   },
 
   ensureOpenid(cb) {
-    const openid = wx.getStorageSync('openid');
-    if (openid) return cb(openid);
-
-    wx.login({
-      success: (r) => {
-        wx.request({
-          url: this.getApiBase() + '/api/wx/login',
-          method: 'POST',
-          header: { 'Content-Type': 'application/json' },
-          data: { code: r.code },
-          success: (res) => {
-            if (res.data && res.data.ok && res.data.openid) {
-              wx.setStorageSync('openid', res.data.openid);
-              cb(res.data.openid);
-            } else {
-              wx.showToast({ title: '获取 openid 失败', icon: 'none' });
-              console.log('[membership] /api/wx/login res =>', res.data);
-            }
-          },
-          fail: (err) => {
-            wx.showToast({ title: '请求 wx/login 失败', icon: 'none' });
-            console.error(err);
-          }
-        });
-      },
-      fail: (err) => {
-        wx.showToast({ title: 'wx.login 失败', icon: 'none' });
-        console.error(err);
+    const done = (oid) => {
+      const openid = String(oid || '').trim();
+      if (!openid) {
+        if (typeof cb === 'function') cb('');
+        return;
       }
-    });
+      try {
+        wx.setStorageSync('openid', openid);
+        wx.setStorageSync('clientId', openid);
+      } catch (e) {}
+      if (typeof cb === 'function') cb(openid);
+    };
+  
+    const failAll = (msg, extra) => {
+      console.log('[membership] ensureOpenid failed =>', msg, extra || '');
+      wx.showToast({ title: msg || '获取登录信息失败', icon: 'none' });
+      if (typeof cb === 'function') cb('');
+    };
+  
+    // 1) 先读缓存：openid / clientId 任一存在都直接用
+    try {
+      const cached = String(
+        wx.getStorageSync('openid') ||
+        wx.getStorageSync('clientId') ||
+        ''
+      ).trim();
+  
+      if (cached) {
+        return done(cached);
+      }
+    } catch (e) {}
+  
+    // 2) 再走 utils/clientId.ensureClientId（你项目里已统一封装）
+    if (clientIdUtil && typeof clientIdUtil.ensureClientId === 'function') {
+      Promise.resolve(clientIdUtil.ensureClientId(false))
+        .then((oid) => {
+          oid = String(oid || '').trim();
+          if (oid) {
+            done(oid);
+            return;
+          }
+          fallbackWxLogin();
+        })
+        .catch((err) => {
+          console.log('[membership] clientIdUtil.ensureClientId error =>', err);
+          fallbackWxLogin();
+        });
+      return;
+    }
+  
+    // 3) 最后兜底：wx.login + /api/wx/login
+    fallbackWxLogin();
+  
+    const self = this;
+  
+    function fallbackWxLogin() {
+      wx.login({
+        success(loginRes) {
+          if (!loginRes || !loginRes.code) {
+            failAll('获取登录信息失败');
+            return;
+          }
+  
+          wx.request({
+            url: self.getApiBase() + '/api/wx/login',
+            method: 'POST',
+            data: { code: loginRes.code },
+            success(res) {
+              const d = res && res.data;
+              const oid = d && (d.openid || d.openId || d.clientId || d.client_id);
+  
+              if (oid) {
+                done(oid);
+                return;
+              }
+  
+              console.log('[membership] /api/wx/login res =>', d);
+              failAll('获取登录信息失败');
+            },
+            fail(err) {
+              console.log('[membership] /api/wx/login fail =>', err);
+              failAll('获取登录信息失败');
+            }
+          });
+        },
+        fail(err) {
+          console.log('[membership] wx.login fail =>', err);
+          failAll('获取登录信息失败');
+        }
+      });
+    }
   },
 
   planIdToProductCode(planId) {
