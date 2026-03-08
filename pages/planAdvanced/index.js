@@ -1,4 +1,4 @@
-// pages/planAdvanced/index.js
+﻿// pages/planAdvanced/index.js
 const funnel = require('../../utils/funnel.js');
 
 function getUserRights() {
@@ -118,9 +118,9 @@ Page({
     const available = T * useRatio;
     const totalShares = available / P1;
 
-    const qty1 = totalShares * w1;
-    const qty2 = totalShares * w2;
-    const qty3 = totalShares * w3;
+    const qty1 = Math.floor((totalShares * w1) / 100) * 100;
+    const qty2 = Math.floor((totalShares * w2) / 100) * 100;
+    const qty3 = Math.floor((totalShares * w3) / 100) * 100;
 
     const p1 = P1;
     const p2 = p1 * 1.05;
