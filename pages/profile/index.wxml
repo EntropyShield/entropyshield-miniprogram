@@ -172,6 +172,16 @@
         </view>
         <text class="nav-arrow">›</text>
       </view>
+
+      <view class="nav-item" bindtap="goMyInvite">
+        <view class="nav-main">
+          <text class="nav-title">我的邀请</text>
+          <text class="nav-desc">
+            自动读取当前账号，仅查看我邀请的人与邀请关系。
+          </text>
+        </view>
+        <text class="nav-arrow">›</text>
+      </view>
     </view>
   </view>
 
