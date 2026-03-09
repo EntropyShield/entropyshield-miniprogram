@@ -1,0 +1,44 @@
+<view class="page">
+  <view class="card">
+    <view class="title">邀请查询</view>
+    <view class="sub">输入手机号 / clientId / 邀请码，独立查询，不影响裂变任务中心</view>
+
+    <view class="row">
+      <input
+        class="input"
+        placeholder="例如：13828899373 / oM4t... / LI41Z9"
+        value="{{keyword}}"
+        bindinput="onInput"
+      />
+      <button class="btn" bindtap="onQuery" loading="{{loading}}">查询</button>
+    </view>
+  </view>
+
+  <view class="card" wx:if="{{shown}}">
+    <view wx:if="{{found}}">
+      <view class="sectionTitle">查询对象</view>
+      <view class="item">
+        <view class="line"><text class="k">手机号：</text><text class="v">{{targetMobile}}</text></view>
+        <view class="line"><text class="k">clientId：</text><text class="v">{{targetClientId}}</text></view>
+        <view class="line"><text class="k">本人邀请码：</text><text class="v">{{targetCode}}</text></view>
+        <view class="line"><text class="k">上级邀请码：</text><text class="v">{{targetParentCode}}</text></view>
+        <view class="line"><text class="k">邀请人：</text><text class="v">{{targetInviterClientId}}</text></view>
+        <view class="line"><text class="k">下级人数：</text><text class="v">{{targetInviteeCount}}</text></view>
+      </view>
+
+      <view wx:if="{{hasInvitees}}">
+        <view class="sectionTitle">我邀请的人</view>
+        <block wx:for="{{invitees}}" wx:key="clientIdText">
+          <view class="item">
+            <view class="line"><text class="k">手机号：</text><text class="v">{{item.mobileText}}</text></view>
+            <view class="line"><text class="k">clientId：</text><text class="v">{{item.clientIdText}}</text></view>
+            <view class="line"><text class="k">邀请码：</text><text class="v">{{item.inviteCodeText}}</text></view>
+            <view class="line"><text class="k">绑定上级：</text><text class="v">{{item.parentCodeText}}</text></view>
+          </view>
+        </block>
+      </view>
+    </view>
+
+    <view class="empty" wx:else>未查到匹配记录</view>
+  </view>
+</view>

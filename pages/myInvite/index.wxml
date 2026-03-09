@@ -1,0 +1,36 @@
+<view class="page">
+  <view class="card">
+    <view class="title">我的邀请</view>
+    <view class="sub">自动读取当前登录用户，只展示自己的邀请关系</view>
+    <view class="sub">当前ID：{{currentClientId}}</view>
+    <button class="btn" bindtap="loadMyInvite" loading="{{loading}}">刷新</button>
+  </view>
+
+  <view class="card" wx:if="{{shown}}">
+    <view wx:if="{{found}}">
+      <view class="sectionTitle">我的邀请关系</view>
+      <view class="item">
+        <view class="line"><text class="k">手机号：</text><text class="v">{{targetMobile}}</text></view>
+        <view class="line"><text class="k">clientId：</text><text class="v">{{targetClientId}}</text></view>
+        <view class="line"><text class="k">我的邀请码：</text><text class="v">{{targetCode}}</text></view>
+        <view class="line"><text class="k">我的上级：</text><text class="v">{{targetParentCode}}</text></view>
+        <view class="line"><text class="k">邀请人：</text><text class="v">{{targetInviterClientId}}</text></view>
+        <view class="line"><text class="k">我邀请人数：</text><text class="v">{{targetInviteeCount}}</text></view>
+      </view>
+
+      <view wx:if="{{hasInvitees}}">
+        <view class="sectionTitle">我邀请的人</view>
+        <block wx:for="{{invitees}}" wx:key="clientIdText">
+          <view class="item">
+            <view class="line"><text class="k">手机号：</text><text class="v">{{item.mobileText}}</text></view>
+            <view class="line"><text class="k">clientId：</text><text class="v">{{item.clientIdText}}</text></view>
+            <view class="line"><text class="k">邀请码：</text><text class="v">{{item.inviteCodeText}}</text></view>
+            <view class="line"><text class="k">绑定上级：</text><text class="v">{{item.parentCodeText}}</text></view>
+          </view>
+        </block>
+      </view>
+    </view>
+
+    <view class="empty" wx:else>当前账号还没有邀请记录</view>
+  </view>
+</view>
