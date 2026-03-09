@@ -1,4 +1,4 @@
-// pages/fissionTask/index.js
+﻿// pages/fissionTask/index.js
 let cfg = {}
 try { cfg = require('../../config') } catch (e) { cfg = {} }
 
