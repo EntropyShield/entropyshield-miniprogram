@@ -140,5 +140,22 @@ Page({
     } finally {
       this.setData({ loading: false })
     }
+  },
+
+  safeBack() {
+    const pages = getCurrentPages()
+    if (pages && pages.length > 1) {
+      wx.navigateBack({ delta: 1 })
+      return
+    }
+    wx.switchTab({ url: '/pages/profile/index' })
+  },
+
+  goProfile() {
+    wx.switchTab({ url: '/pages/profile/index' })
+  },
+
+  goHome() {
+    wx.switchTab({ url: '/pages/index/index' })
   }
 })

@@ -3,7 +3,10 @@
     <view class="title">我的邀请</view>
     <view class="sub">自动读取当前登录用户，只展示自己的邀请关系</view>
     <view class="sub">当前ID：{{currentClientId}}</view>
+
     <button class="btn" bindtap="loadMyInvite" loading="{{loading}}">刷新</button>
+    <button class="btn" bindtap="safeBack">返回个人中心</button>
+    <button class="btn" bindtap="goHome">返回首页</button>
   </view>
 
   <view class="card" wx:if="{{shown}}">

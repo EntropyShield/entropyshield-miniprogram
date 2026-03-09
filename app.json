@@ -1,7 +1,5 @@
 {
     "pages":  [
-                  "pages/myInvite/index",
-                  "pages/inviteLookup/index",
                   "pages/index/index",
                   "pages/controller/index",
                   "pages/profile/index",
@@ -37,7 +35,9 @@
                   "pages/upsell/index",
                   "pages/visitAdmin/index",
                   "pages/visitBooking/index",
-                  "pages/visitMyList/index"
+                  "pages/visitMyList/index",
+                  "pages/myInvite/index",
+                  "pages/inviteLookup/index"
               ],
     "window":  {
                    "navigationBarTitleText":  "熵盾研究院",
