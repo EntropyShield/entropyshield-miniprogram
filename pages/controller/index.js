@@ -66,7 +66,7 @@ Page({
     safeShowShareMenu();
 
     this.refreshCampSummary();
-    this.loadFixedEntries();
+    console.log('[controller][audit] skip loadFixedEntries');
   },
 
   refreshCampSummary() {
@@ -293,7 +293,7 @@ Page({
   },
 
   onRetryFixed() {
-    this.loadFixedEntries();
+    console.log('[controller][audit] skip loadFixedEntries');
   },
 
   loadFixedEntries() {

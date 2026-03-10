@@ -36,7 +36,7 @@
       <view class="section-a-sub">统一查看训练营与多类控局排期，集中安排控局节奏</view>
     </view>
     <view class="section-a-btn-wrap">
-      <button class="section-a-btn" bindtap="goToCourseList">进入控局日历</button>
+      <button class="section-a-btn" bindtap="goToCourseList">继续训练</button>
     </view>
   </view>
 
@@ -66,13 +66,13 @@
   </view>
 </view>
 
-<!-- B 区：近期课程与预约（真实课表驱动） -->
+<!-- B 区：近期内容与预约（真实课表驱动） -->
 <view class="section-card">
   <view class="section-header-b header-row">
-    <text class="section-tag">B. 近期课与预约</text>
-    <text class="header-link" bindtap="goToCourseList">查看课表</text>
+    <text class="section-tag">B. 近期安排与预约</text>
+    <text class="header-link" bindtap="goToCourseList">查看安排</text>
   </view>
-  <view class="section-sub-line">公开课 / 体验课 / 训练营 / 线下沙龙</view>
+  <view class="section-sub-line">内容 / 体验课 / 训练营 / 线下沙龙</view>
 
   <view class="fixed-title">控局路径 · 固定入口</view>
 
@@ -121,7 +121,7 @@
   </view>
 </view>
 
-<!-- C 区：课程预约与渠道数据（预留） -->
+<!-- C 区：内容预约与渠道数据（预留） -->
 <view class="section-card section-card-small">
   <view class="section-header-c">
     <text class="section-tag">C. 当前开放内容</text>
