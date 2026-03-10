@@ -31,6 +31,21 @@
     </view>
   </view>
 
+
+  <view class="home-dynamic-strip">
+    <view class="home-dynamic-item">
+      <text class="home-dynamic-label">剩余方案</text>
+      <text class="home-dynamic-value">{{homeFreeCalcTimes}}</text>
+    </view>
+    <view class="home-dynamic-item">
+      <text class="home-dynamic-label">训练进度</text>
+      <text class="home-dynamic-value">{{homeCampProgressText}}</text>
+    </view>
+    <view class="home-dynamic-item">
+      <text class="home-dynamic-label">当前权益</text>
+      <text class="home-dynamic-value">{{homeRightsLabel}}</text>
+    </view>
+  </view>
   <!-- 为什么先做风控 -->
   <view class="card section-card">
     <view class="section-header">

@@ -4,7 +4,10 @@ const USER_RIGHTS_KEY = 'userRights';
 
 Page({
   data: {
-    inviteCode: ''
+    inviteCode: '',
+    homeFreeCalcTimes: 0,
+    homeCampProgressText: '0/7',
+    homeRightsLabel: '体验用户'
   },
 
   onLoad(options) {
@@ -13,11 +16,43 @@ Page({
     const myInvite = ensureInviteCode();
     this.setData({ inviteCode: myInvite });
 
+    this.refreshHomeSnapshot();
     handleInviteFromOptions(options || {});
   },
 
   onShow() {
+    this.refreshHomeSnapshot();
     this.drawLogo2D();
+  },
+
+  refreshHomeSnapshot() {
+    const rights = wx.getStorageSync(USER_RIGHTS_KEY) || {};
+
+    const freeCalcTimes =
+      Number(rights.freeCalcTimes || rights.free_calc_times || 0) || 0;
+
+    const membershipName =
+      String(rights.membershipName || rights.membership_name || '').trim();
+
+    const logs = wx.getStorageSync('campDailyLogs');
+    let doneDays = 0;
+
+    if (Array.isArray(logs)) {
+      doneDays = Math.min(7, logs.length);
+    } else {
+      doneDays = Number(rights.campDaysDone || rights.camp_days_done || 0) || 0;
+      doneDays = Math.min(7, Math.max(0, doneDays));
+    }
+
+    const homeCampProgressText = `${doneDays}/7`;
+    const homeRightsLabel =
+      membershipName || (freeCalcTimes > 0 ? '已解锁权益' : '体验用户');
+
+    this.setData({
+      homeFreeCalcTimes: freeCalcTimes,
+      homeCampProgressText,
+      homeRightsLabel
+    });
   },
 
   // 绘制 LOGO（六边形 + ∞）
@@ -139,7 +174,7 @@ Page({
     wx.navigateTo({ url: '/pages/course/index' });
   },
 
-  // 进阶服务 / 会员（支付入口保留在这里）
+  // 进阶服务 / 会员
   goMembership() {
     wx.navigateTo({ url: '/pages/membership/index' });
   },
@@ -154,7 +189,7 @@ Page({
       : '/pages/index/index';
 
     return {
-      title: '熵盾·风控卫士 —— 从会亏钱到会控亏',
+      title: '熵盾·风控卫士——从会亏钱到会控亏',
       path
     };
   }
