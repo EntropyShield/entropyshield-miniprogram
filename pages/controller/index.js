@@ -469,7 +469,7 @@ Page({
   onFixedCardTap(e) {
     const id = String(e.currentTarget.dataset.id || '');
     if (!id) {
-      wx.showToast({ title: '该入口尚未配置真实课程', icon: 'none' });
+      wx.showToast({ title: '当前审核版本暂不展示该入口', icon: 'none' });
       return;
     }
     wx.navigateTo({ url: `/pages/course/detail?id=${id}&from=controller` });
@@ -478,7 +478,7 @@ Page({
   onFixedDetailTap(e) {
     const id = String(e.currentTarget.dataset.id || '');
     if (!id) {
-      wx.showToast({ title: '该入口尚未配置真实课程', icon: 'none' });
+      wx.showToast({ title: '当前审核版本暂不展示该入口', icon: 'none' });
       return;
     }
     wx.navigateTo({ url: `/pages/course/detail?id=${id}&from=controller` });
@@ -487,7 +487,7 @@ Page({
   onFixedBookingTap(e) {
     const id = String(e.currentTarget.dataset.id || '');
     if (!id) {
-      wx.showToast({ title: '该入口尚未配置真实课程', icon: 'none' });
+      wx.showToast({ title: '当前审核版本暂不展示该入口', icon: 'none' });
       return;
     }
     wx.navigateTo({ url: `/pages/visitBooking/index?from=controller&courseId=${id}` });

@@ -61,17 +61,40 @@
   >
     常用工具
   </view>
-  <view
-    class="inner-tab {{activeInnerTab === 'lab' ? 'active' : ''}}"
-    data-key="lab"
-    bindtap="onInnerTabChange"
-  >
-    熵盾实验室
-  </view>
 </view>
 
 <!-- ================== Tab1：我的权益 ================== -->
 <view wx:if="{{activeInnerTab === 'rights'}}">
+
+  <!-- 审核必备：协议与隐私说明 -->
+  <view class="card section-card">
+    <view class="section-header">
+      <text class="section-title">账号与隐私说明</text>
+      <text class="section-tag">审核必备</text>
+    </view>
+
+    <view class="section-paragraph">
+      为完成账号识别、手机号绑定、服务通知等必要功能，在你主动点击并授权后，我们才会获取你的手机号。
+    </view>
+
+    <checkbox-group bindchange="onPrivacyAgreementChange">
+      <label class="agreement-check-row">
+        <checkbox value="agree" checked="{{privacyChecked}}" color="#2aff2a" />
+        <text class="agreement-check-text">我已阅读并同意以下协议</text>
+      </label>
+    </checkbox-group>
+
+    <view class="agreement-links">
+      <text class="agreement-link" bindtap="openServiceAgreement">《用户服务协议》</text>
+      <text class="agreement-link-divider">｜</text>
+      <text class="agreement-link" bindtap="openPrivacyContract">《隐私政策》</text>
+    </view>
+
+    <view class="section-tip">
+      未经你同意，我们不会获取你的手机号；仅在你主动授权后，用于登录识别、服务联系与必要通知。
+    </view>
+  </view>
+
   <view class="card section-card">
     <view class="section-header">
       <text class="section-title">STEP 1 · 我的护盾</text>
@@ -188,19 +211,10 @@
   <!-- 模块 B：订单中心 -->
   <view class="card">
     <view class="card-header">
-      <text class="card-title">订单中心</text>
-      <text class="card-subtitle">训练营 · 会员 · 线下来访</text>
+      <text class="card-title">正式服务</text>
+      <text class="card-subtitle">线下来访</text>
     </view>
     <view class="nav-list">
-      <view class="nav-item" bindtap="goOrderCenter">
-        <view class="nav-main">
-          <text class="nav-title">我的订单中心</text>
-          <text class="nav-desc">
-            训练营、会员、课程等付费记录，将逐步在这里统一查看和下载发票。
-          </text>
-        </view>
-        <text class="nav-tag">敬请期待</text>
-      </view>
       <view class="nav-item" bindtap="goVisitBooking">
         <view class="nav-main">
           <text class="nav-title">公司来访预约</text>
@@ -219,151 +233,6 @@
         </view>
         <text class="nav-arrow">›</text>
       </view>
-      <view class="nav-item" bindtap="goVisitAdmin">
-        <view class="nav-main">
-          <text class="nav-title">来访预约管理（内测）</text>
-          <text class="nav-desc">
-            一屏查看全部预约，并手动标记确认 / 完成 / 取消。
-          </text>
-        </view>
-        <text class="nav-tag">内部</text>
-      </view>
-    </view>
-  </view>
-</view>
-
-<!-- ================== Tab3：熵盾实验室 ================== -->
-<view wx:if="{{activeInnerTab === 'lab'}}">
-  <!-- 总说明：这个 Tab 只讲“实验能力”，不放运营入口 -->
-  <view class="card">
-    <view class="card-header">
-      <text class="card-title">熵盾实验室</text>
-      <text class="card-subtitle">AI · 策略 · 系统自建</text>
-    </view>
-    <view class="section-paragraph">
-      这里是控局者的“实验场”，所有功能以内测 / 规划为主，用来预告你未来可以在熵盾里做哪些更深的风控实验。
-    </view>
-  </view>
-
-  <!-- 实验一：熵盾 AI 风控助手 -->
-  <view class="card">
-    <view class="card-header">
-      <text class="card-title">实验一 · 熵盾 AI 风控助手</text>
-      <text class="card-subtitle">内测筹备中</text>
-    </view>
-
-    <view class="nav-list">
-      <view class="nav-item nav-item-disabled">
-        <view class="nav-main">
-          <text class="nav-title">一键体检你的交易计划</text>
-          <text class="nav-desc">
-            未来可以粘贴你的交易计划，AI 自动标出风险点、最大回撤估算、分批与止损建议，仅用于风控训练。
-          </text>
-        </view>
-        <text class="nav-tag">内测</text>
-      </view>
-
-      <view class="nav-item nav-item-disabled">
-        <view class="nav-main">
-          <text class="nav-title">情景压力测试 · What if？</text>
-          <text class="nav-desc">
-            假设行情突然振幅加倍 / 缩量 / 跳空，AI 模拟你的仓位会发生什么，用来训练“最坏打算”思维。
-          </text>
-        </view>
-        <text class="nav-tag">规划中</text>
-      </view>
-    </view>
-
-    <view class="section-tip">
-      所有 AI 结果仅为风控训练参考，不构成任何买卖建议或收益承诺。
-    </view>
-  </view>
-
-  <!-- 实验二：控局者策略实验场 -->
-  <view class="card">
-    <view class="card-header">
-      <text class="card-title">实验二 · 控局者策略实验场</text>
-      <text class="card-subtitle">战法 VS 风控</text>
-    </view>
-
-    <view class="nav-list">
-      <view class="nav-item nav-item-disabled">
-        <view class="nav-main">
-          <text class="nav-title">趋势跟踪实验</text>
-          <text class="nav-desc">
-            选一套趋势策略，给定进出场规则和风控参数，观察在不同市场阶段下的盈亏分布与最大回撤。
-          </text>
-        </view>
-        <text class="nav-tag">规划中</text>
-      </view>
-
-      <view class="nav-item nav-item-disabled">
-        <view class="nav-main">
-          <text class="nav-title">网格 / 波段实验</text>
-          <text class="nav-desc">
-            对比“频繁出手”和“少打高胜率仗”的实际结果差异，把感觉变成可量化的数据认知。
-          </text>
-        </view>
-        <text class="nav-tag">规划中</text>
-      </view>
-
-      <view class="nav-item nav-item-disabled">
-        <view class="nav-main">
-          <text class="nav-title">临界点 / 临界仓位实验</text>
-          <text class="nav-desc">
-            找到自己心理与资金的临界点：最大可承受回撤、连续亏损次数、单笔承压额度。
-          </text>
-        </view>
-        <text class="nav-tag">规划中</text>
-      </view>
-    </view>
-
-    <view class="section-tip">
-      策略实验场会优先服务已经完成多轮训练营的控局者，用来验证“适不适合自己”的战法组合。
-    </view>
-  </view>
-
-  <!-- 实验三：控局者系统自建 -->
-  <view class="card">
-    <view class="card-header">
-      <text class="card-title">实验三 · 控局者系统自建</text>
-      <text class="card-subtitle">把碎片经验拼成体系</text>
-    </view>
-
-    <view class="nav-list">
-      <view class="nav-item nav-item-disabled">
-        <view class="nav-main">
-          <text class="nav-title">个人风控蓝图</text>
-          <text class="nav-desc">
-            用一张图梳理你的资金分层、仓位上限、止损规则、加仓原则，形成可复盘的风控蓝图。
-          </text>
-        </view>
-        <text class="nav-tag">规划中</text>
-      </view>
-
-      <view class="nav-item nav-item-disabled">
-        <view class="nav-main">
-          <text class="nav-title">战法矩阵 · 三到五套核心打法</text>
-          <text class="nav-desc">
-            不是学一百种方法，而是沉淀 3~5 套与你风险偏好匹配的核心战法，并配套风控参数。
-          </text>
-        </view>
-        <text class="nav-tag">规划中</text>
-      </view>
-
-      <view class="nav-item nav-item-disabled">
-        <view class="nav-main">
-          <text class="nav-title">执行与复盘模版</text>
-          <text class="nav-desc">
-            固定一套“下单前检查清单 + 事后复盘模版”，让风控从理念变成可以每天执行的动作。
-          </text>
-        </view>
-        <text class="nav-tag">规划中</text>
-      </view>
-    </view>
-
-    <view class="section-tip">
-      系统自建模块会与训练营、实盘记录打通，让每一次交易都为你的长期体系加一块“砖”。
     </view>
   </view>
 </view>

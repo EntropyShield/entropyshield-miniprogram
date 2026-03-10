@@ -117,18 +117,18 @@
   </view>
 
   <view class="b-foot">
-    说明：课程时间以课表为准；线下沙龙报名后我们会联系确认来访时间。
+    说明：当前审核版本正式开放训练营打卡与来访预约。
   </view>
 </view>
 
 <!-- C 区：课程预约与渠道数据（预留） -->
 <view class="section-card section-card-small">
   <view class="section-header-c">
-    <text class="section-tag">C. 课程预约与渠道数据</text>
+    <text class="section-tag">C. 当前开放内容</text>
   </view>
   <view class="section-body">
     <text class="row-text">
-      未来会在这里看到：每一场课程的预约人数、到课率，以及来自「小程序分享 / 老用户转介绍 / 社群渠道」等统计，用于你的市场拓展决策。
+      当前审核版本仅展示已正式开放的训练营与来访内容，未开放内容不在此版本展示。
     </text>
   </view>
 </view>

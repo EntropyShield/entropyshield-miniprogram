@@ -167,41 +167,7 @@
         <view class="bullet bullet-green"></view>
         <view class="test-text">
           <text class="test-title">进入控局者路径</text>
-          <text class="test-desc">训练营、课程日历、进阶服务统一入口。</text>
-        </view>
-      </view>
-      <view class="test-right">
-        <text class="test-action">进入</text>
-      </view>
-    </view>
-  </view>
-
-  <!-- 进阶承接 -->
-  <view class="card section-card">
-    <view class="section-header">
-      <text class="section-title">进阶承接</text>
-      <text class="section-sub">想系统训练、看课程、进入进阶服务，从这里继续</text>
-    </view>
-
-    <view class="test-item" bindtap="goCourseCalendar" data-source="advanced">
-      <view class="test-left">
-        <view class="bullet bullet-green"></view>
-        <view class="test-text">
-          <text class="test-title">课程日历</text>
-          <text class="test-desc">查看即将开播 / 全部课程，安排你的训练节奏。</text>
-        </view>
-      </view>
-      <view class="test-right">
-        <text class="test-action">查看</text>
-      </view>
-    </view>
-
-    <view class="test-item" bindtap="goMembership" data-source="advanced">
-      <view class="test-left">
-        <view class="bullet bullet-green"></view>
-        <view class="test-text">
-          <text class="test-title">进阶服务与会员</text>
-          <text class="test-desc">保留付费链路入口，承接高意向用户。</text>
+          <text class="test-desc">训练营、打卡与正式开放内容入口。</text>
         </view>
       </view>
       <view class="test-right">
