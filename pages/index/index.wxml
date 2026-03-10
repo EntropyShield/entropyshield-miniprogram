@@ -237,6 +237,22 @@
     </button>
   </view>
 
+
+  <!-- 底部收口 CTA -->
+  <view class="card section-card bottom-cta-card">
+    <view class="section-header bottom-cta-header">
+      <text class="section-title">先做一步，再谈后面</text>
+      <text class="section-sub">别只看，先完成一次风控计算或进入训练营。</text>
+    </view>
+
+    <button class="btn-primary bottom-cta-primary" bindtap="goCalc">
+      立即使用风控计算器
+    </button>
+
+    <button class="btn-secondary bottom-cta-secondary" bindtap="goCamp">
+      进入 7 天风控训练营
+    </button>
+  </view>
   <!-- 合规提示 -->
   <view class="card notice-card">
     <view class="notice-title">重要提示</view>

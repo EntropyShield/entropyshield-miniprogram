@@ -387,3 +387,21 @@
   text-align: center;
   line-height: 1.3;
 }
+
+.bottom-cta-card {
+  border-color: #214b21;
+  background: linear-gradient(180deg, #071007 0%, #050505 100%);
+}
+
+.bottom-cta-header {
+  margin-bottom: 16rpx;
+}
+
+.bottom-cta-primary {
+  margin-top: 0;
+  margin-bottom: 12rpx;
+}
+
+.bottom-cta-secondary {
+  margin-top: 0;
+}
