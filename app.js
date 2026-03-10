@@ -100,6 +100,68 @@ function __stTryBindInviteOnce() {
 }
 /* ====== ST_P0_BIND_INVITE_APPJS END ====== */
 
+// [PATCH] GLOBAL_SHARE_ALL_PAGES
+const __RAW_PAGE__ = Page;
+
+function __stBuildQuery__(obj) {
+  const pairs = [];
+  Object.keys(obj || {}).forEach((k) => {
+    const v = obj[k];
+    if (v === undefined || v === null || v === '') return;
+    pairs.push(encodeURIComponent(k) + '=' + encodeURIComponent(String(v)));
+  });
+  return pairs.join('&');
+}
+
+function __stDefaultShare__(ctx) {
+  const route = (ctx && ctx.route) ? ('/' + ctx.route) : '/pages/index/index';
+  const query = __stBuildQuery__((ctx && ctx.options) || {});
+  return {
+    title: '熵盾研究院',
+    path: query ? (route + '?' + query) : route,
+    query: query
+  };
+}
+
+Page = function(pageOptions) {
+  const opts = pageOptions || {};
+  const rawOnShow = opts.onShow;
+  const rawShareAppMessage = opts.onShareAppMessage;
+  const rawShareTimeline = opts.onShareTimeline;
+
+  opts.onShow = function() {
+    try {
+      wx.showShareMenu({
+        menus: ['shareAppMessage', 'shareTimeline']
+      });
+    } catch (e) {
+      console.log('[GLOBAL_SHARE] showShareMenu fail =>', e);
+    }
+
+    if (typeof rawOnShow === 'function') {
+      return rawOnShow.apply(this, arguments);
+    }
+  };
+
+  if (typeof rawShareAppMessage !== 'function') {
+    opts.onShareAppMessage = function() {
+      return __stDefaultShare__(this);
+    };
+  }
+
+  if (typeof rawShareTimeline !== 'function') {
+    opts.onShareTimeline = function() {
+      const share = __stDefaultShare__(this);
+      return {
+        title: share.title,
+        query: share.query || ''
+      };
+    };
+  }
+
+  return __RAW_PAGE__(opts);
+};
+// [PATCH END] GLOBAL_SHARE_ALL_PAGES
 App({
   onLaunch(options) {
     // [ST_P0_BIND_INVITE_APPJS] capture inviteCode at launch (do not wait payment)
