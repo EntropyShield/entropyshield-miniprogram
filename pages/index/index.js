@@ -1,6 +1,19 @@
 // pages/index/index.js
 
+const funnel = require('../../utils/funnel.js');
 const USER_RIGHTS_KEY = 'userRights';
+
+function safeTrack(step, ext = {}) {
+  try {
+    funnel.log(step, {
+      page: 'index',
+      ts: Date.now(),
+      ...ext
+    });
+  } catch (e) {
+    console.warn('[index] funnel log fail:', step, e);
+  }
+}
 
 Page({
   data: {
@@ -11,17 +24,29 @@ Page({
   },
 
   onLoad(options) {
-    console.log('[index] onLoad options:', options || {});
+    const opts = options || {};
+    console.log('[index] onLoad options:', opts);
+
+    safeTrack('HOME_VIEW', {
+      hasInviteParam: !!(opts.inviteCode || opts.invite)
+    });
 
     const myInvite = ensureInviteCode();
     this.setData({ inviteCode: myInvite });
 
     this.refreshHomeSnapshot();
-    handleInviteFromOptions(options || {});
+    handleInviteFromOptions(opts);
   },
 
   onShow() {
     this.refreshHomeSnapshot();
+
+    safeTrack('HOME_SHOW', {
+      freeCalcTimes: Number(this.data.homeFreeCalcTimes || 0),
+      campProgressText: this.data.homeCampProgressText || '0/7',
+      rightsLabel: this.data.homeRightsLabel || '体验用户'
+    });
+
     this.drawLogo2D();
   },
 
@@ -142,6 +167,7 @@ Page({
   // 立即使用风控计算器
   goCalc() {
     console.log('[index] goCalc');
+    safeTrack('HOME_CTA_GO_CALC');
 
     wx.navigateTo({
       url: '/pages/riskCalculator/index',
@@ -156,26 +182,31 @@ Page({
 
   // 7 天训练营
   goCamp() {
+    safeTrack('HOME_CTA_GO_CAMP');
     wx.navigateTo({ url: '/pages/campIntro/index' });
   },
 
   // 裂变任务中心
   goFission() {
+    safeTrack('HOME_CTA_GO_FISSION');
     wx.navigateTo({ url: '/pages/fissionTask/index' });
   },
 
   // 控局者（tabBar）
   goController() {
+    safeTrack('HOME_CTA_GO_CONTROLLER');
     wx.switchTab({ url: '/pages/controller/index' });
   },
 
   // 课程日历
   goCourseCalendar() {
+    safeTrack('HOME_CTA_GO_COURSE_CALENDAR');
     wx.navigateTo({ url: '/pages/course/index' });
   },
 
   // 进阶服务 / 会员
   goMembership() {
+    safeTrack('HOME_CTA_GO_MEMBERSHIP');
     wx.navigateTo({ url: '/pages/membership/index' });
   },
 
@@ -183,6 +214,10 @@ Page({
   onShareAppMessage() {
     const rights = wx.getStorageSync(USER_RIGHTS_KEY) || {};
     const inviteCode = rights.inviteCode || this.data.inviteCode || '';
+
+    safeTrack('HOME_SHARE_APP_MESSAGE', {
+      hasInviteCode: !!inviteCode
+    });
 
     const path = inviteCode
       ? `/pages/index/index?inviteCode=${encodeURIComponent(inviteCode)}`
@@ -228,6 +263,7 @@ function handleInviteFromOptions(options = {}) {
 
     if (rights.inviteCode && rights.inviteCode === inviteCode) {
       console.log('[index] 自己打开自己的分享链接，不记录邀请关系');
+      safeTrack('HOME_INVITE_SELF_OPEN');
       return;
     }
 
@@ -237,6 +273,8 @@ function handleInviteFromOptions(options = {}) {
       wx.setStorageSync(USER_RIGHTS_KEY, rights);
 
       console.log('[index] 记录邀请关系成功 invitedByCode =', inviteCode);
+      safeTrack('HOME_INVITE_BOUND', { hasInviteCode: true });
+
       wx.showToast({
         title: '已记录邀请关系',
         icon: 'none',
@@ -244,6 +282,7 @@ function handleInviteFromOptions(options = {}) {
       });
     } else {
       console.log('[index] 已存在 invitedByCode，保持原值：', rights.invitedByCode);
+      safeTrack('HOME_INVITE_EXISTS');
     }
   } catch (e) {
     console.log('[index] 保存邀请关系失败', e);
