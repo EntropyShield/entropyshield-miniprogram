@@ -15,6 +15,24 @@ function safeTrack(step, ext = {}) {
   }
 }
 
+function getTapSource(e, fallback = 'unknown') {
+  try {
+    return (
+      e &&
+      e.currentTarget &&
+      e.currentTarget.dataset &&
+      e.currentTarget.dataset.source
+    ) || fallback;
+  } catch (err) {
+    return fallback;
+  }
+}
+
+function stepWithSource(base, source = 'unknown') {
+  return `${base}_${String(source || 'unknown').toUpperCase()}`
+    .replace(/[^A-Z0-9_]+/g, '_');
+}
+
 Page({
   data: {
     inviteCode: '',
@@ -164,10 +182,11 @@ Page({
       });
   },
 
-  // 立即使用风控计算器
-  goCalc() {
-    console.log('[index] goCalc');
-    safeTrack('HOME_CTA_GO_CALC');
+  // 风控计算器
+  goCalc(e) {
+    const source = getTapSource(e, 'unknown');
+    console.log('[index] goCalc source:', source);
+    safeTrack(stepWithSource('HOME_CTA_GO_CALC', source), { source });
 
     wx.navigateTo({
       url: '/pages/riskCalculator/index',
@@ -181,32 +200,42 @@ Page({
   },
 
   // 7 天训练营
-  goCamp() {
-    safeTrack('HOME_CTA_GO_CAMP');
+  goCamp(e) {
+    const source = getTapSource(e, 'unknown');
+    console.log('[index] goCamp source:', source);
+    safeTrack(stepWithSource('HOME_CTA_GO_CAMP', source), { source });
     wx.navigateTo({ url: '/pages/campIntro/index' });
   },
 
   // 裂变任务中心
-  goFission() {
-    safeTrack('HOME_CTA_GO_FISSION');
+  goFission(e) {
+    const source = getTapSource(e, 'unknown');
+    console.log('[index] goFission source:', source);
+    safeTrack(stepWithSource('HOME_CTA_GO_FISSION', source), { source });
     wx.navigateTo({ url: '/pages/fissionTask/index' });
   },
 
   // 控局者（tabBar）
-  goController() {
-    safeTrack('HOME_CTA_GO_CONTROLLER');
+  goController(e) {
+    const source = getTapSource(e, 'unknown');
+    console.log('[index] goController source:', source);
+    safeTrack(stepWithSource('HOME_CTA_GO_CONTROLLER', source), { source });
     wx.switchTab({ url: '/pages/controller/index' });
   },
 
   // 课程日历
-  goCourseCalendar() {
-    safeTrack('HOME_CTA_GO_COURSE_CALENDAR');
+  goCourseCalendar(e) {
+    const source = getTapSource(e, 'unknown');
+    console.log('[index] goCourseCalendar source:', source);
+    safeTrack(stepWithSource('HOME_CTA_GO_COURSE_CALENDAR', source), { source });
     wx.navigateTo({ url: '/pages/course/index' });
   },
 
   // 进阶服务 / 会员
-  goMembership() {
-    safeTrack('HOME_CTA_GO_MEMBERSHIP');
+  goMembership(e) {
+    const source = getTapSource(e, 'unknown');
+    console.log('[index] goMembership source:', source);
+    safeTrack(stepWithSource('HOME_CTA_GO_MEMBERSHIP', source), { source });
     wx.navigateTo({ url: '/pages/membership/index' });
   },
 

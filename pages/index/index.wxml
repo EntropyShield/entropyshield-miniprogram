@@ -16,11 +16,11 @@
       </view>
     </view>
 
-    <button class="btn-primary hero-primary" bindtap="goCalc">
+    <button class="btn-primary hero-primary" bindtap="goCalc" data-source="hero">
       立即使用风控计算器
     </button>
 
-    <button class="btn-secondary hero-secondary" bindtap="goCamp">
+    <button class="btn-secondary hero-secondary" bindtap="goCamp" data-source="hero">
       先进入 7 天风控训练营
     </button>
 
@@ -136,7 +136,7 @@
       <text class="section-sub">按你的当前阶段，直接进入对应入口</text>
     </view>
 
-    <view class="test-item" bindtap="goCalc">
+    <view class="test-item" bindtap="goCalc" data-source="path">
       <view class="test-left">
         <view class="bullet bullet-green"></view>
         <view class="test-text">
@@ -149,7 +149,7 @@
       </view>
     </view>
 
-    <view class="test-item" bindtap="goCamp">
+    <view class="test-item" bindtap="goCamp" data-source="path">
       <view class="test-left">
         <view class="bullet bullet-green"></view>
         <view class="test-text">
@@ -162,7 +162,7 @@
       </view>
     </view>
 
-    <view class="test-item" bindtap="goController">
+    <view class="test-item" bindtap="goController" data-source="path">
       <view class="test-left">
         <view class="bullet bullet-green"></view>
         <view class="test-text">
@@ -183,7 +183,7 @@
       <text class="section-sub">想系统训练、看课程、进入进阶服务，从这里继续</text>
     </view>
 
-    <view class="test-item" bindtap="goCourseCalendar">
+    <view class="test-item" bindtap="goCourseCalendar" data-source="advanced">
       <view class="test-left">
         <view class="bullet bullet-green"></view>
         <view class="test-text">
@@ -196,7 +196,7 @@
       </view>
     </view>
 
-    <view class="test-item" bindtap="goMembership">
+    <view class="test-item" bindtap="goMembership" data-source="advanced">
       <view class="test-left">
         <view class="bullet bullet-green"></view>
         <view class="test-text">
@@ -232,7 +232,7 @@
       </view>
     </view>
 
-    <button class="btn-outline" bindtap="goFission">
+    <button class="btn-outline" bindtap="goFission" data-source="rights">
       进入任务中心
     </button>
   </view>
@@ -245,11 +245,11 @@
       <text class="section-sub">别只看，先完成一次风控计算或进入训练营。</text>
     </view>
 
-    <button class="btn-primary bottom-cta-primary" bindtap="goCalc">
+    <button class="btn-primary bottom-cta-primary" bindtap="goCalc" data-source="bottom">
       立即使用风控计算器
     </button>
 
-    <button class="btn-secondary bottom-cta-secondary" bindtap="goCamp">
+    <button class="btn-secondary bottom-cta-secondary" bindtap="goCamp" data-source="bottom">
       进入 7 天风控训练营
     </button>
   </view>
