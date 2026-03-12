@@ -1,5 +1,5 @@
 {
-  "navigationBarTitleText": "熵盾首页",
+  "navigationBarTitleText": "\u71b5\u76fe\u98ce\u63a7\u5148\u884c",
   "enablePullDownRefresh": false,
   "usingComponents": {
     "logo-shield": "/components/logoShield/index"
