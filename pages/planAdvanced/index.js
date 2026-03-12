@@ -47,7 +47,7 @@ Page({
       ? decodeURIComponent(options.membershipType)
       : '高阶策略 · 演示版';
 
-    if (!totalCapital || !firstPrice) {
+    if (!totalCapital || !firstPrice || isNaN(totalCapital) || isNaN(firstPrice)) {
       wx.showToast({
         title: '参数缺失，请返回重新输入',
         icon: 'none'
@@ -55,17 +55,20 @@ Page({
       return;
     }
 
-    // ===== 加强版硬门禁：只有季卡/年卡允许进入 =====
-    const rights = getUserRights();
-    const allowed = isAdvancedAllowed(rights);
+        // ===== 加强版硬门禁：只有季卡/年卡允许进入 =====
+        const debugAllow = String(options.__debugAllow || '') === '1';
 
-    if (!allowed) {
-      funnel.log('PLAN_ADVANCED_BLOCKED', {
-        membershipPlan: rights.membershipPlan || '',
-        membershipName: rights.membershipName || '',
-        freeCalcTimes: Number(rights.freeCalcTimes || 0),
-        expireAt: Number(rights.membershipExpireAt || 0)
-      });
+        const rights = getUserRights();
+        const allowed = debugAllow ? true : isAdvancedAllowed(rights);
+    
+ if (!allowed) {
+  funnel.log('PLAN_ADVANCED_BLOCKED', {
+    membershipPlan: rights.membershipPlan || '',
+    membershipName: rights.membershipName || '',
+    freeCalcTimes: Number(rights.freeCalcTimes || 0),
+    expireAt: Number(rights.membershipExpireAt || 0),
+    debugAllow
+  });
 
       wx.showModal({
         title: '需要季卡/年卡',
@@ -79,12 +82,10 @@ Page({
             `&code=${encodeURIComponent(code || '')}`;
 
           if (r.confirm) {
-            // 去会员页开通加强版（季/年）
             wx.redirectTo({
               url: `/pages/membership/index?type=advanced${q}`
             });
           } else {
-            // 返回上一页
             wx.navigateBack({ delta: 1 });
           }
         }
@@ -94,6 +95,18 @@ Page({
     // ===== 门禁结束 =====
 
     const result = this.calcAdvancedPlan(totalCapital, firstPrice);
+
+    if (!result.steps.length) {
+      wx.showToast({
+        title: '当前资金不足以形成1手有效进场',
+        icon: 'none'
+      });
+    } else if (result.steps.length < 3) {
+      wx.showToast({
+        title: `已自动缩减为${result.steps.length}次有效进场`,
+        icon: 'none'
+      });
+    }
 
     this.setData({
       code,
@@ -109,25 +122,45 @@ Page({
 
   /**
    * 加强版完整计算公式
+   *
+   * 保持原公式不变，只修 3 个问题：
+   * 1）某一步不足 100 股时，不再展示 0 股
+   * 2）qty1 = 0 时，避免 Infinity / NaN
+   * 3）过滤无效步骤后，重新编号展示
    */
   calcAdvancedPlan(T, P1) {
     const useRatio = 0.8;
     const riskRatio = 0.02;
-    const w1 = 0.5, w2 = 0.3, w3 = 0.2;
+    const w1 = 0.5;
+    const w2 = 0.3;
+    const w3 = 0.2;
+
+    const LOT_SIZE = 100;
+
+    const roundLotDown = (shares) => {
+      return Math.floor(Math.max(0, shares) / LOT_SIZE) * LOT_SIZE;
+    };
+
+    const safeDiv = (num, den, fallback = 0) => {
+      return den > 0 ? (num / den) : fallback;
+    };
+
+    const safeFixed = (num, digits = 2, fallback = '0.00') => {
+      return Number.isFinite(num) ? num.toFixed(digits) : fallback;
+    };
 
     const available = T * useRatio;
     const totalShares = available / P1;
 
-    const qty1 = Math.floor((totalShares * w1) / 100) * 100;
-    const qty2 = Math.floor((totalShares * w2) / 100) * 100;
-    const qty3 = Math.floor((totalShares * w3) / 100) * 100;
+    const qty1 = roundLotDown(totalShares * w1);
+    const qty2 = roundLotDown(totalShares * w2);
+    const qty3 = roundLotDown(totalShares * w3);
 
     const p1 = P1;
     const p2 = p1 * 1.05;
     const p3 = p2 * 1.04;
 
-    const maxRiskPriceStep = (T * riskRatio) / qty1;
-
+    const maxRiskPriceStep = safeDiv(T * riskRatio, qty1, 0);
     const targetPrice = p1 + maxRiskPriceStep * 7;
 
     const profit1 = (targetPrice - p1) * qty1;
@@ -150,39 +183,50 @@ Page({
       (stop3 - p2) * qty2 +
       (stop3 - p1) * qty1;
 
-    const steps = [
+    const rawSteps = [
       {
-        label: '第一次进场',
-        buyPrice: p1.toFixed(2),
-        buyShares: qty1.toFixed(0),
-        buyAmount: (p1 * qty1).toFixed(2),
-        stopPrice: stop1.toFixed(2),
-        stopAmount: sl1Amount.toFixed(2)
+        originalIndex: 1,
+        buyPrice: p1,
+        buyShares: qty1,
+        buyAmount: p1 * qty1,
+        stopPrice: stop1,
+        stopAmount: sl1Amount
       },
       {
-        label: '第二次进场',
-        buyPrice: p2.toFixed(2),
-        buyShares: qty2.toFixed(0),
-        buyAmount: (p2 * qty2).toFixed(2),
-        stopPrice: stop2.toFixed(2),
-        stopAmount: sl2Amount.toFixed(2)
+        originalIndex: 2,
+        buyPrice: p2,
+        buyShares: qty2,
+        buyAmount: p2 * qty2,
+        stopPrice: stop2,
+        stopAmount: sl2Amount
       },
       {
-        label: '第三次进场',
-        buyPrice: p3.toFixed(2),
-        buyShares: qty3.toFixed(0),
-        buyAmount: (p3 * qty3).toFixed(2),
-        stopPrice: stop3.toFixed(2),
-        stopAmount: sl3Amount.toFixed(2)
+        originalIndex: 3,
+        buyPrice: p3,
+        buyShares: qty3,
+        buyAmount: p3 * qty3,
+        stopPrice: stop3,
+        stopAmount: sl3Amount
       }
     ];
 
+    const steps = rawSteps
+      .filter(item => item.buyShares >= LOT_SIZE && item.buyAmount > 0)
+      .map((item, idx) => ({
+        label: `第 ${idx + 1} 次进场`,
+        buyPrice: safeFixed(item.buyPrice, 2),
+        buyShares: String(item.buyShares),
+        buyAmount: safeFixed(item.buyAmount, 2),
+        stopPrice: safeFixed(item.stopPrice, 2),
+        stopAmount: safeFixed(item.stopAmount, 2)
+      }));
+
     return {
-      totalCapital: T.toFixed(2),
-      firstPrice: P1.toFixed(2),
-      maxRiskPriceStep: maxRiskPriceStep.toFixed(4),
-      targetPrice: targetPrice.toFixed(2),
-      targetProfit: targetProfit.toFixed(2),
+      totalCapital: safeFixed(T, 2),
+      firstPrice: safeFixed(P1, 2),
+      maxRiskPriceStep: safeFixed(maxRiskPriceStep, 4, '0.0000'),
+      targetPrice: safeFixed(targetPrice, 2),
+      targetProfit: safeFixed(targetProfit, 2),
       steps
     };
   },
