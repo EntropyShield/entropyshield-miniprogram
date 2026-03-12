@@ -1,0 +1,55 @@
+<view class="page">
+  <view class="card">
+    <view class="title">隐私政策</view>
+    <view class="update-time">更新日期：2026-03-10</view>
+
+    <view class="section">
+      <view class="section-title">一、我们收集的信息</view>
+      <view class="paragraph">
+        当你使用本小程序的登录、身份识别、服务通知、预约登记等相关功能时，在你主动点击并授权的前提下，我们可能收集你的手机号等必要信息。
+      </view>
+    </view>
+
+    <view class="section">
+      <view class="section-title">二、收集目的</view>
+      <view class="paragraph">
+        我们收集上述信息，主要用于账号登录、用户身份识别、服务履约、必要通知、客户联系、预约确认及安全风控。
+      </view>
+    </view>
+
+    <view class="section">
+      <view class="section-title">三、收集方式</view>
+      <view class="paragraph">
+        你的手机号仅在你主动点击相关按钮并明确授权后获取。未经你同意，我们不会擅自获取你的手机号。
+      </view>
+    </view>
+
+    <view class="section">
+      <view class="section-title">四、信息使用与存储</view>
+      <view class="paragraph">
+        我们会在实现上述业务目的所必需的范围内使用你的信息，并采取合理的安全措施进行保存与管理。你的信息将存储于开发者服务器中。
+      </view>
+    </view>
+
+    <view class="section">
+      <view class="section-title">五、信息共享与披露</view>
+      <view class="paragraph">
+        除法律法规要求，或为实现必要服务目的且符合法律规定外，我们不会向无关第三方共享、转让或公开披露你的个人信息。
+      </view>
+    </view>
+
+    <view class="section">
+      <view class="section-title">六、你的权利</view>
+      <view class="paragraph">
+        你有权查询、了解、更正或申请删除你的个人信息，也可以撤回相关授权。撤回授权后，可能导致部分依赖该授权的功能无法继续使用。
+      </view>
+    </view>
+
+    <view class="section">
+      <view class="section-title">七、联系我们</view>
+      <view class="paragraph">
+        如你对本隐私政策有疑问，可通过本小程序内公示的客服方式与我们联系。
+      </view>
+    </view>
+  </view>
+</view>

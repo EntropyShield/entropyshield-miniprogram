@@ -1,0 +1,55 @@
+<view class="page">
+  <view class="card">
+    <view class="title">用户服务协议</view>
+    <view class="update-time">更新日期：2026-03-10</view>
+
+    <view class="section">
+      <view class="section-title">一、协议说明</view>
+      <view class="paragraph">
+        欢迎使用熵盾研究院小程序。本协议是你与本小程序运营方之间关于使用本小程序服务所订立的协议。
+      </view>
+    </view>
+
+    <view class="section">
+      <view class="section-title">二、服务内容</view>
+      <view class="paragraph">
+        本小程序主要提供风控训练、风险评估、训练营、来访预约、邀请关系查询及相关辅助服务。具体功能以页面实际展示为准。
+      </view>
+    </view>
+
+    <view class="section">
+      <view class="section-title">三、账号与身份识别</view>
+      <view class="paragraph">
+        为完成账号登录、身份识别、服务履约、通知联系等必要功能，在你主动点击并授权后，我们可能获取你的手机号。你可以自主决定是否授权；如拒绝授权，可能无法使用与手机号登录或身份识别相关的部分功能。
+      </view>
+    </view>
+
+    <view class="section">
+      <view class="section-title">四、用户使用规范</view>
+      <view class="paragraph">
+        你在使用本小程序服务时，应遵守中国法律法规，不得利用本小程序从事违法违规活动，不得发布虚假、误导、侵权或其他不当内容。
+      </view>
+    </view>
+
+    <view class="section">
+      <view class="section-title">五、免责声明</view>
+      <view class="paragraph">
+        本小程序提供的内容主要用于风控训练、信息展示与辅助分析，不构成任何收益承诺、投资建议或买卖建议。用户应独立判断并自行承担决策风险。
+      </view>
+    </view>
+
+    <view class="section">
+      <view class="section-title">六、协议变更</view>
+      <view class="paragraph">
+        我们有权根据业务发展、法律法规要求或产品调整对本协议进行更新。更新后的协议将在本页面展示，并自发布之日起生效。
+      </view>
+    </view>
+
+    <view class="section">
+      <view class="section-title">七、联系方式</view>
+      <view class="paragraph">
+        如你对本协议有任何疑问，可通过本小程序内公示的客服方式与我们联系。
+      </view>
+    </view>
+  </view>
+</view>
