@@ -1,99 +1,110 @@
-<view class="page risk-calculator"> 
+﻿<view class="page risk-calculator">
+  <view class="title-container">
+    <text class="title">风控计算器</text>
+    <text class="sub-title">根据你的资金与首次买入价格，快速生成风控方案。</text>
+  </view>
 
-<!-- 标题 -->
-<view class="title-container">
-  <text class="title">风控计算器</text>
-  <text class="sub-title">
-    根据自己的资金与买入价生成风控方案（演示版）
-  </text>
-</view>
+  <view class="quick-tip-card">
+    <text class="quick-tip-title">先填 3 项即可开始</text>
+    <text class="quick-tip-text">请填写「可用资金」「首次买入价格」「标的代码或名称」。首次使用建议先算稳健版。</text>
+  </view>
 
-<!-- 当前权益提示：始终展示 -->
-<view class="rights-banner">
-  <text class="rights-label">当前权益：</text>
+  <view class="rights-banner">
+    <text class="rights-label">当前权益：</text>
 
-  <!-- 有次数 -->
-  <block wx:if="{{freeCalcTimes > 0}}">
-    <!-- 有 membershipName 时，展示名称 + 次数 -->
-    <text class="rights-text" wx:if="{{membershipName}}">
-      {{membershipName}} · 剩余完整方案 {{freeCalcTimes}} 次
+    <block wx:if="{{freeCalcTimes > 0}}">
+      <text class="rights-text" wx:if="{{membershipName}}">
+        {{membershipName}} · 剩余完整方案 {{freeCalcTimes}} 次
+      </text>
+      <text class="rights-text" wx:else>
+        剩余完整方案 {{freeCalcTimes}} 次
+      </text>
+    </block>
+
+    <block wx:else>
+      <text class="rights-text" wx:if="{{membershipName}}">
+        {{membershipName}} · 暂无完整方案次数，可先参加 7 天风控训练营，完成 7/7 打卡后可获得 4 次免费完整方案机会。
+      </text>
+      <text class="rights-text" wx:else>
+        暂无完整方案次数，可先参加 7 天风控训练营，完成 7/7 打卡后可获得 4 次免费完整方案机会。
+      </text>
+    </block>
+  </view>
+
+  <view class="input-container">
+    <view class="input-field">
+      <view class="label-row">
+        <text class="input-label">可用资金（元）</text>
+        <text class="label-tag required-tag">必填</text>
+      </view>
+      <input
+        class="input {{balanceError ? 'input-error' : ''}}"
+        type="digit"
+        placeholder="例如：100000"
+        bindinput="onBalanceInput"
+        value="{{balance}}"
+        confirm-type="next"
+      />
+      <text class="field-tip">填写你这次准备参与计算的可用资金。</text>
+      <text class="field-error" wx:if="{{balanceError}}">{{balanceError}}</text>
+    </view>
+
+    <view class="input-field">
+      <view class="label-row">
+        <text class="input-label">首次买入价格</text>
+        <text class="label-tag required-tag">必填</text>
+      </view>
+      <input
+        class="input {{priceError ? 'input-error' : ''}}"
+        type="digit"
+        placeholder="例如：12.36"
+        bindinput="onPriceInput"
+        value="{{price}}"
+        confirm-type="next"
+      />
+      <text class="field-tip">填写你计划第一次建仓的价格。</text>
+      <text class="field-error" wx:if="{{priceError}}">{{priceError}}</text>
+    </view>
+
+    <view class="input-field">
+      <view class="label-row">
+        <text class="input-label">标的代码或名称</text>
+        <text class="label-tag required-tag">必填</text>
+      </view>
+      <input
+        class="input {{codeError ? 'input-error' : ''}}"
+        placeholder="例如：000001 或 平安银行"
+        bindinput="onCodeInput"
+        value="{{code}}"
+        confirm-type="done"
+      />
+      <text class="field-tip">必填，用于后续记录、统计与跟踪。</text>
+      <text class="field-error" wx:if="{{codeError}}">{{codeError}}</text>
+    </view>
+  </view>
+
+  <view class="button-container">
+    <text class="cta-tip">首次使用建议先算稳健版，先完成一次完整计算。</text>
+
+    <view class="btn-primary" bindtap="onClickSteady">
+      <text class="btn-text">先算稳健版（推荐）</text>
+      <text class="btn-icon">→</text>
+    </view>
+
+    <view class="btn-secondary" bindtap="onClickAdvanced">
+      <text class="btn-text btn-text-secondary">再看加强版</text>
+      <text class="btn-icon btn-icon-secondary">→</text>
+    </view>
+
+    <text class="advanced-note" wx:if="{{advancedEnabled}}">
+      当前权益可直接使用加强版。
     </text>
-
-    <!-- 没有 membershipName 时，只展示次数 -->
-    <text class="rights-text" wx:else>
-      剩余完整方案 {{freeCalcTimes}} 次
+    <text class="advanced-note" wx:else>
+      加强版适合进阶用户；若当前权益不支持，会自动引导开通。
     </text>
-  </block>
-
-  <!-- 没有次数 -->
-  <block wx:else>
-    <!-- 有会员/训练营名称，但次数用完 -->
-    <text class="rights-text" wx:if="{{membershipName}}">
-      {{membershipName}} · 暂无完整方案次数，建议先参加「7 天风控训练营」，完成 7/7 天打卡后可获得 4 次免费完整方案机会。
-    </text>
-
-    <!-- 完全无身份 & 无次数 -->
-    <text class="rights-text" wx:else>
-      暂无完整方案次数，建议先参加「7 天风控训练营」，完成 7/7 天打卡后可获得 4 次免费完整方案机会。
-    </text>
-  </block>
-</view>
-
-<!-- 输入区域 -->
-<view class="input-container">
-
-  <view class="input-field">
-    <text class="input-label">可用资金（元）</text>
-    <input
-      class="input"
-      type="digit"
-      placeholder="请输入可用资金"
-      bindinput="onBalanceInput"
-      value="{{balance}}"
-      confirm-type="done"
-    />
   </view>
 
-  <view class="input-field">
-    <text class="input-label">首次买入价格</text>
-    <input
-      class="input"
-      type="digit"
-      placeholder="请输入拟建仓价格"
-      bindinput="onPriceInput"
-      value="{{price}}"
-      confirm-type="done"
-    />
+  <view class="btn-back" bindtap="goHome">
+    返回首页
   </view>
-
-  <view class="input-field">
-    <text class="input-label">标的代码（或名称）</text>
-    <input
-      class="input"
-      placeholder="请输入标的代码（可自动从首页带入）"
-      bindinput="onCodeInput"
-      value="{{code}}"
-    />
-  </view>
-
-</view>
-
-<!-- 两个主按钮 -->
-<view class="button-container">
-  <view class="btn-primary" bindtap="onClickSteady">
-    <text class="btn-text">生成风控方案稳健版</text>
-    <text class="btn-icon">➜</text>
-  </view>
-
-  <view class="btn-primary" bindtap="onClickAdvanced">
-    <text class="btn-text">生成风控方案加强版</text>
-    <text class="btn-icon">➜</text>
-  </view>
-</view>
-
-<!-- 返回首页 -->
-<view class="btn-back" bindtap="goHome">
-  返回首页
-</view>
-
 </view>

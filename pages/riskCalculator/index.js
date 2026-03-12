@@ -1,6 +1,7 @@
 ﻿// pages/riskCalculator/index.js
 const funnel = require('../../utils/funnel.js');
 const UR = require('../../utils/userRights.js');
+
 /* ====== RC_V41_CLICK_DEDUPE (v4.1.2 / 2026-03-05) ======
 目标：同一 clientId + 同一输入 + 同一按钮(稳健/加强) 只扣 1 次；第二次点击直接“复用跳转”，不再触发扣次
 实现：sig = hash(picked inputs + __btn)，storage 写 rc_v41_consumed_{cid}_{sig}
@@ -83,7 +84,6 @@ function rcV41PickNumber(data, patterns) {
     const n = Number(v);
     if (isFinite(n) && n > 0) return n;
   }
-  // fallback: 任意正数
   for (const k of keys) {
     const v = data[k];
     const n = Number(v);
@@ -100,7 +100,6 @@ function rcV41PickString(data, patterns) {
     const v = data[k];
     if (v !== null && v !== undefined && String(v).trim() !== '') return String(v).trim();
   }
-  // fallback: 任意非空串
   for (const k of keys) {
     const v = data[k];
     if (typeof v === 'string' && v.trim() !== '') return v.trim();
@@ -109,7 +108,6 @@ function rcV41PickString(data, patterns) {
 }
 
 function rcV41ReuseNavigate(pageThis, btn, sig) {
-  // 复用跳转：绕开扣次链路
   const data = pageThis.data || {};
   const balance = rcV41PickNumber(data, [/balance/i, /amount/i, /money/i, /fund/i]);
   const price   = rcV41PickNumber(data, [/buyprice/i, /first/i, /price/i]);
@@ -125,7 +123,7 @@ function rcV41ReuseNavigate(pageThis, btn, sig) {
     ? `/pages/planAdvanced/index?balance=${encodeURIComponent(balance)}&price=${encodeURIComponent(price)}&code=${encodeURIComponent(code)}&membershipType=${membershipType}`
     : `/pages/planSteady/index?balance=${encodeURIComponent(balance)}&price=${encodeURIComponent(price)}&code=${encodeURIComponent(code)}&membershipType=${membershipType}`;
 
-  try { console.log('[riskCalculator][v4.1] reuse navigate sig=', sig, 'url=', url); } catch(e) {}
+  try { console.log('[riskCalculator][v4.1] reuse navigate sig=', sig, 'url=', url); } catch (e) {}
   wx.navigateTo({ url });
   return true;
 }
@@ -133,21 +131,18 @@ function rcV41ReuseNavigate(pageThis, btn, sig) {
 function rcV41OnClickGate(pageThis, btn) {
   const sig = rcV41BuildSig(Object.assign({}, pageThis.data || {}, { __btn: btn }));
   if (rcV41IsConsumed(sig)) {
-    // 已扣过：直接复用跳转，不再触发扣次
     const ok = rcV41ReuseNavigate(pageThis, btn, sig);
     if (ok) return { blocked: true, sig };
   }
 
-  // 未扣过：记录扣前次数，稍后观察是否真的扣了（不依赖你项目的扣次函数实现）
   const before = rcV41GetTimes();
-  // 延迟检查：如果 freeCalcTimes 真的减少了，才标记 consumed
-  setTimeout(()=>{
+  setTimeout(() => {
     const after = rcV41GetTimes();
     if (before !== null && after !== null && after < before) {
       rcV41MarkConsumed(sig);
-      try { console.log('[riskCalculator][v4.1] marked consumed sig=', sig, 'before=', before, 'after=', after); } catch(e) {}
+      try { console.log('[riskCalculator][v4.1] marked consumed sig=', sig, 'before=', before, 'after=', after); } catch (e) {}
     }
-  },2500);
+  }, 2500);
 
   return { blocked: false, sig };
 }
@@ -157,13 +152,18 @@ Page({
   data: {
     balance: '',        // 可用资金
     price: '',          // 首次买入价格
-    code: '',           // 标的代码或名称
+    code: '',           // 标的代码或名称（必填）
 
-    freeCalcTimes: 0,   // 剩余按次/奖励次数（只有这类才扣减）
-    membershipName: '', // 当前会员名称展示（可能含已到期）
-    advancedEnabled: false, // 是否可用加强版
-    remainingDays: 0,       // 会员剩余天数
-    unlimitedActive: false  // 是否处于有效期内无限
+    freeCalcTimes: 0,   // 剩余按次/奖励次数
+    membershipName: '', // 当前会员名称展示
+    advancedEnabled: false,
+    remainingDays: 0,
+    unlimitedActive: false,
+
+    // V1.2：行内错误提示
+    balanceError: '',
+    priceError: '',
+    codeError: ''
   },
 
   onLoad() {
@@ -172,14 +172,13 @@ Page({
 
   onShow() {
     this.refreshFreeTimes();
+    this.syncProfileFreeTimes();
   },
 
-  // 从本地存储读取权益信息
   refreshFreeTimes() {
     const rights = UR.getUserRights();
 
     const freeCalcTimes = Number(rights.freeCalcTimes || 0);
-
     const rawName = rights.membershipName || '';
     const expireAt = Number(rights.membershipExpireAt || 0);
     const expired = (expireAt && Date.now() > expireAt);
@@ -205,7 +204,54 @@ Page({
     });
   },
 
-  // ===== 加强版权限判断（只有季卡/年卡可用）=====
+  syncProfileFreeTimes() {
+    try {
+      const apiBase =
+        wx.getStorageSync('API_BASE') ||
+        wx.getStorageSync('apiBaseUrl') ||
+        ((getApp && getApp().globalData && getApp().globalData.API_BASE) || '');
+
+      const clientId = wx.getStorageSync('clientId');
+      if (!apiBase || !clientId) return;
+
+      wx.request({
+        url: `${String(apiBase).replace(/\/$/, '')}/api/fission/profile`,
+        method: 'GET',
+        data: { clientId },
+        success: (res) => {
+          const d = res && res.data;
+          if (!d || !d.ok) return;
+
+          const total = Number((d.total_reward_times ?? (d.profile && d.profile.total_reward_times) ?? 0)) || 0;
+
+          const rights = wx.getStorageSync('userRights') || {};
+          const currentFree = Number(rights.freeCalcTimes || 0) || 0;
+          let lastSynced = Number(wx.getStorageSync('fission_total_reward_times_synced') || 0) || 0;
+
+          if (lastSynced === 0 && currentFree > 0) {
+            wx.setStorageSync('fission_total_reward_times_synced', total);
+            lastSynced = total;
+          }
+
+          const delta = total - lastSynced;
+          if (delta > 0) {
+            rights.freeCalcTimes = currentFree + delta;
+            if (!rights.membershipName) rights.membershipName = 'FREE';
+            wx.setStorageSync('userRights', rights);
+            wx.setStorageSync('fission_total_reward_times_synced', total);
+          }
+
+          this.refreshFreeTimes();
+        },
+        fail: (err) => {
+          console.log('[riskCalculator] syncProfileFreeTimes fail', err);
+        }
+      });
+    } catch (e) {
+      console.log('[riskCalculator] syncProfileFreeTimes error', e);
+    }
+  },
+
   getAdvancedAccessInfo() {
     const rights = UR.getUserRights();
 
@@ -213,7 +259,7 @@ Page({
     const expireAt = Number(rights.membershipExpireAt || 0);
     const notExpired = !expireAt || Date.now() < expireAt;
 
-    const advancedEnabled = UR.isAdvancedAllowed(rights); // [PATCH-ADV-USE-UR]
+    const advancedEnabled = UR.isAdvancedAllowed(rights);
     const codeAllow = (productCode === 'VIP_QUARTER' || productCode === 'VIP_YEAR');
 
     const ok = (advancedEnabled || codeAllow) && notExpired;
@@ -243,58 +289,97 @@ Page({
               `&code=${encodeURIComponent(code || '')}`
           });
         } else {
-          this.handleGeneratePlan('steady');
+          this.handleGeneratePlan('steady', { skipValidate: true });
         }
       }
     });
   },
 
-  // 输入
   onBalanceInput(e) {
-    this.setData({ balance: e.detail.value });
-  },
-  onPriceInput(e) {
-    this.setData({ price: e.detail.value });
-  },
-  onCodeInput(e) {
-    this.setData({ code: e.detail.value });
+    this.setData({
+      balance: e.detail.value,
+      balanceError: ''
+    });
   },
 
-  // 校验
+  onPriceInput(e) {
+    this.setData({
+      price: e.detail.value,
+      priceError: ''
+    });
+  },
+
+  onCodeInput(e) {
+    this.setData({
+      code: e.detail.value,
+      codeError: ''
+    });
+  },
+
   validateForm() {
-    const { balance, price } = this.data;
+    const balance = String(this.data.balance || '').trim();
+    const price = String(this.data.price || '').trim();
+    const code = String(this.data.code || '').trim();
+
+    let balanceError = '';
+    let priceError = '';
+    let codeError = '';
 
     if (!balance) {
-      wx.showToast({ title: '请输入可用资金', icon: 'none' });
-      return false;
+      balanceError = '请输入可用资金';
+    } else if (!/^\d+(\.\d+)?$/.test(balance) || Number(balance) <= 0) {
+      balanceError = '请填写大于 0 的数字';
     }
+
     if (!price) {
-      wx.showToast({ title: '请输入首次买入价格', icon: 'none' });
+      priceError = '请输入首次买入价格';
+    } else if (!/^\d+(\.\d+)?$/.test(price) || Number(price) <= 0) {
+      priceError = '请填写大于 0 的数字';
+    }
+
+    if (!code) {
+      codeError = '请输入标的代码或名称';
+    }
+
+    this.setData({
+      balanceError,
+      priceError,
+      codeError
+    });
+
+    if (balanceError || priceError || codeError) {
+      wx.showToast({
+        title: balanceError || priceError || codeError,
+        icon: 'none'
+      });
       return false;
     }
+
     return true;
   },
 
-  // 点击：稳健版
   onClickSteady() {
     console.log('[riskCalculator] click steady');
-    // [RC_V41_CLICK_DEDUPE] gate: 同一输入同按钮只扣一次
-    const __rcGate = rcV41OnClickGate(this, 'steady');
-    if (__rcGate && __rcGate.blocked) return;
+    if (!this.validateForm()) return;
+
+    const gate = rcV41OnClickGate(this, 'steady');
+    if (gate && gate.blocked) return;
+
     funnel.log('CALC_CLICK_STEADY', {});
-    this.handleGeneratePlan('steady');
+    this.handleGeneratePlan('steady', { skipValidate: true });
   },
 
-  // 点击：加强版
   onClickAdvanced() {
     console.log('[riskCalculator] click advanced');
-    // [RC_V41_CLICK_DEDUPE] gate: 同一输入同按钮只扣一次
-    const __rcGate = rcV41OnClickGate(this, 'advanced');
-    if (__rcGate && __rcGate.blocked) return;
-    // [PATCH-ADV-CLICK-SERVERGATE] decide advanced access by server profile (VIP_MONTH/QUARTER/YEAR/LIFETIME allowed)
+    if (!this.validateForm()) return;
+
+    const gate = rcV41OnClickGate(this, 'advanced');
+    if (gate && gate.blocked) return;
+
     try {
       const base = String(wx.getStorageSync('API_BASE') || wx.getStorageSync('apiBaseUrl') || '').replace(/\/$/, '');
       const cid  = String(wx.getStorageSync('clientId') || '').trim();
+
       if (base && cid) {
         wx.request({
           url: base + '/api/fission/profile?clientId=' + encodeURIComponent(cid),
@@ -304,57 +389,53 @@ Page({
             try {
               const p = r && r.data && (r.data.profile || r.data.user || r.data.data);
               const lv = String((p && p.membership_level) || '').toUpperCase();
-              const allow = (lv==='VIP_MONTH'||lv==='VIP_QUARTER'||lv==='VIP_YEAR'||lv==='LIFETIME');
+              const allow = (lv === 'VIP_MONTH' || lv === 'VIP_QUARTER' || lv === 'VIP_YEAR' || lv === 'LIFETIME');
+
               if (allow) {
                 console.log('[riskCalculator] adv allowed by server level=', lv);
                 try {
                   const ur0 = wx.getStorageSync('userRights');
                   const obj = (ur0 && typeof ur0 === 'object') ? ur0 : {};
                   const NAME = {
-                    VIP_MONTH:   '\u6708\u5361',
-                    VIP_QUARTER: '\u5b63\u5361',
-                    VIP_YEAR:    '\u5e74\u5361',
-                    LIFETIME:    '\u7ec8\u8eab\u4f1a\u5458'
+                    VIP_MONTH: '月卡',
+                    VIP_QUARTER: '季卡',
+                    VIP_YEAR: '年卡',
+                    LIFETIME: '终身会员'
                   };
                   const next = Object.assign({}, obj, {
                     membershipLevel: lv,
                     membershipPlan: lv,
                     membershipName: NAME[lv] || obj.membershipName,
-                    membershipExpireAt: (lv==='LIFETIME') ? null : ((p && p.membership_expire_at) || null),
+                    membershipExpireAt: (lv === 'LIFETIME') ? null : ((p && p.membership_expire_at) || null),
                     advancedEnabled: true
                   });
                   wx.setStorageSync('userRights', next);
-                } catch(e) {}
-                this.handleGeneratePlan('advanced');
+                } catch (e) {}
+
+                this.handleGeneratePlan('advanced', { skipValidate: true });
               } else {
                 console.log('[riskCalculator] adv blocked by server level=', lv);
                 this.promptAdvancedBlocked();
               }
-            } catch(e) { this.promptAdvancedBlocked(); }
+            } catch (e) {
+              this.promptAdvancedBlocked();
+            }
           },
           fail: () => this.promptAdvancedBlocked()
         });
-        return; // ???????????????????
+        return;
       }
-    } catch(e) {}
+    } catch (e) {}
 
     funnel.log('CALC_CLICK_ADVANCED', {});
-    this.handleGeneratePlan('advanced');
+    this.handleGeneratePlan('advanced', { skipValidate: true });
   },
 
-  /**
-   * 统一处理生成方案：
-   * 1）加强版：先做权限边界校验（仅季卡/年卡可进）
-   * 2）若处于“有效会员无限” -> 直接放行，不扣次数
-   * 3）否则：若 freeCalcTimes>0 -> 扣一次并跳转
-   * 4）否则弹出三选一下一步
-   */
-  handleGeneratePlan(planType) {
-    if (!this.validateForm()) return;
+  handleGeneratePlan(planType, options = {}) {
+    if (!options.skipValidate && !this.validateForm()) return;
 
     const { balance, price, code, freeCalcTimes } = this.data;
 
-    // 1) 加强版强拦截（不允许用按次/奖励绕过）
     if (planType === 'advanced') {
       const adv = this.getAdvancedAccessInfo();
       if (!adv.ok) {
@@ -370,7 +451,6 @@ Page({
       }
     }
 
-    // 2) 有效会员无限：直接放行（99/999/2999/9999）
     const rights = UR.getUserRights();
     const pc = UR.normalizeProductCode(rights);
     const unlimitedActive = UR.isUnlimitedMember(rights);
@@ -380,7 +460,11 @@ Page({
       const name = rights.membershipName || '会员';
       const label = `${name}${days ? `（剩余${days}天）` : ''} · 无限使用`;
 
-      funnel.log('CALC_MEMBER_UNLIMITED', { planType, productCode: pc, expireAt: rights.membershipExpireAt || 0 });
+      funnel.log('CALC_MEMBER_UNLIMITED', {
+        planType,
+        productCode: pc,
+        expireAt: rights.membershipExpireAt || 0
+      });
 
       this.gotoPlanResult(planType, {
         balance,
@@ -392,7 +476,6 @@ Page({
       return;
     }
 
-    // 3) 按次/奖励次数：扣减
     if (freeCalcTimes > 0) {
       const left = freeCalcTimes - 1;
 
@@ -428,11 +511,9 @@ Page({
       return;
     }
 
-    // 4) 没有次数、也不是无限会员：弹出下一步
     this.chooseNextStep(planType);
   },
 
-  // 跳转到方案结果页（稳健版 / 加强版）
   gotoPlanResult(planType, { balance, price, code, membershipType }, hooks = {}) {
     const base =
       `?balance=${encodeURIComponent(balance)}` +
@@ -466,7 +547,6 @@ Page({
     });
   },
 
-  // 下一步选择（会员 / 训练营 / 邀请好友）
   chooseNextStep(planType) {
     const { balance, price, code } = this.data;
 
@@ -509,14 +589,7 @@ Page({
     });
   },
 
-  // 返回首页
   goHome() {
     wx.switchTab({ url: '/pages/index/index' });
   }
-,
-  onShow() {
-    // [PATCH-20260223-B1] 权益实时刷新：onShow 拉取 /api/fission/profile 并增量同步 freeCalcTimes\n    try {\n      const apiBase =\n        wx.getStorageSync('API_BASE') ||\n        wx.getStorageSync('apiBaseUrl') ||\n        ((getApp && getApp().globalData && getApp().globalData.API_BASE) || '');\n      const clientId = wx.getStorageSync('clientId');\n      if (apiBase && clientId) {\n        wx.request({\n          url: `${apiBase}/api/fission/profile`,\n          method: 'GET',\n          data: { clientId },\n          success: (res) => {\n            const d = res && res.data;\n            if (!d || !d.ok) return;\n            const total = Number((d.total_reward_times ?? (d.profile && d.profile.total_reward_times) ?? 0)) || 0;\n    \n            const rights = wx.getStorageSync('userRights') || {};\n            const currentFree = Number(rights.freeCalcTimes || 0) || 0;\n            let lastSynced = Number(wx.getStorageSync('fission_total_reward_times_synced') || 0) || 0;\n    \n            // 初始化：如果之前已有 freeCalcTimes，但没记录 lastSynced，则直接对齐到服务端，避免重复加\n            if (lastSynced === 0 && currentFree > 0) {\n              wx.setStorageSync('fission_total_reward_times_synced', total);\n              lastSynced = total;\n            }\n    \n            const delta = total - lastSynced;\n            if (delta > 0) {\n              rights.freeCalcTimes = currentFree + delta;\n              if (!rights.membershipName) rights.membershipName = 'FREE';\n              wx.setStorageSync('userRights', rights);\n              wx.setStorageSync('fission_total_reward_times_synced', total);\n            }\n    \n            // 无论是否新增，都刷新一下 UI（不影响你现有骨架）\n            if (this && this.setData) {\n              this.setData({\n                userRights: rights,\n                freeCalcTimes: Number(rights.freeCalcTimes || 0) || currentFree,\n                membershipName: rights.membershipName || ''\n              });\n            }\n          }\n        });\n      }\n    } catch (e) {}
-  }
 });
-
-

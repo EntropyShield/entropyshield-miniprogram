@@ -12,7 +12,7 @@ Page({
     targetPrice: '',    // 目标收益价格
     targetProfit: '',   // 目标收益利润
 
-    steps: []           // 4 次建仓 + 止损明细
+    steps: []           // 有效建仓步骤（自动过滤 0 股）
   },
 
   onLoad(options) {
@@ -34,6 +34,18 @@ Page({
 
     const plan = this.calcSteadyPlan(totalCapital, firstPrice);
 
+    if (!plan.steps.length) {
+      wx.showToast({
+        title: '当前资金不足以形成1手有效建仓',
+        icon: 'none'
+      });
+    } else if (plan.steps.length < 4) {
+      wx.showToast({
+        title: `已自动缩减为${plan.steps.length}次有效建仓`,
+        icon: 'none'
+      });
+    }
+
     this.setData({
       code,
       membershipType,
@@ -48,19 +60,10 @@ Page({
   /**
    * 稳健版 4 次进场 + 止损 公式
    *
-   * 约定（与你提供的一致）：
-   * - 资金使用比例 u = 0.8
-   * - 权重：w1=0.4, w2=0.1, w3=0.3, w4=0.2
-   * - 买入价：P2 = P1*1.03, P3 = P2*1.03, P4 = P3*1.06
-   * - 风险金额：
-   *   L1 = -0.02 * T
-   *   L2 = -0.0154 * T
-   *   L3 = -0.01804 * T
-   *   L4 =  0.01269856 * T
-   *   （用于反推止损价，使得在对应止损价全平时，浮盈/浮亏金额刚好等于 L1~L4）
-   * - 目标价、目标利润（根据你给的数值反推）：
-   *   TargetPrice = P1 * 1.2525
-   *   TargetProfit = T * 0.21305536
+   * 保持原公式不变，只修 3 个问题：
+   * 1）某一步不足 100 股时，不再展示 0 股
+   * 2）分母为 0 时，避免 NaN / Infinity
+   * 3）过滤无效步骤后，重新编号展示
    */
   calcSteadyPlan(T, P1) {
     const useRatio = 0.8; // 80% 资金参与本轮交易
@@ -69,21 +72,31 @@ Page({
     const w3 = 0.3;
     const w4 = 0.2;
 
-    // 风险金额比例（由你给的 -20000, -15400, -18040, 12698.56 反推）
-    const r1 = 0.02;        // L1 = -0.02 * T
-    const r2 = 0.0154;      // L2 = -0.0154 * T
-    const r3 = 0.01804;     // L3 = -0.01804 * T
-    const r4 = 0.01269856;  // L4 =  0.01269856 * T
+    // 风险金额比例
+    const r1 = 0.02;
+    const r2 = 0.0154;
+    const r3 = 0.01804;
+    const r4 = 0.01269856;
+
+    const LOT_SIZE = 100;
+
+    const roundLotDown = (shares) => {
+      return Math.floor(Math.max(0, shares) / LOT_SIZE) * LOT_SIZE;
+    };
+
+    const safeDiv = (num, den, fallback = 0) => {
+      return den > 0 ? (num / den) : fallback;
+    };
 
     // 理论可用资金 & 总股数
-    const available = T * useRatio;     // A = T * 0.8
-    const totalShares = available / P1; // N_total = A / P1
+    const available = T * useRatio;
+    const totalShares = available / P1;
 
-    // 4 次建仓股数（向下取整）
-    const N1 = Math.floor((totalShares * w1) / 100) * 100;
-    const N2 = Math.floor((totalShares * w2) / 100) * 100;
-    const N3 = Math.floor((totalShares * w3) / 100) * 100;
-    const N4 = Math.floor((totalShares * w4) / 100) * 100;
+    // 4 次建仓股数（保持原逻辑：向下取整到 100 股）
+    const N1 = roundLotDown(totalShares * w1);
+    const N2 = roundLotDown(totalShares * w2);
+    const N3 = roundLotDown(totalShares * w3);
+    const N4 = roundLotDown(totalShares * w4);
 
     // 4 次建仓价格
     const P2 = P1 * 1.03;
@@ -104,13 +117,13 @@ Page({
     const L1 = -T * r1;
     const L2 = -T * r2;
     const L3 = -T * r3;
-    const L4 =  T * r4;
+    const L4 = T * r4;
 
-    // 4 个止损价格（保证在此价位全平，盈亏 = L1~L4）
-    const S1 = (L1 + N1 * P1) / N1;
-    const S2 = (L2 + N1 * P1 + N2 * P2) / sumShares12;
-    const S3 = (L3 + N1 * P1 + N2 * P2 + N3 * P3) / sumShares123;
-    const S4 = (L4 + N1 * P1 + N2 * P2 + N3 * P3 + N4 * P4) / sumShares1234;
+    // 4 个止损价格（分母为 0 时兜底，避免 NaN / Infinity）
+    const S1 = safeDiv(L1 + N1 * P1, N1, P1);
+    const S2 = safeDiv(L2 + N1 * P1 + N2 * P2, sumShares12, P2);
+    const S3 = safeDiv(L3 + N1 * P1 + N2 * P2 + N3 * P3, sumShares123, P3);
+    const S4 = safeDiv(L4 + N1 * P1 + N2 * P2 + N3 * P3 + N4 * P4, sumShares1234, P4);
 
     // 对应的止损金额（用来展示）
     const sl1Amount = (S1 - P1) * N1;
@@ -118,45 +131,57 @@ Page({
     const sl3Amount = (S3 - P1) * N1 + (S3 - P2) * N2 + (S3 - P3) * N3;
     const sl4Amount = (S4 - P1) * N1 + (S4 - P2) * N2 + (S4 - P3) * N3 + (S4 - P4) * N4;
 
-    // 目标价 & 目标利润（按照你给的正确结果反推出来的比例）
-    const targetPrice = P1 * 1.2525;      // 例：P1=50 → 62.625
-    const targetProfit = T * 0.21305536;  // 例：T=1000000 → 213055.36
+    // 目标价 & 目标利润（保持原比例）
+    const targetPrice = P1 * 1.2525;
+    const targetProfit = T * 0.21305536;
 
-    // 拼装给 WXML 用的 steps
-    const steps = [
+    // 原始 4 步
+    const rawSteps = [
       {
-        label: '第 1 次建仓',
-        buyPrice: P1.toFixed(2),
+        originalIndex: 1,
+        buyPrice: P1,
         buyShares: N1,
-        buyAmount: M1.toFixed(2),
-        stopPrice: S1.toFixed(2),
-        stopAmount: sl1Amount.toFixed(2)
+        buyAmount: M1,
+        stopPrice: S1,
+        stopAmount: sl1Amount
       },
       {
-        label: '第 2 次建仓',
-        buyPrice: P2.toFixed(2),
+        originalIndex: 2,
+        buyPrice: P2,
         buyShares: N2,
-        buyAmount: M2.toFixed(2),
-        stopPrice: S2.toFixed(2),
-        stopAmount: sl2Amount.toFixed(2)
+        buyAmount: M2,
+        stopPrice: S2,
+        stopAmount: sl2Amount
       },
       {
-        label: '第 3 次建仓',
-        buyPrice: P3.toFixed(2),
+        originalIndex: 3,
+        buyPrice: P3,
         buyShares: N3,
-        buyAmount: M3.toFixed(2),
-        stopPrice: S3.toFixed(2),
-        stopAmount: sl3Amount.toFixed(2)
+        buyAmount: M3,
+        stopPrice: S3,
+        stopAmount: sl3Amount
       },
       {
-        label: '第 4 次建仓',
-        buyPrice: P4.toFixed(2),
+        originalIndex: 4,
+        buyPrice: P4,
         buyShares: N4,
-        buyAmount: M4.toFixed(2),
-        stopPrice: S4.toFixed(2),
-        stopAmount: sl4Amount.toFixed(2)
+        buyAmount: M4,
+        stopPrice: S4,
+        stopAmount: sl4Amount
       }
     ];
+
+    // 过滤掉 0 股步骤，并重新编号
+    const steps = rawSteps
+      .filter(item => item.buyShares >= LOT_SIZE && item.buyAmount > 0)
+      .map((item, idx) => ({
+        label: `第 ${idx + 1} 次建仓`,
+        buyPrice: item.buyPrice.toFixed(2),
+        buyShares: item.buyShares,
+        buyAmount: item.buyAmount.toFixed(2),
+        stopPrice: item.stopPrice.toFixed(2),
+        stopAmount: item.stopAmount.toFixed(2)
+      }));
 
     return {
       totalCapital: T.toFixed(2),
