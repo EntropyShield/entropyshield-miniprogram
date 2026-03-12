@@ -172,3 +172,26 @@
   color: #000000;
   font-weight: 600;
 }
+
+.pa-inline-tip {
+  margin-top: 20rpx;
+  padding: 20rpx 24rpx;
+  border-radius: 16rpx;
+  background: rgba(42, 255, 42, 0.06);
+  border: 1px solid rgba(42, 255, 42, 0.18);
+  color: #9aa0a6;
+  font-size: 24rpx;
+  line-height: 1.7;
+}
+
+.pa-empty-tip {
+  margin-top: 20rpx;
+  padding: 24rpx;
+  border-radius: 16rpx;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px dashed rgba(42, 255, 42, 0.25);
+  color: #9aa0a6;
+  font-size: 24rpx;
+  line-height: 1.7;
+  text-align: center;
+}
