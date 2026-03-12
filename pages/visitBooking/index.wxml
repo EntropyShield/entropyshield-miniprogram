@@ -1,4 +1,4 @@
-<view class="page">
+﻿<view class="page">
   <!-- 顶部说明卡片 -->
   <view class="card card-main">
     <view class="card-header">
@@ -11,7 +11,7 @@
       <text class="label">您的称呼</text>
       <input
         class="input"
-        placeholder="如：王先生 / 陈总"
+        placeholder="如：王先生 / 陈女士"
         value="{{name}}"
         bindinput="onNameInput"
       />
@@ -30,13 +30,33 @@
       />
     </view>
 
+    <!-- 协议与隐私说明 -->
+    <view class="agreement-card">
+      <view class="agreement-tip">
+        为完成来访预约确认、身份识别与必要通知，在你主动填写并提交后，我们会收集你的手机号。
+      </view>
+
+      <checkbox-group bindchange="onPrivacyAgreementChange">
+        <label class="agreement-check-row">
+          <checkbox value="agree" checked="{{privacyChecked}}" color="#2aff2a" />
+          <text class="agreement-check-text">我已阅读并同意以下协议</text>
+        </label>
+      </checkbox-group>
+
+      <view class="agreement-links">
+        <text class="agreement-link" bindtap="openServiceAgreement">《用户服务协议》</text>
+        <text class="agreement-link-divider">｜</text>
+        <text class="agreement-link" bindtap="openPrivacyContract">《隐私政策》</text>
+      </view>
+    </view>
+
     <!-- 人数 -->
     <view class="form-item">
       <text class="label">来访人数</text>
       <input
         class="input"
         type="number"
-        placeholder="默认为 1 人，可填写 1~10"
+        placeholder="默认 1 人，可填写 1~10"
         value="{{peopleCount}}"
         bindinput="onPeopleCountInput"
       />
@@ -97,7 +117,7 @@
       <text class="label">来访目的</text>
       <textarea
         class="textarea"
-        placeholder="简单写下你想聊的主题：如账户风险体检 / 实战系统讲解 / 合作探讨等"
+        placeholder="简单写下你想聊的主题：如账户风控体检 / 实战系统讲解 / 合作探讨等"
         value="{{purpose}}"
         bindinput="onPurposeInput"
       />
@@ -136,7 +156,7 @@
         bindinput="onRemarkInput"
       />
       <text class="remark-tip">
-        信息只用于安排来访，不会对外泄露。
+        信息仅用于安排来访，不会对外泄露。
       </text>
     </view>
   </view>
@@ -160,14 +180,10 @@
 
   <!-- 底部操作区 -->
   <view class="bottom-actions">
-    <button class="btn-secondary" bindtap="goMyList">
+    <button class="btn-secondary" bindtap="goMyList" hover-class="none">
       查看我的来访预约
     </button>
-    <button
-      class="btn-primary"
-      bindtap="onSubmit"
-      loading="{{submitting}}"
-      disabled="{{submitting}}"
+    <button class="btn-primary" bindtap="onSubmit" hover-class="none" loading="{{submitting}}" disabled="{{submitting}}"
     >
       {{submitting ? '提交中...' : '提交来访预约'}}
     </button>

@@ -1,6 +1,7 @@
-// pages/profile/index.js
+﻿// pages/profile/index.js
 // MOD: FIX_PROFILE_INNER_TABS_20260213
-// 个人中心（TabBar）— 三段内页 Tab：rights / tools / lab
+// MOD: PATCH_AUDIT_PRIVACY_20260310_LOCAL_PAGE
+// MOD: PRIVACY_DEFAULT_UNCHECKED_20260310
 
 const funnel = require('../../utils/funnel.js');
 const { API_BASE } = require('../../config');
@@ -18,6 +19,7 @@ function ensureClientId() {
   } else {
     console.log('[profile] use existing clientId:', cid);
   }
+
   if (appInst && appInst.globalData) appInst.globalData.clientId = cid;
   return cid;
 }
@@ -49,16 +51,13 @@ function pick(obj, keys, fallback) {
 
 function normalizeLatestVisit(list) {
   if (!Array.isArray(list) || !list.length) return null;
-  // 取第一条（后端通常已按最新排序）。若没排序也不致命。
+
   const v = list[0] || null;
   if (!v) return null;
 
-  const visitDate =
-    pick(v, ['visit_date', 'visitDate', 'date'], '') || '';
-  const start =
-    pick(v, ['start_time', 'startTime', 'start'], '') || '';
-  const end =
-    pick(v, ['end_time', 'endTime', 'end'], '') || '';
+  const visitDate = pick(v, ['visit_date', 'visitDate', 'date'], '') || '';
+  const start = pick(v, ['start_time', 'startTime', 'start'], '') || '';
+  const end = pick(v, ['end_time', 'endTime', 'end'], '') || '';
 
   return {
     ...v,
@@ -70,28 +69,23 @@ function normalizeLatestVisit(list) {
 
 Page({
   data: {
-    // 顶部用户信息
     userInfo: null,
 
-    // 快速统计条
     freeCalcTimes: 0,
     campRewardCount: 0,
     fissionSyncedTimes: 0,
     campProgressText: '0/7',
     membershipName: '',
 
-    // 常量展示
+    privacyChecked: false,
+
     CAMP_REWARD_TIMES: 4,
 
-    // 内页 Tab（⚠️WXML用的是 activeInnerTab）
-    // MOD: IMPORTANT_DEFAULT_RIGHTS
     activeInnerTab: 'rights',
 
-    // 裂变关系
     myInviteCode: '',
     invitedByCode: '',
 
-    // 最近来访
     latestVisit: null,
     statusTextMap: {
       pending: '待确认',
@@ -113,21 +107,78 @@ Page({
     funnel.log('PROFILE_VIEW', { from: (options && options.from) || '' });
 
     this.clientId = ensureClientId();
+    this.setData({
+      privacyChecked: false
+    });
 
-    // 先用本地缓存把页面撑起来（不依赖网络）
     this.refreshLocalSnapshot();
-
-    // 再拉后端数据（失败也不影响基本显示）
     this.fetchFissionProfile();
     this.fetchLatestVisit();
   },
 
   onShow() {
-    // 每次返回个人中心刷新一次本地权益（freeCalcTimes 等）
+    this.setData({
+      privacyChecked: false
+    });
+
     this.refreshLocalSnapshot();
+    this.fetchFissionProfile();
+    this.fetchLatestVisit();
+
+    try {
+      const apiBase = String(
+        wx.getStorageSync('API_BASE') ||
+        wx.getStorageSync('apiBaseUrl') ||
+        ((getApp && getApp().globalData && getApp().globalData.API_BASE) || API_BASE || '')
+      ).replace(/\/$/, '');
+
+      const clientId = this.clientId || wx.getStorageSync('clientId');
+      if (!apiBase || !clientId) return;
+
+      wx.request({
+        url: `${apiBase}/api/fission/profile`,
+        method: 'GET',
+        data: { clientId },
+        success: (res) => {
+          const d = res && res.data;
+          if (!d || !d.ok) return;
+
+          const total =
+            Number(d.total_reward_times ?? (d.profile && d.profile.total_reward_times) ?? 0) || 0;
+
+          const rights = wx.getStorageSync('userRights') || {};
+          const currentFree = Number(rights.freeCalcTimes || 0) || 0;
+          let lastSynced =
+            Number(wx.getStorageSync('fission_total_reward_times_synced') || 0) || 0;
+
+          if (lastSynced === 0 && currentFree > 0) {
+            wx.setStorageSync('fission_total_reward_times_synced', total);
+            lastSynced = total;
+          }
+
+          const delta = total - lastSynced;
+          if (delta > 0) {
+            rights.freeCalcTimes = currentFree + delta;
+            if (!rights.membershipName) rights.membershipName = 'FREE';
+            wx.setStorageSync('userRights', rights);
+            wx.setStorageSync('fission_total_reward_times_synced', total);
+          }
+
+          const latestRights = wx.getStorageSync('userRights') || rights;
+          this.setData({
+            freeCalcTimes: Number(latestRights.freeCalcTimes || currentFree) || 0,
+            membershipName: latestRights.membershipName || ''
+          });
+        },
+        fail: (err) => {
+          console.warn('[profile] onShow sync fail:', err);
+        }
+      });
+    } catch (e) {
+      console.warn('[profile] onShow sync exception:', e);
+    }
   },
 
-  // MOD: FIX_EVENT_HANDLER_MATCH_WXML
   onInnerTabChange(e) {
     const ds = (e && e.currentTarget && e.currentTarget.dataset) || {};
     const key = ds.key || 'rights';
@@ -139,27 +190,41 @@ Page({
     });
   },
 
+  onPrivacyAgreementChange(e) {
+    const values = (e && e.detail && e.detail.value) || [];
+    const checked = values.includes('agree');
+    this.setData({ privacyChecked: checked });
+  },
+
+  openPrivacyContract() {
+    wx.navigateTo({
+      url: '/pages/agreementPrivacy/index'
+    });
+  },
+
+  openServiceAgreement() {
+    wx.navigateTo({
+      url: '/pages/agreementService/index'
+    });
+  },
+
   refreshLocalSnapshot() {
-    // userInfo（如果你有在别处缓存）
     const cachedUserInfo = wx.getStorageSync('userInfo');
     if (cachedUserInfo && typeof cachedUserInfo === 'object') {
       this.setData({ userInfo: cachedUserInfo });
     }
 
-    // userRights（你的项目里一直在用）
     const ur = wx.getStorageSync('userRights') || {};
     const freeCalcTimes = Number(pick(ur, ['freeCalcTimes', 'free_calc_times'], 0)) || 0;
     const membershipName = String(pick(ur, ['membershipName', 'membership_name'], '')) || '';
-
-    // campRewardCount / campProgress（尽量从已有缓存推导）
     const campRewardCount = Number(pick(ur, ['campRewardCount', 'camp_reward_count'], 0)) || 0;
 
-    // 若你有 campDailyLogs（数组），用它估算 0/7
     const logs = wx.getStorageSync('campDailyLogs');
-    const doneDays = Array.isArray(logs) ? Math.min(7, logs.length) : Number(pick(ur, ['campDaysDone'], 0)) || 0;
-    const campProgressText = `${Math.max(0, Math.min(7, doneDays))}/7`;
+    const doneDays = Array.isArray(logs)
+      ? Math.min(7, logs.length)
+      : Number(pick(ur, ['campDaysDone'], 0)) || 0;
 
-    // 裂变同步次数（如果 userRights 里已有）
+    const campProgressText = `${Math.max(0, Math.min(7, doneDays))}/7`;
     const fissionSyncedTimes = Number(pick(ur, ['fissionSyncedTimes', 'total_reward_times'], 0)) || 0;
 
     this.setData({
@@ -174,6 +239,7 @@ Page({
   fetchFissionProfile() {
     const baseUrl = getBaseUrl();
     const clientId = this.clientId || ensureClientId();
+    if (!baseUrl || !clientId) return;
 
     const url = `${baseUrl}/api/fission/profile?clientId=${encodeURIComponent(clientId)}`;
     requestJson(url, 'GET')
@@ -182,10 +248,10 @@ Page({
           console.warn('[profile] fission profile failed:', data);
           return;
         }
+
         const profile = data.profile || {};
         const total = Number(pick(data, ['total_reward_times'], 0)) || 0;
 
-        // 尽量兼容字段名
         const myInviteCode = String(
           pick(profile, ['my_invite_code', 'invite_code', 'inviteCode', 'myInviteCode'], '')
         );
@@ -207,6 +273,7 @@ Page({
   fetchLatestVisit() {
     const baseUrl = getBaseUrl();
     const clientId = this.clientId || ensureClientId();
+    if (!baseUrl || !clientId) return;
 
     const url = `${baseUrl}/api/visit/my-list?clientId=${encodeURIComponent(clientId)}`;
     requestJson(url, 'GET')
@@ -228,24 +295,31 @@ Page({
       });
   },
 
-  // ====== WXML 里绑定的跳转方法（必须存在，否则点击无反应）======
   goCampIntro() {
     wx.navigateTo({ url: '/pages/campIntro/index' });
   },
-  
+
   goFissionTask() {
     wx.navigateTo({ url: '/pages/fissionTask/index' });
   },
-  
+
   goMyInvite() {
     wx.navigateTo({ url: '/pages/myInvite/index' });
   },
-  
+
   goOrderCenter() {
     wx.showToast({ title: '敬请期待', icon: 'none' });
   },
-  
-  onShow() {
-    // [PATCH-20260223-B1] 权益实时刷新：onShow 拉取 /api/fission/profile 并增量同步 freeCalcTimes\n    try {\n      const apiBase =\n        wx.getStorageSync('API_BASE') ||\n        wx.getStorageSync('apiBaseUrl') ||\n        ((getApp && getApp().globalData && getApp().globalData.API_BASE) || '');\n      const clientId = wx.getStorageSync('clientId');\n      if (apiBase && clientId) {\n        wx.request({\n          url: `${apiBase}/api/fission/profile`,\n          method: 'GET',\n          data: { clientId },\n          success: (res) => {\n            const d = res && res.data;\n            if (!d || !d.ok) return;\n            const total = Number((d.total_reward_times ?? (d.profile && d.profile.total_reward_times) ?? 0)) || 0;\n    \n            const rights = wx.getStorageSync('userRights') || {};\n            const currentFree = Number(rights.freeCalcTimes || 0) || 0;\n            let lastSynced = Number(wx.getStorageSync('fission_total_reward_times_synced') || 0) || 0;\n    \n            // 初始化：如果之前已有 freeCalcTimes，但没记录 lastSynced，则直接对齐到服务端，避免重复加\n            if (lastSynced === 0 && currentFree > 0) {\n              wx.setStorageSync('fission_total_reward_times_synced', total);\n              lastSynced = total;\n            }\n    \n            const delta = total - lastSynced;\n            if (delta > 0) {\n              rights.freeCalcTimes = currentFree + delta;\n              if (!rights.membershipName) rights.membershipName = 'FREE';\n              wx.setStorageSync('userRights', rights);\n              wx.setStorageSync('fission_total_reward_times_synced', total);\n            }\n    \n            // 无论是否新增，都刷新一下 UI（不影响你现有骨架）\n            if (this && this.setData) {\n              this.setData({\n                userRights: rights,\n                freeCalcTimes: Number(rights.freeCalcTimes || 0) || currentFree,\n                membershipName: rights.membershipName || ''\n              });\n            }\n          }\n        });\n      }\n    } catch (e) {}
+
+  goVisitBooking() {
+    wx.navigateTo({ url: '/pages/visitBooking/index' });
+  },
+
+  goVisitMyList() {
+    wx.navigateTo({ url: '/pages/visitMyList/index' });
+  },
+
+  goVisitAdmin() {
+    wx.navigateTo({ url: '/pages/visitAdmin/index' });
   }
 });
