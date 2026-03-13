@@ -17,9 +17,7 @@
       bindtap="onStatusTabTap"
     >
       <text class="status-tab-label">{{item.label}}</text>
-      <text class="status-tab-count">
-        {{counters[item.key] || 0}}
-      </text>
+      <text class="status-tab-count">{{counters[item.key] || 0}}</text>
     </view>
   </block>
 </view>
@@ -29,7 +27,7 @@
   <block wx:for="{{filteredList}}" wx:key="id">
     <view class="visit-card">
 
-      <!-- 第一行：日期 + 时间段 + 状态徽章 -->
+      <!-- 第一行：日期 + 时间段 + 状态 -->
       <view class="visit-top-row">
         <view class="visit-date-time">
           <text class="visit-date">{{item.visitDateDisplay}}</text>
@@ -81,7 +79,9 @@
             size="mini"
             data-id="{{item.id}}"
             data-status="1"
-            disabled="{{item.status === 2 || item.status === 3}}"
+            data-current-status="{{item.status}}"
+            disabled="{{item.id === updatingId || item.status === 2 || item.status === 3}}"
+            loading="{{item.id === updatingId && updatingToStatus === 1}}"
             bindtap="onUpdateStatusTap"
           >
             确认
@@ -92,7 +92,9 @@
             size="mini"
             data-id="{{item.id}}"
             data-status="2"
-            disabled="{{item.status === 2 || item.status === 3}}"
+            data-current-status="{{item.status}}"
+            disabled="{{item.id === updatingId || item.status === 2 || item.status === 3}}"
+            loading="{{item.id === updatingId && updatingToStatus === 2}}"
             bindtap="onUpdateStatusTap"
           >
             完成
@@ -103,7 +105,9 @@
             size="mini"
             data-id="{{item.id}}"
             data-status="3"
-            disabled="{{item.status === 3}}"
+            data-current-status="{{item.status}}"
+            disabled="{{item.id === updatingId || item.status === 3}}"
+            loading="{{item.id === updatingId && updatingToStatus === 3}}"
             bindtap="onUpdateStatusTap"
           >
             取消
@@ -117,9 +121,7 @@
 
 <!-- 空状态 -->
 <view wx:else class="empty">
-  <text class="empty-text">
-    当前筛选下暂无预约记录。
-  </text>
+  <text class="empty-text">当前筛选下暂无预约记录。</text>
 </view>
 
 </view>

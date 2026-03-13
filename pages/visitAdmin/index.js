@@ -1,5 +1,5 @@
 // pages/visitAdmin/index.js
-// MOD: VISIT_ADMIN_TEXT_FIX_20260313
+// MOD: VISIT_ADMIN_STATUS_GUARD_20260313
 
 const funnel = require('../../utils/funnel.js');
 const { API_BASE } = require('../../config');
@@ -31,18 +31,21 @@ Page({
     list: [],
     filteredList: [],
     activeStatus: 'all',
+    updatingId: 0,
+    updatingToStatus: -1,
+
     statusTabs: [
-      { key: 'all', label: '\u5168\u90e8' },
-      { key: '0', label: '\u5f85\u786e\u8ba4' },
-      { key: '1', label: '\u5df2\u786e\u8ba4' },
-      { key: '2', label: '\u5df2\u5b8c\u6210' },
-      { key: '3', label: '\u5df2\u53d6\u6d88' }
+      { key: 'all', label: '全部' },
+      { key: '0', label: '待确认' },
+      { key: '1', label: '已确认' },
+      { key: '2', label: '已完成' },
+      { key: '3', label: '已取消' }
     ],
     statusTextMap: [
-      '\u5f85\u786e\u8ba4',
-      '\u5df2\u786e\u8ba4',
-      '\u5df2\u5b8c\u6210',
-      '\u5df2\u53d6\u6d88'
+      '待确认',
+      '已确认',
+      '已完成',
+      '已取消'
     ],
     statusClassMap: [
       'status-pill-pending',
@@ -76,7 +79,7 @@ Page({
         const day = String(d.getDate()).padStart(2, '0');
         return `${y}-${m}-${day}`;
       }
-      return isoOrDate.slice(0, 10);
+      return String(isoOrDate).slice(0, 10);
     }
 
     const d = new Date(isoOrDate);
@@ -101,7 +104,7 @@ Page({
 
   handleNoPermission(message) {
     wx.showToast({
-      title: message || '\u4ec5\u7ba1\u7406\u5458\u53ef\u8bbf\u95ee',
+      title: message || '仅管理员可访问',
       icon: 'none'
     });
     setTimeout(() => {
@@ -145,7 +148,7 @@ Page({
     const clientId = this.clientId || ensureClientId();
 
     if (!baseUrl || !clientId) {
-      wx.showToast({ title: '\u63a5\u53e3\u5730\u5740\u672a\u914d\u7f6e', icon: 'none' });
+      wx.showToast({ title: '接口地址未配置', icon: 'none' });
       return;
     }
 
@@ -162,13 +165,13 @@ Page({
         const data = res.data || {};
         console.log('[visitAdmin] raw response =', data);
 
-        if (res.statusCode === 403 || data.message === '\u65e0\u6743\u9650\u8bbf\u95ee') {
+        if (res.statusCode === 403 || data.message === '无权限访问') {
           this.handleNoPermission();
           return;
         }
 
         if (!data.ok) {
-          wx.showToast({ title: data.message || '\u52a0\u8f7d\u5931\u8d25', icon: 'none' });
+          wx.showToast({ title: data.message || '加载失败', icon: 'none' });
           return;
         }
 
@@ -196,7 +199,7 @@ Page({
       },
       fail: (err) => {
         console.warn('[visitAdmin] fetch list fail:', err);
-        wx.showToast({ title: '\u7f51\u7edc\u5f02\u5e38', icon: 'none' });
+        wx.showToast({ title: '网络异常', icon: 'none' });
       },
       complete: () => {
         this.setData({ loading: false });
@@ -216,19 +219,34 @@ Page({
     const clientId = this.clientId || ensureClientId();
     const id = Number(e.currentTarget.dataset.id || 0);
     const toStatus = Number(e.currentTarget.dataset.status);
+    const currentStatus = Number(e.currentTarget.dataset.currentStatus);
 
     if (!id || Number.isNaN(toStatus)) return;
+    if (this.data.updatingId === id) return;
+    if (!baseUrl || !clientId) {
+      wx.showToast({ title: '接口地址未配置', icon: 'none' });
+      return;
+    }
+    if (!Number.isNaN(currentStatus) && currentStatus === toStatus) {
+      wx.showToast({ title: '当前已是该状态', icon: 'none' });
+      return;
+    }
 
     const labelMap = this.data.statusTextMap || [];
-    const label = labelMap[toStatus] || '\u72b6\u6001';
+    const label = labelMap[toStatus] || '状态';
 
     wx.showModal({
-      title: '\u66f4\u65b0\u9884\u7ea6\u72b6\u6001',
-      content: `\u786e\u8ba4\u5c06\u6b64\u9884\u7ea6\u6807\u8bb0\u4e3a\u300c${label}\u300d\uff1f`,
-      confirmText: '\u786e\u8ba4',
-      cancelText: '\u518d\u60f3\u60f3',
+      title: '更新预约状态',
+      content: `确认将此预约标记为「${label}」？`,
+      confirmText: '确认',
+      cancelText: '再想想',
       success: (res) => {
         if (!res.confirm) return;
+
+        this.setData({
+          updatingId: id,
+          updatingToStatus: toStatus
+        });
 
         funnel.log('VISIT_ADMIN_UPDATE_STATUS', { id, toStatus, ts: Date.now() });
 
@@ -244,21 +262,27 @@ Page({
           success: (resp) => {
             const data = resp.data || {};
 
-            if (resp.statusCode === 403 || data.message === '\u65e0\u6743\u9650\u8bbf\u95ee') {
+            if (resp.statusCode === 403 || data.message === '无权限访问') {
               this.handleNoPermission();
               return;
             }
 
             if (data.ok) {
-              wx.showToast({ title: '\u72b6\u6001\u5df2\u66f4\u65b0', icon: 'none' });
+              wx.showToast({ title: '状态已更新', icon: 'success' });
               this.fetchList();
             } else {
-              wx.showToast({ title: data.message || '\u66f4\u65b0\u5931\u8d25', icon: 'none' });
+              wx.showToast({ title: data.message || '更新失败', icon: 'none' });
             }
           },
           fail: (err) => {
             console.warn('[visitAdmin] update status fail:', err);
-            wx.showToast({ title: '\u7f51\u7edc\u5f02\u5e38', icon: 'none' });
+            wx.showToast({ title: '网络异常', icon: 'none' });
+          },
+          complete: () => {
+            this.setData({
+              updatingId: 0,
+              updatingToStatus: -1
+            });
           }
         });
       }
