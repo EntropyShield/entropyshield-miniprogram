@@ -60,13 +60,34 @@ function normalizeVisitStatus(raw) {
   return 'pending';
 }
 
+
+function formatVisitDate(raw) {
+  if (!raw) return '';
+
+  const s = String(raw).trim();
+  if (!s) return '';
+
+  const m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (m) return `${m[1]}-${m[2]}-${m[3]}`;
+
+  const d = new Date(s);
+  if (!Number.isNaN(d.getTime())) {
+    const y = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${y}-${mm}-${dd}`;
+  }
+
+  return s.slice(0, 10);
+}
+
 function normalizeLatestVisit(list) {
   if (!Array.isArray(list) || !list.length) return null;
 
   const v = list[0] || null;
   if (!v) return null;
 
-  const visitDate = pick(v, ['visit_date', 'visitDate', 'date'], '') || '';
+  const visitDateRaw = pick(v, ['visit_date', 'visitDate', 'date'], '') || '';
   const start = pick(v, ['start_time', 'startTime', 'start'], '') || '';
   const end = pick(v, ['end_time', 'endTime', 'end'], '') || '';
   const visitTimeRangeRaw = pick(v, ['visit_time_range', 'visitTimeRange'], '') || '';
@@ -78,7 +99,7 @@ function normalizeLatestVisit(list) {
 
   return {
     ...v,
-    visitDateDisplay: visitDate ? String(visitDate).slice(0, 10) : '',
+    visitDateDisplay: formatVisitDate(visitDateRaw),
     visitTimeRange,
     status: normalizeVisitStatus(pick(v, ['status'], 'pending'))
   };
@@ -106,11 +127,11 @@ Page({
 
     latestVisit: null,
     statusTextMap: {
-      pending: '???',
-      confirmed: '???',
-      finished: '???',
-      canceled: '???',
-      cancelled: '???'
+      pending: '\u5f85\u786e\u8ba4',
+      confirmed: '\u5df2\u786e\u8ba4',
+      finished: '\u5df2\u5b8c\u6210',
+      canceled: '\u5df2\u53d6\u6d88',
+      cancelled: '\u5df2\u53d6\u6d88'
     },
     statusClassMap: {
       pending: 'status-pending',
@@ -118,6 +139,12 @@ Page({
       finished: 'status-finished',
       canceled: 'status-canceled',
       cancelled: 'status-canceled'
+    },
+    quickVisitTexts: {
+      title: '\u7ebf\u4e0b\u6765\u8bbf\u63d0\u9192',
+      timeFallback: '\u65f6\u95f4\u5f85\u786e\u8ba4',
+      purposeFallback: '\u4ea4\u6d41\u98ce\u63a7\u4f53\u7cfb',
+      statusFallback: '\u5f85\u786e\u8ba4'
     }
   },
 
@@ -334,6 +361,15 @@ Page({
         console.warn('[profile] admin access request fail:', err);
         this.setData({ isVisitAdmin: false });
       });
+  },
+
+  onTapLatestVisitQuick() {
+    if (!this.data.latestVisit) return;
+    if (this.data.isVisitAdmin) {
+      wx.navigateTo({ url: '/pages/visitAdmin/index' });
+      return;
+    }
+    wx.navigateTo({ url: '/pages/visitMyList/index' });
   },
 
   goCampIntro() {

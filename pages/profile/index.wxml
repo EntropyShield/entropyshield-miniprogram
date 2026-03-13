@@ -47,20 +47,18 @@
   </view>
 </scroll-view>
 
-<view wx:if="{{latestVisit}}" class="visit-quick-tip">
+<view wx:if="{{latestVisit}}" class="visit-quick-tip" bindtap="onTapLatestVisitQuick">
   <view class="visit-quick-tip-main">
-    <text class="visit-quick-tip-title">??????</text>
+    <text class="visit-quick-tip-title">{{quickVisitTexts.title}}</text>
     <text class="visit-quick-tip-text">
-      {{latestVisit.visitDateDisplay}} ? {{latestVisit.visitTimeRange || '?????'}} ? {{latestVisit.purpose || '??????'}}
+      {{latestVisit.visitDateDisplay}} {{latestVisit.visitTimeRange || quickVisitTexts.timeFallback}} / {{latestVisit.purpose || quickVisitTexts.purposeFallback}}
     </text>
   </view>
   <view class="latest-visit-status {{statusClassMap[latestVisit.status]}}">
-    {{statusTextMap[latestVisit.status] || '???'}}
+    {{statusTextMap[latestVisit.status] || quickVisitTexts.statusFallback}}
   </view>
 </view>
 
-
-<!-- 内页 Tab：权益 / 工具 / 实验室 -->
 <view class="inner-tabs">
   <view
     class="inner-tab {{activeInnerTab === 'rights' ? 'active' : ''}}"
