@@ -39,7 +39,8 @@
     "pages/visitBooking/index",
     "pages/visitMyList/index",
     "pages/myInvite/index",
-    "pages/inviteLookup/index"
+    "pages/inviteLookup/index",
+    "pages/inviteTracker/index"
   ],
   "window": {
     "navigationBarTitleText": "熵盾研究院",
