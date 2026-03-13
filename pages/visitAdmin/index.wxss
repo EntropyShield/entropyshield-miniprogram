@@ -1,11 +1,11 @@
-.page {
-  background-color: #0d0d0d;
-  min-height: 100vh;
-  padding: 24rpx;
-  box-sizing: border-box;
+page {
+  background: #000000;
 }
 
-/* 顶部标题 */
+.page {
+  min-height: 100vh;
+  background: #000000;
+}
 
 .admin-header {
   margin-bottom: 20rpx;
@@ -22,8 +22,6 @@
   font-size: 22rpx;
   color: #8a8d93;
 }
-
-/* 状态筛选 Tab */
 
 .status-tabs {
   display: flex;
@@ -59,16 +57,11 @@
   background: linear-gradient(90deg, #18b74b, #2aff2a);
 }
 
-.status-tab.active .status-tab-label {
+.status-tab.active .status-tab-label,
+.status-tab.active .status-tab-count {
   color: #020305;
   font-weight: 600;
 }
-
-.status-tab.active .status-tab-count {
-  color: #020305;
-}
-
-/* 列表卡片 */
 
 .list-wrap {
   margin-top: 4rpx;
@@ -109,8 +102,6 @@
   color: #c4c7ce;
 }
 
-/* 状态徽章 */
-
 .status-pill {
   padding: 4rpx 12rpx;
   border-radius: 9999rpx;
@@ -138,8 +129,6 @@
   color: #ff4747;
 }
 
-/* 文本行 */
-
 .visit-row {
   display: flex;
   align-items: flex-start;
@@ -165,8 +154,6 @@
 .visit-meta .visit-value {
   color: #a6a9b0;
 }
-
-/* 按钮区域 */
 
 .btn-row {
   margin-top: 12rpx;
@@ -203,14 +190,28 @@
   color: #ff4747;
 }
 
-/* 空状态 */
+.btn-small.is-disabled,
+.btn-small[disabled] {
+  opacity: 0.42;
+  filter: saturate(0.65);
+}
 
 .empty {
   margin-top: 80rpx;
   text-align: center;
 }
 
+.empty-title {
+  display: block;
+  margin-bottom: 10rpx;
+  font-size: 30rpx;
+  color: #ffffff;
+  font-weight: 600;
+}
+
 .empty-text {
+  display: block;
   font-size: 24rpx;
   color: #8a8d93;
+  line-height: 1.6;
 }
