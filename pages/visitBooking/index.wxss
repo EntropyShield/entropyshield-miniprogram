@@ -5,6 +5,7 @@ page {
   background-color: #0d0d0d;
   min-height: 100vh;
   padding: 24rpx;
+  padding-bottom: calc(36rpx + env(safe-area-inset-bottom));
   box-sizing: border-box;
 }
 
@@ -95,6 +96,7 @@ page {
   background: #1c1f25;
   color: #ffffff;
   font-size: 26rpx;
+  line-height: 1.65;
   box-sizing: border-box;
 }
 
@@ -190,13 +192,10 @@ page {
 
 /* 底部按钮区 */
 .bottom-actions {
-  position: sticky;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding-top: 8rpx;
-  padding-bottom: 16rpx;
-  background: #0d0d0d;
+  margin-top: 20rpx;
+  padding-top: 12rpx;
+  padding-bottom: calc(12rpx + env(safe-area-inset-bottom));
+  background: transparent;
   display: flex;
   gap: 12rpx;
 }

@@ -1,9 +1,11 @@
+page {
+  background: #000000;
+}
 .page {
   min-height: 100vh;
-  padding: 24rpx;
-  background-color: #050608;
-  box-sizing: border-box;
+  background: #000000;
 }
+
 
 .loading-text {
   margin-top: 80rpx;

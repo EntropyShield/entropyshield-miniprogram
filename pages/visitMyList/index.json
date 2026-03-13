@@ -1,3 +1,7 @@
 {
-  "navigationBarTitleText": "我的来访预约"
+  "navigationBarTitleText": "\u6211\u7684\u6765\u8bbf\u9884\u7ea6",
+  "navigationBarBackgroundColor": "#000000",
+  "navigationBarTextStyle": "white",
+  "backgroundColor": "#000000",
+  "backgroundTextStyle": "dark"
 }
