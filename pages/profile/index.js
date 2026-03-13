@@ -1,4 +1,4 @@
-﻿// pages/profile/index.js
+// pages/profile/index.js
 // MOD: FIX_PROFILE_INNER_TABS_20260213
 // MOD: PATCH_AUDIT_PRIVACY_20260310_LOCAL_PAGE
 // MOD: PRIVACY_DEFAULT_UNCHECKED_20260310
@@ -49,6 +49,17 @@ function pick(obj, keys, fallback) {
   return fallback;
 }
 
+function normalizeVisitStatus(raw) {
+  const v = String(raw === undefined || raw === null ? '' : raw).trim().toLowerCase();
+
+  if (v === '0' || v === 'pending') return 'pending';
+  if (v === '1' || v === 'confirmed') return 'confirmed';
+  if (v === '2' || v === 'finished' || v === 'done') return 'finished';
+  if (v === '3' || v === 'canceled' || v === 'cancelled') return 'canceled';
+
+  return 'pending';
+}
+
 function normalizeLatestVisit(list) {
   if (!Array.isArray(list) || !list.length) return null;
 
@@ -58,12 +69,18 @@ function normalizeLatestVisit(list) {
   const visitDate = pick(v, ['visit_date', 'visitDate', 'date'], '') || '';
   const start = pick(v, ['start_time', 'startTime', 'start'], '') || '';
   const end = pick(v, ['end_time', 'endTime', 'end'], '') || '';
+  const visitTimeRangeRaw = pick(v, ['visit_time_range', 'visitTimeRange'], '') || '';
+
+  const visitTimeRange =
+    start && end
+      ? `${String(start).slice(0, 5)}-${String(end).slice(0, 5)}`
+      : visitTimeRangeRaw;
 
   return {
     ...v,
     visitDateDisplay: visitDate ? String(visitDate).slice(0, 10) : '',
-    visitTimeRange: start && end ? `${String(start).slice(0, 5)}-${String(end).slice(0, 5)}` : '',
-    status: pick(v, ['status'], 'pending')
+    visitTimeRange,
+    status: normalizeVisitStatus(pick(v, ['status'], 'pending'))
   };
 }
 
@@ -76,6 +93,7 @@ Page({
     fissionSyncedTimes: 0,
     campProgressText: '0/7',
     membershipName: '',
+    isVisitAdmin: false,
 
     privacyChecked: false,
 
@@ -88,11 +106,11 @@ Page({
 
     latestVisit: null,
     statusTextMap: {
-      pending: '待确认',
-      confirmed: '已确认',
-      finished: '已完成',
-      canceled: '已取消',
-      cancelled: '已取消'
+      pending: '???',
+      confirmed: '???',
+      finished: '???',
+      canceled: '???',
+      cancelled: '???'
     },
     statusClassMap: {
       pending: 'status-pending',
@@ -114,6 +132,7 @@ Page({
     this.refreshLocalSnapshot();
     this.fetchFissionProfile();
     this.fetchLatestVisit();
+    this.fetchAdminAccess();
   },
 
   onShow() {
@@ -124,6 +143,7 @@ Page({
     this.refreshLocalSnapshot();
     this.fetchFissionProfile();
     this.fetchLatestVisit();
+    this.fetchAdminAccess();
 
     try {
       const apiBase = String(
@@ -167,7 +187,7 @@ Page({
           const latestRights = wx.getStorageSync('userRights') || rights;
           this.setData({
             freeCalcTimes: Number(latestRights.freeCalcTimes || currentFree) || 0,
-            membershipName: latestRights.membershipName || ''
+            membershipName: latestRights.membershipName || '????'
           });
         },
         fail: (err) => {
@@ -216,7 +236,7 @@ Page({
 
     const ur = wx.getStorageSync('userRights') || {};
     const freeCalcTimes = Number(pick(ur, ['freeCalcTimes', 'free_calc_times'], 0)) || 0;
-    const membershipName = String(pick(ur, ['membershipName', 'membership_name'], '')) || '';
+    const membershipName = String(pick(ur, ['membershipName', 'membership_name'], '')) || '????';
     const campRewardCount = Number(pick(ur, ['campRewardCount', 'camp_reward_count'], 0)) || 0;
 
     const logs = wx.getStorageSync('campDailyLogs');
@@ -292,6 +312,27 @@ Page({
       })
       .catch((err) => {
         console.warn('[profile] visit my-list request fail:', err);
+      });
+  },
+
+  fetchAdminAccess() {
+    const baseUrl = getBaseUrl();
+    const clientId = this.clientId || ensureClientId();
+    if (!baseUrl || !clientId) {
+      this.setData({ isVisitAdmin: false });
+      return;
+    }
+
+    const url = `${baseUrl}/api/admin/me?clientId=${encodeURIComponent(clientId)}`;
+    requestJson(url, 'GET')
+      .then((data) => {
+        this.setData({
+          isVisitAdmin: !!(data && data.ok && data.isVisitAdmin)
+        });
+      })
+      .catch((err) => {
+        console.warn('[profile] admin access request fail:', err);
+        this.setData({ isVisitAdmin: false });
       });
   },
 

@@ -1,5 +1,7 @@
 <view class="page">
 
+<view class="profile-top-mask"></view>
+
 <!-- 顶部：头像 + 昵称 + 文案 -->
 <view class="profile-header-card">
   <view class="avatar-wrap">
@@ -44,6 +46,19 @@
     <text class="stat-value">{{campProgressText}}</text>
   </view>
 </scroll-view>
+
+<view wx:if="{{latestVisit}}" class="visit-quick-tip">
+  <view class="visit-quick-tip-main">
+    <text class="visit-quick-tip-title">??????</text>
+    <text class="visit-quick-tip-text">
+      {{latestVisit.visitDateDisplay}} ? {{latestVisit.visitTimeRange || '?????'}} ? {{latestVisit.purpose || '??????'}}
+    </text>
+  </view>
+  <view class="latest-visit-status {{statusClassMap[latestVisit.status]}}">
+    {{statusTextMap[latestVisit.status] || '???'}}
+  </view>
+</view>
+
 
 <!-- 内页 Tab：权益 / 工具 / 实验室 -->
 <view class="inner-tabs">
@@ -224,11 +239,11 @@
         </view>
         <text class="nav-arrow">›</text>
       </view>
-      <view class="nav-item" bindtap="goVisitMyList">
+      <view wx:if="{{isVisitAdmin}}" class="nav-item" bindtap="goVisitAdmin">
         <view class="nav-main">
-          <text class="nav-title">我的来访预约</text>
+          <text class="nav-title">来访预约管理</text>
           <text class="nav-desc">
-            查看已提交的来访记录与状态，及时调整行程安排。
+            管理端查看全部客户预约，并按时间安排会见与处理状态。
           </text>
         </view>
         <text class="nav-arrow">›</text>

@@ -1,6 +1,11 @@
-# auto-generated
+﻿# auto-generated
 .patch_backups/**
 _patch_backups_archive/**
 scripts/**
 node_modules/**
 .git/**
+.patch_backups/
+scripts/
+tools/
+*.bak_*
+*.tmp

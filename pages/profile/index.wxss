@@ -739,3 +739,49 @@
   font-size: 22rpx;
   color: #8a8d93;
 }
+
+/* MOD: PROFILE_TOPMASK_QUICK_VISIT_20260313 */
+page {
+  background: #000000 !important;
+}
+
+.page {
+  min-height: 100vh;
+  background: #000000 !important;
+}
+
+.profile-top-mask {
+  height: 16rpx;
+  background: #000000;
+}
+
+.visit-quick-tip {
+  margin: 12rpx 0 18rpx;
+  padding: 18rpx 20rpx;
+  border-radius: 20rpx;
+  background: #16181d;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.visit-quick-tip-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.visit-quick-tip-title {
+  display: block;
+  margin-bottom: 6rpx;
+  font-size: 22rpx;
+  color: #8a8d93;
+}
+
+.visit-quick-tip-text {
+  display: block;
+  font-size: 24rpx;
+  line-height: 1.5;
+  color: #ffffff;
+  font-weight: 600;
+}
