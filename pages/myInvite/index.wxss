@@ -69,3 +69,32 @@ button::after {
   color: rgba(255,255,255,0.58);
   font-size: 24rpx;
 }
+
+.tracker-entry {
+  margin-top: 24rpx;
+  padding-bottom: calc(24rpx + env(safe-area-inset-bottom));
+}
+
+.tracker-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 88rpx;
+  line-height: 88rpx;
+  border-radius: 18rpx;
+  background: linear-gradient(90deg, #18b74b, #2aff2a);
+  color: #020305;
+  font-size: 28rpx;
+  font-weight: 600;
+  text-decoration: none;
+  box-sizing: border-box;
+}
+
+.tracker-tip {
+  display: block;
+  margin-top: 10rpx;
+  text-align: center;
+  font-size: 22rpx;
+  color: #8a8d93;
+}

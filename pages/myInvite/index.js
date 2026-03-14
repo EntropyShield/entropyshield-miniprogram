@@ -55,6 +55,8 @@ function requestGet(url) {
 
 Page({
   data: {
+    trackerBtnText: '\u67e5\u770b\u9080\u8bf7\u8ddf\u8e2a',
+    trackerTipText: '\u67e5\u770b\u5f85\u6210\u4ea4 / \u5df2\u6210\u4ea4 / \u5df2\u8fc7\u671f',
     loading: false,
     shown: false,
     found: false,

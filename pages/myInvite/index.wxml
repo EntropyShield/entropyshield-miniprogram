@@ -36,4 +36,15 @@
 
     <view class="empty" wx:else>当前账号还没有邀请记录</view>
   </view>
+
+  <view class="tracker-entry">
+    <navigator
+      class="tracker-btn"
+      url="/pages/inviteTracker/index"
+      open-type="navigate"
+      hover-class="none"
+    >{{trackerBtnText}}</navigator>
+    <text class="tracker-tip">{{trackerTipText}}</text>
+  </view>
+
 </view>
