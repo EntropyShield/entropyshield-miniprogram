@@ -151,6 +151,7 @@
 .card-subtitle {
   font-size: 22rpx;
   color: #8a8d93;
+  line-height: 1.5;
 }
 
 .card-tag {
@@ -474,12 +475,15 @@
 .nav-title {
   font-size: 26rpx;
   color: #ffffff;
+  font-weight: 500;
+  line-height: 1.4;
 }
 
 .nav-desc {
-  margin-top: 4rpx;
+  margin-top: 6rpx;
   font-size: 22rpx;
   color: #8a8d93;
+  line-height: 1.6;
 }
 
 .nav-arrow {
@@ -574,7 +578,7 @@
   margin-top: 12rpx;
   font-size: 22rpx;
   color: #8a8d93;
-  line-height: 1.5;
+  line-height: 1.7;
 }
 
 .section-paragraph {
@@ -622,6 +626,8 @@
 .latest-visit-row {
   display: flex;
   align-items: flex-start;
+  justify-content: space-between;
+  gap: 16rpx;
 }
 
 .latest-visit-main {
@@ -632,12 +638,14 @@
 .latest-visit-time {
   font-size: 24rpx;
   color: #ffffff;
-  margin-bottom: 4rpx;
+  margin-bottom: 6rpx;
+  line-height: 1.5;
 }
 
 .latest-visit-sub {
   font-size: 22rpx;
   color: #c4c7ce;
+  line-height: 1.6;
 }
 
 .latest-visit-status {
@@ -757,13 +765,14 @@ page {
 
 .visit-quick-tip {
   margin: 12rpx 0 18rpx;
-  padding: 18rpx 20rpx;
+  padding: 20rpx 22rpx;
   border-radius: 20rpx;
   background: #16181d;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16rpx;
+  border: 1rpx solid rgba(42, 255, 42, 0.08);
 }
 
 .visit-quick-tip-main {
@@ -777,11 +786,10 @@ page {
   font-size: 22rpx;
   color: #8a8d93;
 }
-
-.visit-quick-tip-text {
+.visit-quick-tip-sub {
   display: block;
-  font-size: 24rpx;
-  line-height: 1.5;
-  color: #ffffff;
-  font-weight: 600;
+  margin-top: 6rpx;
+  font-size: 22rpx;
+  line-height: 1.6;
+  color: #c4c7ce;
 }
