@@ -635,25 +635,6 @@
   padding-right: 16rpx;
 }
 
-.latest-visit-time {
-  font-size: 24rpx;
-  color: #ffffff;
-  margin-bottom: 6rpx;
-  line-height: 1.5;
-}
-
-.latest-visit-sub {
-  font-size: 22rpx;
-  color: #c4c7ce;
-  line-height: 1.6;
-}
-
-.latest-visit-status {
-  padding: 4rpx 14rpx;
-  border-radius: 9999rpx;
-  font-size: 20rpx;
-}
-
 /* 预约状态颜色：待确认 / 已确认 / 已完成 / 已取消 */
 .status-pending {
   background: rgba(255, 184, 0, 0.08);
@@ -763,16 +744,20 @@ page {
   background: #000000;
 }
 
+/* MOD: PROFILE_VISIT_QUICK_VISIBILITY_20260316 */
+
+/* MOD: PROFILE_VISIT_READABILITY_FINAL_20260316 */
 .visit-quick-tip {
   margin: 12rpx 0 18rpx;
   padding: 20rpx 22rpx;
   border-radius: 20rpx;
-  background: #16181d;
+  background: linear-gradient(180deg, #141a24 0%, #10151d 100%);
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16rpx;
-  border: 1rpx solid rgba(42, 255, 42, 0.08);
+  border: 1rpx solid rgba(42, 255, 42, 0.12);
+  box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.18);
 }
 
 .visit-quick-tip-main {
@@ -785,32 +770,6 @@ page {
   margin-bottom: 6rpx;
   font-size: 22rpx;
   color: #8a8d93;
-}
-.visit-quick-tip-sub {
-  display: block;
-  margin-top: 6rpx;
-  font-size: 22rpx;
-  line-height: 1.6;
-  color: #c4c7ce;
-}
-
-
-/* MOD: PROFILE_VISIT_QUICK_VISIBILITY_20260316 */
-.visit-quick-tip {
-  align-items: flex-start;
-}
-
-.visit-quick-tip-main {
-  flex: 1;
-  min-width: 0;
-}
-
-.visit-quick-tip-title {
-  display: block;
-  margin-bottom: 6rpx;
-  font-size: 22rpx;
-  color: #8a8d93;
-  line-height: 1.5;
 }
 
 .visit-quick-tip-text {
@@ -818,8 +777,7 @@ page {
   font-size: 26rpx;
   line-height: 1.6;
   color: #ffffff;
-  font-weight: 500;
-  word-break: break-word;
+  font-weight: 600;
 }
 
 .visit-quick-tip-sub {
@@ -827,11 +785,27 @@ page {
   margin-top: 8rpx;
   font-size: 22rpx;
   line-height: 1.6;
-  color: #c4c7ce;
-  word-break: break-word;
+  color: #cfd6df;
+}
+
+.latest-visit-time {
+  font-size: 26rpx;
+  color: #ffffff;
+  margin-bottom: 8rpx;
+  line-height: 1.6;
+  font-weight: 600;
+}
+
+.latest-visit-sub {
+  font-size: 22rpx;
+  color: #cfd6df;
+  line-height: 1.7;
 }
 
 .latest-visit-status {
-  flex-shrink: 0;
+  padding: 6rpx 14rpx;
+  border-radius: 9999rpx;
+  font-size: 20rpx;
+  font-weight: 600;
+  white-space: nowrap;
 }
-
