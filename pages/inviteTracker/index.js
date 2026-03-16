@@ -17,8 +17,26 @@ function ensureClientId() {
 
   wx.setStorageSync('clientId', cid)
   wx.setStorageSync('st_client_id', cid)
-  if (app && app.globalData) app.globalData.clientId = cid
+
+  if (app && app.globalData) {
+    app.globalData.clientId = cid
+  }
+
   return cid
+}
+
+function normalizeInviteeClientId(item) {
+  if (!item || typeof item !== 'object') return ''
+
+  return String(
+    item.client_id ||
+      item.clientId ||
+      item.invitee_openid ||
+      item.inviteeOpenid ||
+      item.openid ||
+      item.client_id_masked ||
+      ''
+  ).trim()
 }
 
 function maskMobile(mobile, clientId) {
@@ -26,33 +44,38 @@ function maskMobile(mobile, clientId) {
   if (/^1\d{10}$/.test(m)) {
     return `${m.slice(0, 3)}****${m.slice(-4)}`
   }
+
   const cid = String(clientId || '').trim()
   return cid ? `ID-${cid.slice(-6)}` : '-'
 }
 
-function normalizeInviteeClientId(item) {
-  return String(
-    (item && (item.client_id || item.invitee_openid || item.openid)) || ''
-  ).trim()
-}
+function countRows(rows) {
+  const list = Array.isArray(rows) ? rows : []
+  let real = 0
+  let temp = 0
 
-function isTempInvitee(item) {
-  return /^ST-/.test(normalizeInviteeClientId(item))
-}
+  list.forEach((item) => {
+    const cid = normalizeInviteeClientId(item)
+    if (/^ST-/.test(cid)) {
+      temp += 1
+    } else {
+      real += 1
+    }
+  })
 
-function buildSummary(pendingRows, paidRows, expiredRows, fallback) {
-  const count = (rows) => {
-    const list = rows || []
-    const temp = list.filter(isTempInvitee).length
-    const real = list.length - temp
-    return { total: list.length, real, temp }
+  return {
+    total: list.length,
+    real,
+    temp
   }
+}
 
-  const p = count(pendingRows)
-  const pd = count(paidRows)
-  const ex = count(expiredRows)
+function buildSummary(pendingRows, paidRows, expiredRows, rawSummary) {
+  const p = countRows(pendingRows)
+  const pd = countRows(paidRows)
+  const ex = countRows(expiredRows)
 
-  return Object.assign({}, fallback || {}, {
+  return Object.assign({}, rawSummary || {}, {
     pendingCount: p.total,
     paidCount: pd.total,
     expiredCount: ex.total,
@@ -71,21 +94,27 @@ Page({
     currentClientId: '',
     debugClientId: '',
     texts: {
-      title: '邀请跟踪',
-      currentId: '当前查询ID',
-      pending: '待成交',
-      paid: '已成交',
-      expired: '已过期',
-      bindAt: '绑定时间',
-      expireAt: '到期时间',
-      paidAt: '首单时间',
-      amount: '首单金额',
-      orderNo: '订单号',
-      level: '当前等级',
-      empty: '暂无记录',
-      refresh: '刷新',
-      real: '真实用户',
-      temp: '临时ID'
+      title: '\u9080\u8bf7\u8ddf\u8e2a',
+      currentId: '\u5f53\u524d\u67e5\u8be2ID',
+      currentIdTip:
+        '\u7528\u4e8e\u786e\u8ba4\u5f53\u524d\u67e5\u770b\u7684\u662f\u54ea\u4e2a\u9080\u8bf7\u5173\u7cfb\u8d26\u53f7\uff1b\u4ee5 ST- \u5f00\u5934\u4ee3\u8868\u4e34\u65f6ID\u3002',
+      pending: '\u5f85\u6210\u4ea4',
+      paid: '\u5df2\u6210\u4ea4',
+      expired: '\u5df2\u8fc7\u671f',
+      bindAt: '\u7ed1\u5b9a\u65f6\u95f4',
+      expireAt: '\u5230\u671f\u65f6\u95f4',
+      paidAt: '\u9996\u5355\u65f6\u95f4',
+      amount: '\u9996\u5355\u91d1\u989d',
+      orderNo: '\u8ba2\u5355\u53f7',
+      level: '\u5f53\u524d\u7b49\u7ea7',
+      empty: '\u6682\u65e0\u8bb0\u5f55',
+      emptyPending: '\u6682\u65e0\u5f85\u6210\u4ea4\u8bb0\u5f55',
+      emptyPaid: '\u6682\u65e0\u5df2\u6210\u4ea4\u8bb0\u5f55',
+      emptyExpired: '\u6682\u65e0\u5df2\u8fc7\u671f\u8bb0\u5f55',
+      refresh: '\u5237\u65b0',
+      real: '\u771f\u5b9e',
+      temp: '\u4e34\u65f6ID',
+      statNote: '\u771f\u5b9e\u7528\u6237 / \u4e34\u65f6ID'
     },
     summary: {
       pendingCount: 0,
@@ -118,15 +147,18 @@ Page({
     return (rows || []).map((item) => {
       const clientId = normalizeInviteeClientId(item)
       const temp = /^ST-/.test(clientId)
+
       return {
         ...item,
         client_id: clientId,
         displayName: maskMobile(item.mobile, clientId),
-        displayAmount: item.first_paid_amount ? (Number(item.first_paid_amount) / 100).toFixed(2) : '',
+        displayAmount: item.first_paid_amount
+          ? (Number(item.first_paid_amount) / 100).toFixed(2)
+          : '',
         shortOrderNo: item.first_paid_order_no ? String(item.first_paid_order_no) : '',
         membershipLevelText: item.membership_level || 'FREE',
         isTempId: temp,
-        identityTag: temp ? '临时ID' : '真实用户'
+        identityTag: temp ? '\u4e34\u65f6ID' : '\u771f\u5b9e'
       }
     })
   },
@@ -138,7 +170,7 @@ Page({
     this.setData({ currentClientId: clientId })
 
     if (!baseUrl || !clientId) {
-      wx.showToast({ title: '接口地址未配置', icon: 'none' })
+      wx.showToast({ title: '\u63a5\u53e3\u5730\u5740\u672a\u914d\u7f6e', icon: 'none' })
       return
     }
 
@@ -150,11 +182,12 @@ Page({
       data: { clientId },
       success: (res) => {
         const d = (res && res.data) || {}
+
         console.log('[inviteTracker] clientId =', clientId)
         console.log('[inviteTracker] response =', d)
 
         if (!d.ok) {
-          wx.showToast({ title: d.message || '加载失败', icon: 'none' })
+          wx.showToast({ title: d.message || '\u52a0\u8f7d\u5931\u8d25', icon: 'none' })
           return
         }
 
@@ -171,7 +204,7 @@ Page({
       },
       fail: (err) => {
         console.warn('[inviteTracker] fetch fail:', err)
-        wx.showToast({ title: '网络异常', icon: 'none' })
+        wx.showToast({ title: '\u7f51\u7edc\u5f02\u5e38', icon: 'none' })
       },
       complete: () => {
         this.setData({ loading: false })

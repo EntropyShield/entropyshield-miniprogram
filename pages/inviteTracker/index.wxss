@@ -11,13 +11,20 @@ page {
 
 .summary-card,
 .card {
-  background: #16181d;
-  border-radius: 24rpx;
-  padding: 24rpx;
+  margin-bottom: 12rpx;
+  background: linear-gradient(180deg, #131927 0%, #101620 100%);
+  border: 1rpx solid rgba(255, 255, 255, 0.05);
+  border-radius: 22rpx;
+  padding: 22rpx;
 }
 
 .summary-card {
   margin-bottom: 20rpx;
+  background: linear-gradient(180deg, #121826 0%, #0f1520 100%);
+  border: 1rpx solid rgba(42, 255, 42, 0.10);
+  border-radius: 24rpx;
+  padding: 24rpx;
+  box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.18);
 }
 
 .summary-head {
@@ -41,23 +48,28 @@ page {
 }
 
 .current-id-row {
-  margin-bottom: 16rpx;
-  padding: 16rpx;
-  background: #101218;
-  border-radius: 16rpx;
+  margin-top: 14rpx;
+  padding: 18rpx 20rpx;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1rpx solid rgba(255, 255, 255, 0.05);
+  border-radius: 18rpx;
 }
 
 .current-id-label {
+  display: block;
   font-size: 22rpx;
-  color: #8a8d93;
+  color: #9fb0c3;
+  line-height: 1.5;
 }
 
 .current-id-value {
   display: block;
   margin-top: 8rpx;
-  font-size: 22rpx;
+  font-size: 24rpx;
   color: #ffffff;
+  font-weight: 600;
   word-break: break-all;
+  line-height: 1.6;
 }
 
 .summary-grid {
@@ -67,7 +79,8 @@ page {
 
 .summary-item {
   flex: 1;
-  background: #101218;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1rpx solid rgba(255, 255, 255, 0.05);
   border-radius: 18rpx;
   padding: 18rpx 12rpx;
   text-align: center;
@@ -76,7 +89,8 @@ page {
 .summary-label {
   display: block;
   font-size: 22rpx;
-  color: #8a8d93;
+  color: #a9b7c8;
+  line-height: 1.5;
 }
 
 .summary-value {
@@ -103,25 +117,132 @@ page {
 }
 
 .name {
-  font-size: 26rpx;
+  font-size: 30rpx;
   color: #ffffff;
-  font-weight: 600;
+  font-weight: 700;
   margin-bottom: 8rpx;
+  line-height: 1.5;
 }
 
 .meta {
   display: block;
-  margin-top: 4rpx;
+  margin-top: 8rpx;
   font-size: 22rpx;
-  color: #c4c7ce;
+  color: #d8e1eb;
   word-break: break-all;
+  line-height: 1.7;
 }
 
 .empty {
   padding: 24rpx;
   text-align: center;
-  color: #8a8d93;
+  color: #c3ced9;
   font-size: 24rpx;
-  background: #16181d;
-  border-radius: 24rpx;
+  background: linear-gradient(180deg, #131927 0%, #101620 100%);
+  border: 1rpx solid rgba(255, 255, 255, 0.05);
+  border-radius: 22rpx;
+  line-height: 1.7;
 }
+
+
+/* ====== INVITETRACKER FINAL READABILITY OVERRIDE START ====== */
+.summary-card {
+  background: linear-gradient(180deg, #121826 0%, #0f1520 100%) !important;
+  border: 1rpx solid rgba(42, 255, 42, 0.12) !important;
+}
+
+.current-id-row {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border: 1rpx solid rgba(255, 255, 255, 0.06) !important;
+}
+
+.card {
+  background: linear-gradient(180deg, #152033 0%, #111a2a 100%) !important;
+  border: 1rpx solid rgba(255, 255, 255, 0.06) !important;
+  box-shadow: 0 8rpx 20rpx rgba(0, 0, 0, 0.16) !important;
+}
+
+.card-top {
+  align-items: flex-start !important;
+}
+
+.name-wrap {
+  min-width: 0;
+}
+
+.card .name {
+  color: #ffffff !important;
+  font-size: 30rpx !important;
+  font-weight: 700 !important;
+  line-height: 1.5 !important;
+}
+
+.card .sub-id {
+  display: block !important;
+  margin-top: 8rpx !important;
+  color: #d7e3ef !important;
+  font-size: 22rpx !important;
+  line-height: 1.7 !important;
+  word-break: break-all !important;
+}
+
+.card .meta {
+  display: block !important;
+  margin-top: 8rpx !important;
+  color: #eef4fb !important;
+  font-size: 22rpx !important;
+  line-height: 1.7 !important;
+  word-break: break-all !important;
+}
+
+.card .identity-pill-real {
+  color: #2aff2a !important;
+  background: rgba(42, 255, 42, 0.14) !important;
+  border: 1rpx solid rgba(42, 255, 42, 0.18) !important;
+}
+
+.card .identity-pill-temp {
+  color: #ffd76a !important;
+  background: rgba(255, 184, 0, 0.16) !important;
+  border: 1rpx solid rgba(255, 184, 0, 0.20) !important;
+}
+
+.empty {
+  color: #d7e3ef !important;
+  background: linear-gradient(180deg, #152033 0%, #111a2a 100%) !important;
+  border: 1rpx solid rgba(255, 255, 255, 0.06) !important;
+}
+/* ====== INVITETRACKER FINAL READABILITY OVERRIDE END ====== */
+
+
+/* ====== INVITETRACKER CURRENT ID TIP FIX START ====== */
+.current-id-row {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border: 1rpx solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 16rpx !important;
+  padding: 18rpx 20rpx !important;
+}
+
+.current-id-label {
+  color: #A9B4C2 !important;
+  font-size: 22rpx !important;
+}
+
+.current-id-value {
+  color: #FFFFFF !important;
+  font-size: 24rpx !important;
+  font-weight: 600 !important;
+  line-height: 1.6 !important;
+}
+
+.current-id-tip {
+  display: block !important;
+  margin-top: 10rpx !important;
+  color: #DCE6F2 !important;
+  font-size: 24rpx !important;
+  line-height: 1.8 !important;
+  word-break: break-all !important;
+  opacity: 1 !important;
+}
+/* ====== INVITETRACKER CURRENT ID TIP FIX END ====== */
+
