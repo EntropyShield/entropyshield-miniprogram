@@ -81,6 +81,15 @@ function __stTryBindInviteOnce() {
   const waitKey = '__st_bind_wait_' + String(inviteCode || '');
   const maxWait = 12;
 
+  function clearRetry() {
+    try { wx.removeStorageSync(waitKey); } catch (e) {}
+  }
+
+  function finishWithoutRetry() {
+    clearRetry();
+    try { wx.removeStorageSync('pendingInviteCode'); } catch (e) {}
+  }
+
   function scheduleRetry() {
     try {
       const n = Number(wx.getStorageSync(waitKey) || 0);
@@ -112,19 +121,22 @@ function __stTryBindInviteOnce() {
         data: { clientId: cid, inviteCode },
         success(res) {
           const d = (res && res.data) || {};
+          const msg = String((d && d.message) || '').toLowerCase();
           const ok = !!d.ok;
-          const already = String(d.message || '').toLowerCase().indexOf('already bound') >= 0;
+          const already = msg.indexOf('already bound') >= 0;
+          const selfBind = msg.indexOf('cannot bind self') >= 0 || msg.indexOf('cannot bind own') >= 0;
 
           if (ok || already) {
             wx.setStorageSync(boundKey, 1);
-            wx.removeStorageSync('pendingInviteCode');
-            wx.removeStorageSync(waitKey);
+            finishWithoutRetry();
+          } else if (selfBind) {
+            finishWithoutRetry();
           } else {
             scheduleRetry();
           }
 
           try {
-            console.log('[ST_BIND_V2] resp', { cid, inviteCode, d });
+            console.log('[ST_BIND_V2] resp', { cid, inviteCode, d, selfBind, already });
           } catch (e) {}
         },
         fail(err) {

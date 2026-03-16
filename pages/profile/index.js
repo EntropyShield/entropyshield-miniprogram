@@ -61,24 +61,62 @@ function normalizeVisitStatus(raw) {
 }
 
 
-function formatVisitDate(raw) {
-  if (!raw) return '';
+function formatVisitDate(value) {
+  const raw = String(value || '').trim()
+  if (!raw) return ''
 
-  const s = String(raw).trim();
-  if (!s) return '';
-
-  const m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
-  if (m) return `${m[1]}-${m[2]}-${m[3]}`;
-
-  const d = new Date(s);
-  if (!Number.isNaN(d.getTime())) {
-    const y = d.getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2, '0');
-    const dd = String(d.getDate()).padStart(2, '0');
-    return `${y}-${mm}-${dd}`;
+  function pad(n) {
+    return String(n).padStart(2, '0')
   }
 
-  return s.slice(0, 10);
+  function buildText(d) {
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+  }
+
+  function toDate(v) {
+    if (!v) return null
+
+    if (/^\d{13}$/.test(v)) {
+      const d = new Date(Number(v))
+      return isNaN(d.getTime()) ? null : d
+    }
+
+    if (/^\d{10}$/.test(v)) {
+      const d = new Date(Number(v) * 1000)
+      return isNaN(d.getTime()) ? null : d
+    }
+
+    if (/^\d{4}-\d{2}-\d{2}$/.test(v)) {
+      const d = new Date(v.replace(/-/g, '/') + ' 00:00:00')
+      return isNaN(d.getTime()) ? null : d
+    }
+
+    if (/^\d{4}\/\d{2}\/\d{2}$/.test(v)) {
+      const d = new Date(v + ' 00:00:00')
+      return isNaN(d.getTime()) ? null : d
+    }
+
+    if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(v)) {
+      const d = new Date(v.replace(/-/g, '/'))
+      return isNaN(d.getTime()) ? null : d
+    }
+
+    if (/^\d{4}\/\d{2}\/\d{2} \d{2}:\d{2}:\d{2}$/.test(v)) {
+      const d = new Date(v)
+      return isNaN(d.getTime()) ? null : d
+    }
+
+    if (/^\d{4}-\d{2}-\d{2}T/.test(v)) {
+      const d = new Date(v)
+      return isNaN(d.getTime()) ? null : d
+    }
+
+    return null
+  }
+
+  const d = toDate(raw)
+  if (!d) return raw
+  return buildText(d)
 }
 
 function normalizeLatestVisit(list) {
