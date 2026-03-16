@@ -78,7 +78,23 @@ function __stTryBindInviteOnce() {
   const apiBase = __stGetApiBase();
   const cid = wx.getStorageSync('clientId') || wx.getStorageSync('openid');
   const inviteCode = wx.getStorageSync('pendingInviteCode');
-  if (!apiBase || !cid || !inviteCode) return;
+  const waitKey = '__st_bind_wait_' + String(inviteCode || '');
+  const maxWait = 12;
+
+  function scheduleRetry() {
+    try {
+      const n = Number(wx.getStorageSync(waitKey) || 0);
+      if (n >= maxWait) return;
+      wx.setStorageSync(waitKey, n + 1);
+      setTimeout(__stTryBindInviteOnce, 3000);
+    } catch (e) {
+      try { setTimeout(__stTryBindInviteOnce, 3000); } catch (e2) {}
+    }
+  }
+
+  if (!inviteCode) return;
+  if (!apiBase || !cid) { scheduleRetry(); return; }
+  if (String(cid).startsWith('ST-')) { scheduleRetry(); return; }
 
   const boundKey = '__st_bound_' + cid;
   if (wx.getStorageSync(boundKey)) return;
@@ -87,17 +103,47 @@ function __stTryBindInviteOnce() {
     url: apiBase + '/api/fission/init',
     method: 'POST',
     header: { 'content-type': 'application/json' },
-    data: { clientId: cid, inviteCode },
-    success(res) {
-      wx.setStorageSync(boundKey, 1);
-      wx.removeStorageSync('pendingInviteCode');
-      try { console.log('[ST_P0_BIND] ok', { cid, inviteCode, res: res && res.data }); } catch(e){}
+    data: { clientId: cid },
+    success() {
+      wx.request({
+        url: apiBase + '/api/fission/bind-v2',
+        method: 'POST',
+        header: { 'content-type': 'application/json' },
+        data: { clientId: cid, inviteCode },
+        success(res) {
+          const d = (res && res.data) || {};
+          const ok = !!d.ok;
+          const already = String(d.message || '').toLowerCase().indexOf('already bound') >= 0;
+
+          if (ok || already) {
+            wx.setStorageSync(boundKey, 1);
+            wx.removeStorageSync('pendingInviteCode');
+            wx.removeStorageSync(waitKey);
+          } else {
+            scheduleRetry();
+          }
+
+          try {
+            console.log('[ST_BIND_V2] resp', { cid, inviteCode, d });
+          } catch (e) {}
+        },
+        fail(err) {
+          try {
+            console.log('[ST_BIND_V2] fail', { cid, inviteCode, err });
+          } catch (e) {}
+          scheduleRetry();
+        }
+      });
     },
     fail(err) {
-      try { console.log('[ST_P0_BIND] fail', { cid, inviteCode, err }); } catch(e){}
+      try {
+        console.log('[ST_INIT_BEFORE_BIND] fail', { cid, inviteCode, err });
+      } catch (e) {}
+      scheduleRetry();
     }
   });
 }
+
 /* ====== ST_P0_BIND_INVITE_APPJS END ====== */
 
 // [PATCH] GLOBAL_SHARE_ALL_PAGES
@@ -612,4 +658,5 @@ wx.setStorageSync('userRights', ur);
 if (false) {
   require('./pages/visitAdmin/index.js');
 }
+
 
