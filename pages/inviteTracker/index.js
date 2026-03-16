@@ -30,30 +30,73 @@ function maskMobile(mobile, clientId) {
   return cid ? `ID-${cid.slice(-6)}` : '-'
 }
 
+function normalizeInviteeClientId(item) {
+  return String(
+    (item && (item.client_id || item.invitee_openid || item.openid)) || ''
+  ).trim()
+}
+
+function isTempInvitee(item) {
+  return /^ST-/.test(normalizeInviteeClientId(item))
+}
+
+function buildSummary(pendingRows, paidRows, expiredRows, fallback) {
+  const count = (rows) => {
+    const list = rows || []
+    const temp = list.filter(isTempInvitee).length
+    const real = list.length - temp
+    return { total: list.length, real, temp }
+  }
+
+  const p = count(pendingRows)
+  const pd = count(paidRows)
+  const ex = count(expiredRows)
+
+  return Object.assign({}, fallback || {}, {
+    pendingCount: p.total,
+    paidCount: pd.total,
+    expiredCount: ex.total,
+    pendingRealCount: p.real,
+    pendingTempCount: p.temp,
+    paidRealCount: pd.real,
+    paidTempCount: pd.temp,
+    expiredRealCount: ex.real,
+    expiredTempCount: ex.temp
+  })
+}
+
 Page({
   data: {
     loading: false,
     currentClientId: '',
     debugClientId: '',
     texts: {
-      title: '\u9080\u8bf7\u8ddf\u8e2a',
-      currentId: '\u5f53\u524d\u67e5\u8be2ID',
-      pending: '\u5f85\u6210\u4ea4',
-      paid: '\u5df2\u6210\u4ea4',
-      expired: '\u5df2\u8fc7\u671f',
-      bindAt: '\u7ed1\u5b9a\u65f6\u95f4',
-      expireAt: '\u5230\u671f\u65f6\u95f4',
-      paidAt: '\u9996\u5355\u65f6\u95f4',
-      amount: '\u9996\u5355\u91d1\u989d',
-      orderNo: '\u8ba2\u5355\u53f7',
-      level: '\u5f53\u524d\u7b49\u7ea7',
-      empty: '\u6682\u65e0\u8bb0\u5f55',
-      refresh: '\u5237\u65b0'
+      title: '邀请跟踪',
+      currentId: '当前查询ID',
+      pending: '待成交',
+      paid: '已成交',
+      expired: '已过期',
+      bindAt: '绑定时间',
+      expireAt: '到期时间',
+      paidAt: '首单时间',
+      amount: '首单金额',
+      orderNo: '订单号',
+      level: '当前等级',
+      empty: '暂无记录',
+      refresh: '刷新',
+      real: '真实用户',
+      temp: '临时ID'
     },
     summary: {
       pendingCount: 0,
       paidCount: 0,
-      expiredCount: 0
+      expiredCount: 0,
+      pendingRealCount: 0,
+      pendingTempCount: 0,
+      paidRealCount: 0,
+      paidTempCount: 0,
+      expiredRealCount: 0,
+      expiredTempCount: 0
     },
     pending: [],
     paid: [],
@@ -72,13 +115,20 @@ Page({
   },
 
   normalizeRows(rows) {
-    return (rows || []).map((item) => ({
-      ...item,
-      displayName: maskMobile(item.mobile, item.client_id),
-      displayAmount: item.first_paid_amount ? (Number(item.first_paid_amount) / 100).toFixed(2) : '',
-      shortOrderNo: item.first_paid_order_no ? String(item.first_paid_order_no) : '',
-      membershipLevelText: item.membership_level || 'FREE'
-    }))
+    return (rows || []).map((item) => {
+      const clientId = normalizeInviteeClientId(item)
+      const temp = /^ST-/.test(clientId)
+      return {
+        ...item,
+        client_id: clientId,
+        displayName: maskMobile(item.mobile, clientId),
+        displayAmount: item.first_paid_amount ? (Number(item.first_paid_amount) / 100).toFixed(2) : '',
+        shortOrderNo: item.first_paid_order_no ? String(item.first_paid_order_no) : '',
+        membershipLevelText: item.membership_level || 'FREE',
+        isTempId: temp,
+        identityTag: temp ? '临时ID' : '真实用户'
+      }
+    })
   },
 
   fetchData() {
@@ -88,7 +138,7 @@ Page({
     this.setData({ currentClientId: clientId })
 
     if (!baseUrl || !clientId) {
-      wx.showToast({ title: '\u63a5\u53e3\u5730\u5740\u672a\u914d\u7f6e', icon: 'none' })
+      wx.showToast({ title: '接口地址未配置', icon: 'none' })
       return
     }
 
@@ -104,20 +154,24 @@ Page({
         console.log('[inviteTracker] response =', d)
 
         if (!d.ok) {
-          wx.showToast({ title: d.message || '\u52a0\u8f7d\u5931\u8d25', icon: 'none' })
+          wx.showToast({ title: d.message || '加载失败', icon: 'none' })
           return
         }
 
+        const pendingRows = this.normalizeRows(d.pending)
+        const paidRows = this.normalizeRows(d.paid)
+        const expiredRows = this.normalizeRows(d.expired)
+
         this.setData({
-          summary: d.summary || this.data.summary,
-          pending: this.normalizeRows(d.pending),
-          paid: this.normalizeRows(d.paid),
-          expired: this.normalizeRows(d.expired)
+          summary: buildSummary(pendingRows, paidRows, expiredRows, d.summary || this.data.summary),
+          pending: pendingRows,
+          paid: paidRows,
+          expired: expiredRows
         })
       },
       fail: (err) => {
         console.warn('[inviteTracker] fetch fail:', err)
-        wx.showToast({ title: '\u7f51\u7edc\u5f02\u5e38', icon: 'none' })
+        wx.showToast({ title: '网络异常', icon: 'none' })
       },
       complete: () => {
         this.setData({ loading: false })
