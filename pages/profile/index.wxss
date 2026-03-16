@@ -793,3 +793,45 @@ page {
   line-height: 1.6;
   color: #c4c7ce;
 }
+
+
+/* MOD: PROFILE_VISIT_QUICK_VISIBILITY_20260316 */
+.visit-quick-tip {
+  align-items: flex-start;
+}
+
+.visit-quick-tip-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.visit-quick-tip-title {
+  display: block;
+  margin-bottom: 6rpx;
+  font-size: 22rpx;
+  color: #8a8d93;
+  line-height: 1.5;
+}
+
+.visit-quick-tip-text {
+  display: block;
+  font-size: 26rpx;
+  line-height: 1.6;
+  color: #ffffff;
+  font-weight: 500;
+  word-break: break-word;
+}
+
+.visit-quick-tip-sub {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  line-height: 1.6;
+  color: #c4c7ce;
+  word-break: break-word;
+}
+
+.latest-visit-status {
+  flex-shrink: 0;
+}
+

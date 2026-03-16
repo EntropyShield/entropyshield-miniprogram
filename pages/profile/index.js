@@ -252,7 +252,7 @@ Page({
           const latestRights = wx.getStorageSync('userRights') || rights;
           this.setData({
             freeCalcTimes: Number(latestRights.freeCalcTimes || currentFree) || 0,
-            membershipName: latestRights.membershipName || '????'
+            membershipName: latestRights.membershipName || '体验会员'
           });
         },
         fail: (err) => {

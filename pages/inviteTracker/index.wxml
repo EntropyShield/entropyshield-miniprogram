@@ -1,32 +1,38 @@
 <view class="page">
   <view class="summary-card">
     <view class="summary-head">
-      <text class="summary-title">{{texts.title}}</text>
+      <view class="summary-head-main">
+        <text class="summary-title">{{texts.title}}</text>
+        <text class="summary-subtitle">{{texts.statNote}}</text>
+      </view>
       <button class="refresh-btn" size="mini" bindtap="fetchData" loading="{{loading}}">
         {{texts.refresh}}
       </button>
     </view>
 
     <view class="current-id-row">
-      <text class="current-id-label">{{texts.currentId}}：</text>
+      <text class="current-id-label">{{texts.currentId}}</text>
       <text class="current-id-value">{{currentClientId}}</text>
+      <text class="current-id-tip">{{texts.currentIdTip}}</text>
     </view>
 
     <view class="summary-grid">
       <view class="summary-item">
         <text class="summary-label">{{texts.pending}}</text>
         <text class="summary-value">{{summary.pendingCount}}</text>
-        <text class="meta">真实{{summary.pendingRealCount}} / 临时{{summary.pendingTempCount}}</text>
+        <text class="meta">{{texts.real}} {{summary.pendingRealCount}} / {{texts.temp}} {{summary.pendingTempCount}}</text>
       </view>
+
       <view class="summary-item">
         <text class="summary-label">{{texts.paid}}</text>
         <text class="summary-value">{{summary.paidCount}}</text>
-        <text class="meta">真实{{summary.paidRealCount}} / 临时{{summary.paidTempCount}}</text>
+        <text class="meta">{{texts.real}} {{summary.paidRealCount}} / {{texts.temp}} {{summary.paidTempCount}}</text>
       </view>
+
       <view class="summary-item">
         <text class="summary-label">{{texts.expired}}</text>
         <text class="summary-value">{{summary.expiredCount}}</text>
-        <text class="meta">真实{{summary.expiredRealCount}} / 临时{{summary.expiredTempCount}}</text>
+        <text class="meta">{{texts.real}} {{summary.expiredRealCount}} / {{texts.temp}} {{summary.expiredTempCount}}</text>
       </view>
     </view>
   </view>
@@ -36,13 +42,20 @@
     <view wx:if="{{pending.length}}">
       <block wx:for="{{pending}}" wx:key="id">
         <view class="card">
-          <view class="name">{{item.displayName}}（{{item.identityTag}}）</view>
-          <text class="meta">{{texts.bindAt}}：{{item.bind_at}}</text>
-          <text class="meta">{{texts.expireAt}}：{{item.expire_at}}</text>
+          <view class="card-top">
+            <view class="name-wrap">
+              <view class="name">{{item.displayName}}</view>
+              <text class="sub-id">ID: {{item.client_id}}</text>
+            </view>
+            <text wx:if="{{item.isTempId}}" class="identity-pill identity-pill-temp">{{item.identityTag}}</text>
+            <text wx:else class="identity-pill identity-pill-real">{{item.identityTag}}</text>
+          </view>
+          <text class="meta">{{texts.bindAt}}: {{item.bind_at}}</text>
+          <text class="meta">{{texts.expireAt}}: {{item.expire_at}}</text>
         </view>
       </block>
     </view>
-    <view wx:else class="empty">{{texts.empty}}</view>
+    <view wx:else class="empty">{{texts.emptyPending}}</view>
   </view>
 
   <view class="section">
@@ -50,15 +63,22 @@
     <view wx:if="{{paid.length}}">
       <block wx:for="{{paid}}" wx:key="id">
         <view class="card">
-          <view class="name">{{item.displayName}}（{{item.identityTag}}）</view>
-          <text class="meta">{{texts.paidAt}}：{{item.first_paid_at}}</text>
-          <text class="meta">{{texts.amount}}：¥{{item.displayAmount}}</text>
-          <text class="meta">{{texts.orderNo}}：{{item.shortOrderNo}}</text>
-          <text class="meta">{{texts.level}}：{{item.membershipLevelText}}</text>
+          <view class="card-top">
+            <view class="name-wrap">
+              <view class="name">{{item.displayName}}</view>
+              <text class="sub-id">ID: {{item.client_id}}</text>
+            </view>
+            <text wx:if="{{item.isTempId}}" class="identity-pill identity-pill-temp">{{item.identityTag}}</text>
+            <text wx:else class="identity-pill identity-pill-real">{{item.identityTag}}</text>
+          </view>
+          <text class="meta">{{texts.paidAt}}: {{item.first_paid_at}}</text>
+          <text class="meta">{{texts.amount}}: {{item.displayAmount}}</text>
+          <text class="meta">{{texts.orderNo}}: {{item.shortOrderNo}}</text>
+          <text class="meta">{{texts.level}}: {{item.membershipLevelText}}</text>
         </view>
       </block>
     </view>
-    <view wx:else class="empty">{{texts.empty}}</view>
+    <view wx:else class="empty">{{texts.emptyPaid}}</view>
   </view>
 
   <view class="section">
@@ -66,12 +86,19 @@
     <view wx:if="{{expired.length}}">
       <block wx:for="{{expired}}" wx:key="id">
         <view class="card">
-          <view class="name">{{item.displayName}}（{{item.identityTag}}）</view>
-          <text class="meta">{{texts.bindAt}}：{{item.bind_at}}</text>
-          <text class="meta">{{texts.expireAt}}：{{item.expire_at}}</text>
+          <view class="card-top">
+            <view class="name-wrap">
+              <view class="name">{{item.displayName}}</view>
+              <text class="sub-id">ID: {{item.client_id}}</text>
+            </view>
+            <text wx:if="{{item.isTempId}}" class="identity-pill identity-pill-temp">{{item.identityTag}}</text>
+            <text wx:else class="identity-pill identity-pill-real">{{item.identityTag}}</text>
+          </view>
+          <text class="meta">{{texts.bindAt}}: {{item.bind_at}}</text>
+          <text class="meta">{{texts.expireAt}}: {{item.expire_at}}</text>
         </view>
       </block>
     </view>
-    <view wx:else class="empty">{{texts.empty}}</view>
+    <view wx:else class="empty">{{texts.emptyExpired}}</view>
   </view>
 </view>

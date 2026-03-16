@@ -128,7 +128,7 @@
       </view>
       <view class="rights-item">
         <text class="ri-label">当前会员类型</text>
-        <text class="ri-value">{{membershipName}}</text>
+        <text class="ri-value">{{membershipName || '体验会员'}}</text>
       </view>
     </view>
     <view class="section-tip">
