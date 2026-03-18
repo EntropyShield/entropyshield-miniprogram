@@ -21,6 +21,14 @@
         <view class="line"><text class="k">我邀请人数：</text><text class="v">{{targetInviteeCount}}</text></view>
       </view>
 
+      <view class="sectionTitle">汇总</view>
+      <view class="item">
+        <view class="line"><text class="k">已关联：</text><text class="v">{{summaryLinkedCount}}</text></view>
+        <view class="line"><text class="k">体验已付费：</text><text class="v">{{summaryTrialPaidCount}}</text></view>
+        <view class="line"><text class="k">正式已付费：</text><text class="v">{{summaryOfficialPaidCount}}</text></view>
+        <view class="line"><text class="k">已过期：</text><text class="v">{{summaryExpiredCount}}</text></view>
+      </view>
+
       <view wx:if="{{hasInvitees}}">
         <view class="sectionTitle">我邀请的人</view>
         <block wx:for="{{invitees}}" wx:key="clientIdText">
@@ -29,6 +37,9 @@
             <view class="line"><text class="k">clientId：</text><text class="v">{{item.clientIdText}}</text></view>
             <view class="line"><text class="k">邀请码：</text><text class="v">{{item.inviteCodeText}}</text></view>
             <view class="line"><text class="k">绑定上级：</text><text class="v">{{item.parentCodeText}}</text></view>
+            <view class="line"><text class="k">关系阶段：</text><text class="v">{{item.relationStageText}}</text></view>
+            <view class="line"><text class="k">最近支付金额：</text><text class="v">{{item.latestPayAmountText}}</text></view>
+            <view class="line"><text class="k">最近支付时间：</text><text class="v">{{item.latestPaidAtText}}</text></view>
           </view>
         </block>
       </view>
@@ -46,5 +57,4 @@
     >{{trackerBtnText}}</navigator>
     <text class="tracker-tip">{{trackerTipText}}</text>
   </view>
-
 </view>

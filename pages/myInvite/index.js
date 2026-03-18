@@ -53,10 +53,24 @@ function requestGet(url) {
   })
 }
 
+function formatAmountFen(v) {
+  const n = Number(v || 0) || 0
+  if (!n) return '-'
+  return '¥' + (n / 100).toFixed(2)
+}
+
+function stageText(stage) {
+  const s = String(stage || '')
+  if (s === 'official_paid') return '正式已付费'
+  if (s === 'trial_paid') return '体验已付费'
+  if (s === 'expired') return '已过期'
+  return '已关联'
+}
+
 Page({
   data: {
-    trackerBtnText: '\u67e5\u770b\u9080\u8bf7\u8ddf\u8e2a',
-    trackerTipText: '\u67e5\u770b\u5f85\u6210\u4ea4 / \u5df2\u6210\u4ea4 / \u5df2\u8fc7\u671f',
+    trackerBtnText: '查看邀请跟踪',
+    trackerTipText: '查看待成交 / 已成交 / 已过期',
     loading: false,
     shown: false,
     found: false,
@@ -69,6 +83,11 @@ Page({
     targetParentCode: '-',
     targetInviterClientId: '-',
     targetInviteeCount: 0,
+
+    summaryLinkedCount: 0,
+    summaryTrialPaidCount: 0,
+    summaryOfficialPaidCount: 0,
+    summaryExpiredCount: 0,
 
     invitees: []
   },
@@ -111,6 +130,7 @@ Page({
 
       const target = d.target || {}
       const invitees = Array.isArray(d.invitees) ? d.invitees : []
+      const summary = d.summary || {}
 
       this.setData({
         shown: true,
@@ -124,12 +144,20 @@ Page({
         targetInviterClientId: target.inviter_client_id || '-',
         targetInviteeCount: Number(d.inviteeCount || 0),
 
+        summaryLinkedCount: Number(summary.linkedCount || 0),
+        summaryTrialPaidCount: Number(summary.trialPaidCount || 0),
+        summaryOfficialPaidCount: Number(summary.officialPaidCount || 0),
+        summaryExpiredCount: Number(summary.expiredCount || 0),
+
         invitees: invitees.map(function (item) {
           return {
             mobileText: item.mobile || '-',
             clientIdText: item.client_id || '-',
             inviteCodeText: item.invite_code || '-',
-            parentCodeText: item.invited_by_code || '-'
+            parentCodeText: item.invited_by_code || '-',
+            relationStageText: stageText(item.relation_stage),
+            latestPayAmountText: formatAmountFen(item.latest_pay_amount),
+            latestPaidAtText: item.latest_paid_at || '-'
           }
         })
       })
