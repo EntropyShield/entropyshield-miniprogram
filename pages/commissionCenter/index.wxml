@@ -1,4 +1,36 @@
 <view class="page">
+  <view class="audit-card">
+    <view class="audit-title">正式统计口径说明</view>
+    <view class="audit-desc">
+      本页正式数据仅基于正式邀请关系表与正式成长记录表统计；ST/TEST 临时或测试候选记录不纳入正式统计。
+    </view>
+
+    <view wx:if="{{auditLoading}}" class="audit-loading">统计口径加载中...</view>
+
+    <view wx:if="{{!auditLoading && auditSummary}}" class="audit-grid">
+      <view class="audit-item">
+        <view class="audit-item-label">正式关系</view>
+        <view class="audit-item-value">{{auditSummary.official_scope.official_invite_total}}</view>
+      </view>
+      <view class="audit-item">
+        <view class="audit-item-label">待转化</view>
+        <view class="audit-item-value">{{auditSummary.official_scope.official_pending_total}}</view>
+      </view>
+      <view class="audit-item">
+        <view class="audit-item-label">已付费</view>
+        <view class="audit-item-value">{{auditSummary.official_scope.official_paid_total}}</view>
+      </view>
+      <view class="audit-item">
+        <view class="audit-item-label">成长记录</view>
+        <view class="audit-item-value">{{auditSummary.official_scope.commission_total}}</view>
+      </view>
+    </view>
+
+    <view wx:if="{{!auditLoading && auditSummary}}" class="audit-foot">
+      已排除 ST/TEST 历史候选：{{auditSummary.excluded_scope.excluded_candidate_total}}
+    </view>
+  </view>
+
   <view class="top-tabs">
     <view class="top-tab {{activeTab==='detail' ? 'active' : ''}}" data-tab="detail" bindtap="switchTab">贡献记录</view>
     <view class="top-tab {{activeTab==='ranking' ? 'active' : ''}}" data-tab="ranking" bindtap="switchTab">成长排行</view>

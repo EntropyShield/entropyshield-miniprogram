@@ -28,6 +28,9 @@ Page({
   data: {
     activeTab: 'detail',
 
+    auditLoading: false,
+    auditSummary: null,
+
     detailLoading: false,
     rankingLoading: false,
 
@@ -60,12 +63,17 @@ Page({
   },
 
   onLoad() {
+    this.loadAuditSummary();
     this.loadDetail();
     this.loadRanking();
   },
 
   onPullDownRefresh() {
-    Promise.allSettled([this.loadDetail(), this.loadRanking()]).finally(() => {
+    Promise.allSettled([
+      this.loadAuditSummary(),
+      this.loadDetail(),
+      this.loadRanking()
+    ]).finally(() => {
       wx.stopPullDownRefresh();
     });
   },
@@ -105,6 +113,23 @@ Page({
     const period = e.currentTarget.dataset.value;
     this.setData({ rankingPeriod: period });
     this.loadRanking();
+  },
+
+  async loadAuditSummary() {
+    this.setData({ auditLoading: true });
+    try {
+      const data = await request('/api/fission/audit-summary');
+      this.setData({
+        auditSummary: data || null
+      });
+    } catch (err) {
+      wx.showToast({
+        title: err.message || '统计说明加载失败',
+        icon: 'none'
+      });
+    } finally {
+      this.setData({ auditLoading: false });
+    }
   },
 
   async loadDetail() {
