@@ -249,4 +249,11 @@
     </view>
   </view>
 </view>
-</view>
+
+<!-- [ADD] commission center entry -->
+<navigator url="/pages/commissionCenter/index" class="commission-entry-link">
+  <view class="commission-entry-card">
+    <view class="commission-entry-title">成长中心</view>
+    <view class="commission-entry-desc">查看贡献记录与成长排行</view>
+  </view>
+</navigator></view>

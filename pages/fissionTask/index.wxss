@@ -111,3 +111,25 @@ button::after{ border:none; }
   color:#EDEDED;
   border:1px solid rgba(42,255,42,0.35);
 }
+/* [ADD] commission center entry */
+.commission-entry-link {
+  display: block;
+  margin-top: 20rpx;
+}
+.commission-entry-card {
+  background: #16181d;
+  border-radius: 24rpx;
+  padding: 24rpx;
+  box-sizing: border-box;
+  border: 1rpx solid rgba(42,255,42,0.18);
+}
+.commission-entry-title {
+  font-size: 30rpx;
+  color: #ffffff;
+  font-weight: 700;
+}
+.commission-entry-desc {
+  margin-top: 10rpx;
+  font-size: 24rpx;
+  color: #8a8d93;
+}
