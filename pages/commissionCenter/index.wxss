@@ -1,3 +1,7 @@
+page {
+  background: #0D0D0D;
+  min-height: 100%;
+}
 .page {
   min-height: 100vh;
   background: #0D0D0D;
@@ -285,4 +289,8 @@
   margin-top: 6rpx;
   font-size: 22rpx;
   color: #8a8d93;
+}
+.page-wrap {
+  background: #0D0D0D;
+  min-height: 100vh;
 }

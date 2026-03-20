@@ -52,7 +52,7 @@ Page({
       { label: '已冲回', value: 'reversed' }
     ],
     metricOptions: [
-      { label: '按贡献值', value: 'commission_amount' },
+      { label: '按结算分', value: 'commission_amount' },
       { label: '按记录数', value: 'commission_count' }
     ],
     periodOptions: [
@@ -174,3 +174,4 @@ Page({
     }
   }
 });
+

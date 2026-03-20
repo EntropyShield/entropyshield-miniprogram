@@ -32,7 +32,7 @@
   </view>
 
   <view class="top-tabs">
-    <view class="top-tab {{activeTab==='detail' ? 'active' : ''}}" data-tab="detail" bindtap="switchTab">贡献记录</view>
+    <view class="top-tab {{activeTab==='detail' ? 'active' : ''}}" data-tab="detail" bindtap="switchTab">成长记录</view>
     <view class="top-tab {{activeTab==='ranking' ? 'active' : ''}}" data-tab="ranking" bindtap="switchTab">成长排行</view>
   </view>
 
@@ -71,8 +71,8 @@
         </view>
         <view class="row"><text class="label">关联账号</text><text class="value">{{item.inviter_invite_code || '-'}} / {{item.inviter_mobile || '-'}}</text></view>
         <view class="row"><text class="label">关联用户</text><text class="value">{{item.invitee_mobile || item.invitee_openid || '-'}}</text></view>
-        <view class="row"><text class="label">关联订单金额</text><text class="value strong">¥{{item.pay_amount}}</text></view>
-        <view class="row"><text class="label">结算值</text><text class="value strong">¥{{item.commission_amount}}</text></view>
+        <view class="row"><text class="label">支付分</text><text class="value strong">{{item.pay_amount * 1}}分</text></view>
+        <view class="row"><text class="label">结算分</text><text class="value strong">{{item.commission_amount * 1}}分</text></view>
         <view class="row"><text class="label">关联时间</text><text class="value">{{item.first_paid_at || '-'}}</text></view>
       </view>
     </block>
@@ -112,10 +112,11 @@
           </view>
         </view>
         <view class="rank-right">
-          <view class="rank-value">¥{{item.commission_amount}}</view>
+          <view class="rank-value">{{item.commission_amount * 1}}分</view>
           <view class="rank-sub">{{item.commission_count}} 笔</view>
         </view>
       </view>
     </block>
   </block>
 </view>
+
