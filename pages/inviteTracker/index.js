@@ -1,4 +1,4 @@
-const { API_BASE } = require('../../config')
+﻿const { API_BASE } = require('../../config')
 
 function getBaseUrl() {
   return String(API_BASE || '').replace(/\/$/, '')
@@ -97,24 +97,24 @@ Page({
       title: '\u9080\u8bf7\u8ddf\u8e2a',
       currentId: '\u5f53\u524d\u67e5\u8be2ID',
       currentIdTip:
-        '\u7528\u4e8e\u786e\u8ba4\u5f53\u524d\u67e5\u770b\u7684\u662f\u54ea\u4e2a\u9080\u8bf7\u5173\u7cfb\u8d26\u53f7\uff1b\u4ee5 ST- \u5f00\u5934\u4ee3\u8868\u4e34\u65f6ID\u3002',
-      pending: '\u5f85\u6210\u4ea4',
-      paid: '\u5df2\u6210\u4ea4',
+        '\u7528\u4e8e\u786e\u8ba4\u5f53\u524d\u67e5\u770b\u7684\u662f\u54ea\u4e2a\u9080\u8bf7\u5173\u7cfb\u8d26\u53f7\uff1b\u4ee5 ST- \u5f00\u5934\u4ee3\u8868临时ID\u3002',
+      pending: '待转化',
+      paid: '已成交',
       expired: '\u5df2\u8fc7\u671f',
       bindAt: '\u7ed1\u5b9a\u65f6\u95f4',
       expireAt: '\u5230\u671f\u65f6\u95f4',
       paidAt: '\u9996\u5355\u65f6\u95f4',
-      amount: '\u9996\u5355\u91d1\u989d',
+      amount: '首单支付分',
       orderNo: '\u8ba2\u5355\u53f7',
-      level: '\u5f53\u524d\u7b49\u7ea7',
+      level: '当前权益',
       empty: '\u6682\u65e0\u8bb0\u5f55',
-      emptyPending: '\u6682\u65e0\u5f85\u6210\u4ea4\u8bb0\u5f55',
-      emptyPaid: '\u6682\u65e0\u5df2\u6210\u4ea4\u8bb0\u5f55',
+      emptyPending: '\u6682\u65e0待转化\u8bb0\u5f55',
+      emptyPaid: '\u6682\u65e0已成交\u8bb0\u5f55',
       emptyExpired: '\u6682\u65e0\u5df2\u8fc7\u671f\u8bb0\u5f55',
       refresh: '\u5237\u65b0',
-      real: '\u771f\u5b9e',
-      temp: '\u4e34\u65f6ID',
-      statNote: '\u771f\u5b9e\u7528\u6237 / \u4e34\u65f6ID'
+      real: '真实',
+      temp: '临时ID',
+      statNote: '真实\u7528\u6237 / 临时ID'
     },
     summary: {
       pendingCount: 0,
@@ -153,12 +153,12 @@ Page({
         client_id: clientId,
         displayName: maskMobile(item.mobile, clientId),
         displayAmount: item.first_paid_amount
-          ? (Number(item.first_paid_amount) / 100).toFixed(2)
-          : '',
+          ? (String(Math.round(Number(item.first_paid_amount) || 0)) + '分')
+          : '0分',
         shortOrderNo: item.first_paid_order_no ? String(item.first_paid_order_no) : '',
-        membershipLevelText: item.membership_level || 'FREE',
+        membershipLevelText: (item.membership_level === 'LIFETIME' ? '长期权益' : (item.membership_level === 'FREE' ? '未开通' : (item.membership_level || '未开通'))),
         isTempId: temp,
-        identityTag: temp ? '\u4e34\u65f6ID' : '\u771f\u5b9e'
+        identityTag: temp ? '临时ID' : '真实'
       }
     })
   },
