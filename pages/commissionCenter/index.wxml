@@ -1,8 +1,8 @@
-<view class="page">
+﻿<view class="page">
   <view class="audit-card">
-    <view class="audit-title">正式统计口径说明</view>
+    <view class="audit-title">统计口径</view>
     <view class="audit-desc">
-      本页正式数据仅基于正式邀请关系表与正式成长记录表统计；ST/TEST 临时或测试候选记录不纳入正式统计。
+      仅统计正式邀请关系与正式成长记录；ST/TEST 临时记录不纳入。
     </view>
 
     <view wx:if="{{auditLoading}}" class="audit-loading">统计口径加载中...</view>
@@ -119,4 +119,5 @@
     </block>
   </block>
 </view>
+
 

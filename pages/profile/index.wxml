@@ -203,7 +203,7 @@
         <view class="nav-main">
           <text class="nav-title">裂变任务 · 邀请好友控亏</text>
           <text class="nav-desc">
-            我的邀请码：{{myInviteCode || '待生成'}}；已绑定邀请人：{{invitedByCode || '暂无'}}。
+            邀请码：{{myInviteCode || '待生成'}} ｜ 邀请人：{{invitedByCode || '暂无'}}
           </text>
         </view>
         <text class="nav-arrow">›</text>
@@ -257,3 +257,4 @@
     <view class="commission-entry-desc">查看成长记录与成长排行</view>
   </view>
 </navigator></view>
+
