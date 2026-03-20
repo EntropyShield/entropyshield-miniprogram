@@ -53,10 +53,9 @@ function requestGet(url) {
   })
 }
 
-function formatAmountFen(v) {
+function formatFen(v) {
   const n = Number(v || 0) || 0
-  if (!n) return '-'
-  return '¥' + (n / 100).toFixed(2)
+  return String(Math.round(n)) + '分'
 }
 
 function stageText(stage) {
@@ -70,7 +69,7 @@ function stageText(stage) {
 Page({
   data: {
     trackerBtnText: '查看邀请跟踪',
-    trackerTipText: '查看待成交 / 已成交 / 已过期',
+    trackerTipText: '查看待成交 / 已成交 / 已过期状态',
     loading: false,
     shown: false,
     found: false,
@@ -156,8 +155,9 @@ Page({
             inviteCodeText: item.invite_code || '-',
             parentCodeText: item.invited_by_code || '-',
             relationStageText: stageText(item.relation_stage),
-            latestPayAmountText: formatAmountFen(item.latest_pay_amount),
-            latestPaidAtText: item.latest_paid_at || '-'
+            latestPayAmountText: formatFen(item.latest_pay_amount),
+            latestPaidAtText: item.latest_paid_at || '-',
+            firstPaidOrderNoText: item.first_paid_order_no || '-'
           }
         })
       })

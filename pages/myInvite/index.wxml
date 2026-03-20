@@ -1,7 +1,7 @@
 <view class="page">
   <view class="card">
     <view class="title">我的邀请</view>
-    <view class="sub">自动读取当前登录用户，只展示自己的邀请关系</view>
+    <view class="sub">自动读取当前登录用户，仅展示自己的邀请关系。</view>
     <view class="sub">当前ID：{{currentClientId}}</view>
 
     <button class="btn" bindtap="loadMyInvite" loading="{{loading}}">刷新</button>
@@ -38,8 +38,9 @@
             <view class="line"><text class="k">邀请码：</text><text class="v">{{item.inviteCodeText}}</text></view>
             <view class="line"><text class="k">绑定上级：</text><text class="v">{{item.parentCodeText}}</text></view>
             <view class="line"><text class="k">关系阶段：</text><text class="v">{{item.relationStageText}}</text></view>
-            <view class="line"><text class="k">最近支付金额：</text><text class="v">{{item.latestPayAmountText}}</text></view>
+            <view class="line"><text class="k">最近支付分：</text><text class="v">{{item.latestPayAmountText}}</text></view>
             <view class="line"><text class="k">最近支付时间：</text><text class="v">{{item.latestPaidAtText}}</text></view>
+            <view class="line"><text class="k">首单订单号：</text><text class="v">{{item.firstPaidOrderNoText}}</text></view>
           </view>
         </block>
       </view>
