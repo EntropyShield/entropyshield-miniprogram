@@ -268,16 +268,16 @@ function ensureInviteCode() {
   let inviteCode = rights.inviteCode;
 
   if (!inviteCode) {
-    inviteCode = genInviteCode();
-    rights.inviteCode = inviteCode;
-    wx.setStorageSync(USER_RIGHTS_KEY, rights);
-    console.log('[index] 新生成 inviteCode =', inviteCode);
-  } else {
-    console.log('[index] 使用已有 inviteCode =', inviteCode);
+    console.log('[index] no inviteCode from server/profile, skip local generation');
+    return '';
   }
-
+  
+  rights.inviteCode = inviteCode;
+  wx.setStorageSync(USER_RIGHTS_KEY, rights);
+  console.log('[index] use existing inviteCode =', inviteCode);
+  
   return inviteCode;
-}
+  }
 
 /**
  * 处理从别人分享链接进入：
