@@ -37,6 +37,36 @@
   </view>
 
   <block wx:if="{{activeTab==='detail'}}">
+    <view class="audit-card">
+      <view class="audit-title">成长账户</view>
+      <view class="audit-desc">
+        下面 4 项分值口径，均来自正式成长记录聚合。
+      </view>
+
+      <view class="audit-grid">
+        <view class="audit-item">
+          <view class="audit-item-label">累计结算分</view>
+          <view class="audit-item-value">{{detailSummary.total_commission_fen}}</view>
+        </view>
+        <view class="audit-item">
+          <view class="audit-item-label">待结算分</view>
+          <view class="audit-item-value">{{detailSummary.unsettled_commission_fen}}</view>
+        </view>
+        <view class="audit-item">
+          <view class="audit-item-label">已结算分</view>
+          <view class="audit-item-value">{{detailSummary.settled_commission_fen}}</view>
+        </view>
+        <view class="audit-item">
+          <view class="audit-item-label">已冲回分</view>
+          <view class="audit-item-value">{{detailSummary.reversed_commission_fen}}</view>
+        </view>
+      </view>
+
+      <view class="audit-foot">
+        成长记录总笔数：{{detailSummary.commission_count}}
+      </view>
+    </view>
+
     <view class="panel">
       <view class="section-title">筛选状态</view>
       <view class="chips">
@@ -56,7 +86,7 @@
     </view>
 
     <view class="summary-card">
-      <view class="summary-title">关联记录总数</view>
+      <view class="summary-title">当前筛选记录数</view>
       <view class="summary-value">{{detailTotal}}</view>
     </view>
 
@@ -119,5 +149,3 @@
     </block>
   </block>
 </view>
-
-

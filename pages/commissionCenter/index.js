@@ -18,10 +18,20 @@ function request(url, data = {}) {
 
 function mapStatusLabel(status) {
   const s = String(status || '').trim().toLowerCase();
-  if (s === 'unsettled') return '处理中';
-  if (s === 'settled') return '已完成';
+  if (s === 'unsettled') return '待结算';
+  if (s === 'settled') return '已结算';
   if (s === 'reversed') return '已冲回';
   return status || '-';
+}
+
+function emptySummary() {
+  return {
+    commission_count: 0,
+    total_commission_fen: 0,
+    unsettled_commission_fen: 0,
+    settled_commission_fen: 0,
+    reversed_commission_fen: 0
+  };
 }
 
 Page({
@@ -40,6 +50,7 @@ Page({
     detailStatus: '',
     detailKeyword: '',
     detailList: [],
+    detailSummary: emptySummary(),
 
     rankingMetric: 'commission_amount',
     rankingPeriod: 'all',
@@ -47,8 +58,8 @@ Page({
 
     statusOptions: [
       { label: '全部', value: '' },
-      { label: '处理中', value: 'unsettled' },
-      { label: '已完成', value: 'settled' },
+      { label: '待结算', value: 'unsettled' },
+      { label: '已结算', value: 'settled' },
       { label: '已冲回', value: 'reversed' }
     ],
     metricOptions: [
@@ -124,7 +135,7 @@ Page({
       });
     } catch (err) {
       wx.showToast({
-        title: err.message || '统计说明加载失败',
+        title: err.message || '统计口径加载失败',
         icon: 'none'
       });
     } finally {
@@ -149,10 +160,14 @@ Page({
 
       this.setData({
         detailList: list,
-        detailTotal: data.total || 0
+        detailTotal: Number(data.total || 0),
+        detailSummary: Object.assign(emptySummary(), data.summary || {})
       });
     } catch (err) {
-      wx.showToast({ title: err.message || '记录加载失败', icon: 'none' });
+      wx.showToast({
+        title: err.message || '记录加载失败',
+        icon: 'none'
+      });
     } finally {
       this.setData({ detailLoading: false });
     }
@@ -168,10 +183,12 @@ Page({
       });
       this.setData({ rankingList: data.list || [] });
     } catch (err) {
-      wx.showToast({ title: err.message || '排行加载失败', icon: 'none' });
+      wx.showToast({
+        title: err.message || '排行加载失败',
+        icon: 'none'
+      });
     } finally {
       this.setData({ rankingLoading: false });
     }
   }
 });
-
