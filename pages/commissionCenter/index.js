@@ -34,6 +34,51 @@ function emptySummary() {
   };
 }
 
+function getCurrentUser() {
+  const rights = wx.getStorageSync('userRights') || {};
+  const profile = wx.getStorageSync('fissionProfile') || {};
+  const clientId = wx.getStorageSync('clientId') || '';
+
+  const inviteCode = String(
+    rights.inviteCode ||
+    profile.invite_code ||
+    profile.inviteCode ||
+    ''
+  ).trim().toUpperCase();
+
+  const invitedByCode = String(
+    rights.invitedByCode ||
+    profile.invited_by_code ||
+    profile.invitedByCode ||
+    ''
+  ).trim().toUpperCase();
+
+  const openid = String(
+    profile.openid ||
+    profile.clientId ||
+    profile.client_id ||
+    clientId ||
+    ''
+  ).trim();
+
+  const mobile = String(profile.mobile || '').trim();
+
+  const userId = Number(
+    profile.id ||
+    profile.userId ||
+    profile.user_id ||
+    0
+  ) || 0;
+
+  return {
+    userId,
+    inviteCode,
+    invitedByCode,
+    openid,
+    mobile
+  };
+}
+
 Page({
   data: {
     activeTab: 'detail',
@@ -55,6 +100,15 @@ Page({
     rankingMetric: 'commission_amount',
     rankingPeriod: 'all',
     rankingList: [],
+    myRanking: null,
+
+    currentUser: {
+      userId: 0,
+      inviteCode: '',
+      invitedByCode: '',
+      openid: '',
+      mobile: ''
+    },
 
     statusOptions: [
       { label: '全部', value: '' },
@@ -74,18 +128,30 @@ Page({
   },
 
   onLoad() {
+    this.hydrateCurrentUser();
     this.loadAuditSummary();
     this.loadDetail();
     this.loadRanking();
   },
 
+  onShow() {
+    this.hydrateCurrentUser();
+  },
+
   onPullDownRefresh() {
+    this.hydrateCurrentUser();
     Promise.allSettled([
       this.loadAuditSummary(),
       this.loadDetail(),
       this.loadRanking()
     ]).finally(() => {
       wx.stopPullDownRefresh();
+    });
+  },
+
+  hydrateCurrentUser() {
+    this.setData({
+      currentUser: getCurrentUser()
     });
   },
 
@@ -135,7 +201,7 @@ Page({
       });
     } catch (err) {
       wx.showToast({
-        title: err.message || '统计口径加载失败',
+        title: err.message || '统计说明加载失败',
         icon: 'none'
       });
     } finally {
@@ -145,12 +211,29 @@ Page({
 
   async loadDetail() {
     this.setData({ detailLoading: true });
+
     try {
+      let currentUser = this.data.currentUser || {};
+      if (!currentUser.userId) {
+        currentUser = getCurrentUser();
+        this.setData({ currentUser });
+      }
+
+      if (!currentUser.userId) {
+        this.setData({
+          detailList: [],
+          detailTotal: 0,
+          detailSummary: emptySummary()
+        });
+        return;
+      }
+
       const data = await request('/api/fission/commissions', {
         page: this.data.detailPage,
         pageSize: this.data.detailPageSize,
         status: this.data.detailStatus,
-        keyword: this.data.detailKeyword
+        keyword: this.data.detailKeyword,
+        inviterUserId: currentUser.userId
       });
 
       const list = (data.list || []).map(item => ({
@@ -176,12 +259,40 @@ Page({
   async loadRanking() {
     this.setData({ rankingLoading: true });
     try {
+      let currentUser = this.data.currentUser || {};
+      if (!currentUser.inviteCode && !currentUser.openid) {
+        currentUser = getCurrentUser();
+        this.setData({ currentUser });
+      }
+
       const data = await request('/api/fission/commission-rankings', {
         metric: this.data.rankingMetric,
         period: this.data.rankingPeriod,
         limit: 20
       });
-      this.setData({ rankingList: data.list || [] });
+
+      const myInviteCode = String(currentUser.inviteCode || '').trim().toUpperCase();
+      const myOpenid = String(currentUser.openid || '').trim();
+
+      const rankingList = (data.list || []).map(item => {
+        const inviteCode = String(item.invite_code || '').trim().toUpperCase();
+        const openid = String(item.openid || '').trim();
+        const isMine =
+          (!!myInviteCode && inviteCode === myInviteCode) ||
+          (!!myOpenid && openid === myOpenid);
+
+        return {
+          ...item,
+          isMine
+        };
+      });
+
+      const myRanking = rankingList.find(item => item.isMine) || null;
+
+      this.setData({
+        rankingList,
+        myRanking
+      });
     } catch (err) {
       wx.showToast({
         title: err.message || '排行加载失败',

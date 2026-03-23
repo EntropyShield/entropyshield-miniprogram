@@ -31,42 +31,42 @@
     </view>
   </view>
 
+  <view class="audit-card">
+    <view class="audit-title">我的账户</view>
+    <view class="audit-desc">
+      下面口径全部来自正式成长记录与当前账号身份信息。
+    </view>
+
+    <view class="audit-grid">
+      <view class="audit-item">
+        <view class="audit-item-label">我的邀请码</view>
+        <view class="audit-item-value">{{currentUser.inviteCode || '未识别'}}</view>
+      </view>
+      <view class="audit-item">
+        <view class="audit-item-label">我的上级</view>
+        <view class="audit-item-value">{{currentUser.invitedByCode || '暂无'}}</view>
+      </view>
+      <view class="audit-item">
+        <view class="audit-item-label">累计结算分</view>
+        <view class="audit-item-value">{{detailSummary.total_commission_fen}}</view>
+      </view>
+      <view class="audit-item">
+        <view class="audit-item-label">待结算分</view>
+        <view class="audit-item-value">{{detailSummary.unsettled_commission_fen}}</view>
+      </view>
+    </view>
+
+    <view class="audit-foot">
+      已结算分：{{detailSummary.settled_commission_fen}} ｜ 已冲回分：{{detailSummary.reversed_commission_fen}} ｜ 总记录：{{detailSummary.commission_count}}
+    </view>
+  </view>
+
   <view class="top-tabs">
     <view class="top-tab {{activeTab==='detail' ? 'active' : ''}}" data-tab="detail" bindtap="switchTab">成长记录</view>
     <view class="top-tab {{activeTab==='ranking' ? 'active' : ''}}" data-tab="ranking" bindtap="switchTab">成长排行</view>
   </view>
 
   <block wx:if="{{activeTab==='detail'}}">
-    <view class="audit-card">
-      <view class="audit-title">成长账户</view>
-      <view class="audit-desc">
-        下面 4 项分值口径，均来自正式成长记录聚合。
-      </view>
-
-      <view class="audit-grid">
-        <view class="audit-item">
-          <view class="audit-item-label">累计结算分</view>
-          <view class="audit-item-value">{{detailSummary.total_commission_fen}}</view>
-        </view>
-        <view class="audit-item">
-          <view class="audit-item-label">待结算分</view>
-          <view class="audit-item-value">{{detailSummary.unsettled_commission_fen}}</view>
-        </view>
-        <view class="audit-item">
-          <view class="audit-item-label">已结算分</view>
-          <view class="audit-item-value">{{detailSummary.settled_commission_fen}}</view>
-        </view>
-        <view class="audit-item">
-          <view class="audit-item-label">已冲回分</view>
-          <view class="audit-item-value">{{detailSummary.reversed_commission_fen}}</view>
-        </view>
-      </view>
-
-      <view class="audit-foot">
-        成长记录总笔数：{{detailSummary.commission_count}}
-      </view>
-    </view>
-
     <view class="panel">
       <view class="section-title">筛选状态</view>
       <view class="chips">
@@ -109,6 +109,31 @@
   </block>
 
   <block wx:if="{{activeTab==='ranking'}}">
+    <view class="audit-card">
+      <view class="audit-title">我的排行位置</view>
+      <view wx:if="{{myRanking}}" class="audit-grid">
+        <view class="audit-item">
+          <view class="audit-item-label">当前排名</view>
+          <view class="audit-item-value">#{{myRanking.rank}}</view>
+        </view>
+        <view class="audit-item">
+          <view class="audit-item-label">我的邀请码</view>
+          <view class="audit-item-value">{{myRanking.invite_code || currentUser.inviteCode || '未识别'}}</view>
+        </view>
+        <view class="audit-item">
+          <view class="audit-item-label">成长分</view>
+          <view class="audit-item-value">{{myRanking.commission_amount * 1}}</view>
+        </view>
+        <view class="audit-item">
+          <view class="audit-item-label">记录笔数</view>
+          <view class="audit-item-value">{{myRanking.commission_count}}</view>
+        </view>
+      </view>
+      <view wx:else class="audit-desc">
+        当前未进入前 20 排行，可继续提升邀请转化与成长分。
+      </view>
+    </view>
+
     <view class="panel">
       <view class="section-title">排行维度</view>
       <view class="chips">
@@ -137,7 +162,10 @@
         <view class="rank-left">
           <view class="rank-no">#{{item.rank}}</view>
           <view class="rank-info">
-            <view class="rank-name">{{item.invite_code || '-'}} / {{item.mobile || '-'}}</view>
+            <view class="rank-name">
+              {{item.invite_code || '-'}} / {{item.mobile || '-'}}
+              <text wx:if="{{item.isMine}}">（我）</text>
+            </view>
             <view class="rank-openid">{{item.openid || '-'}}</view>
           </view>
         </view>
