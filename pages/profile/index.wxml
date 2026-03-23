@@ -192,7 +192,7 @@
 
 <!-- ================== Tab2：常用工具 ================== -->
 <view wx:elif="{{activeInnerTab === 'tools'}}">
-  <!-- 模块 A：裂变中心 · 推荐关系（优先展示“人与人”的连接） -->
+  <!-- 模块 A：裂变中心 · 推荐关系 -->
   <view class="card">
     <view class="card-header">
       <text class="card-title">裂变中心 · 推荐关系</text>
@@ -203,7 +203,7 @@
         <view class="nav-main">
           <text class="nav-title">裂变任务 · 邀请好友控亏</text>
           <text class="nav-desc">
-            邀请码：{{myInviteCode || '待生成'}} ｜ 邀请人：{{invitedByCode || '暂无'}}
+            邀邀请码：{{myInviteCode || '待生成'}} ｜ 邀请人：{{invitedByCode || '暂无'}}
           </text>
         </view>
         <text class="nav-arrow">›</text>
@@ -250,11 +250,13 @@
   </view>
 </view>
 
-<!-- [ADD] commission center entry -->
-<navigator url="/pages/commissionCenter/index" class="commission-entry-link">
+<!-- 成长中心入口 -->
+<view class="commission-entry-link" bindtap="goGrowthCenter">
   <view class="commission-entry-card">
     <view class="commission-entry-title">成长中心</view>
-    <view class="commission-entry-desc">查看成长记录与成长排行</view>
+    <view class="commission-entry-desc">
+      邀请码：{{myInviteCode || '待生成'}} ｜ 成长分：{{fissionSyncedTimes || 0}} ｜ 累计结算分：{{commissionSummary.total_commission_fen || 0}} ｜ 待结算分：{{commissionSummary.unsettled_commission_fen || 0}}
+    </view>
   </view>
-</navigator></view>
-
+</view>
+</view>

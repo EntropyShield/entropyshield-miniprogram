@@ -34,7 +34,7 @@
   <view class="audit-card">
     <view class="audit-title">我的账户</view>
     <view class="audit-desc">
-      下面口径全部来自正式成长记录与当前账号身份信息。
+      下面口径全部来自正式成长记录与当前账号身份信息；成长分口径与个人中心、裂变任务页保持一致。
     </view>
 
     <view class="audit-grid">
@@ -47,17 +47,21 @@
         <view class="audit-item-value">{{currentUser.invitedByCode || '暂无'}}</view>
       </view>
       <view class="audit-item">
+        <view class="audit-item-label">成长分</view>
+        <view class="audit-item-value">{{currentUser.totalRewardTimes || 0}}</view>
+      </view>
+      <view class="audit-item">
         <view class="audit-item-label">累计结算分</view>
-        <view class="audit-item-value">{{detailSummary.total_commission_fen}}</view>
+        <view class="audit-item-value">{{detailSummary.total_commission_fen || 0}}</view>
       </view>
       <view class="audit-item">
         <view class="audit-item-label">待结算分</view>
-        <view class="audit-item-value">{{detailSummary.unsettled_commission_fen}}</view>
+        <view class="audit-item-value">{{detailSummary.unsettled_commission_fen || 0}}</view>
       </view>
     </view>
 
     <view class="audit-foot">
-      已结算分：{{detailSummary.settled_commission_fen}} ｜ 已冲回分：{{detailSummary.reversed_commission_fen}} ｜ 总记录：{{detailSummary.commission_count}}
+      已结算分：{{detailSummary.settled_commission_fen || 0}} ｜ 已冲回分：{{detailSummary.reversed_commission_fen || 0}} ｜ 总记录：{{detailSummary.commission_count || 0}}
     </view>
   </view>
 

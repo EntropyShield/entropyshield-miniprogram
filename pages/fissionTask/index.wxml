@@ -1,4 +1,4 @@
-<!-- pages/fissionTask/index.wxml -->
+﻿<!-- pages/fissionTask/index.wxml -->
 <view class="page">
   <!-- 主卡：二维码 -->
   <view class="card" wx:if="{{qrcodeUrl}}">
@@ -25,13 +25,18 @@
   <view class="card">
     <view class="grid">
       <view class="metric metric-center">
+        <view class="m-label">我的邀请码</view>
+        <view class="m-value">{{myInviteCode || '待生成'}}</view>
+      </view>
+
+      <view class="metric metric-center">
         <view class="m-label">邀请关系</view>
         <view class="m-value">{{invitedByCode ? invitedByCode : '未绑定'}}</view>
       </view>
 
       <view class="metric metric-center">
-        <view class="m-label">奖励累计</view>
-        <view class="m-value">{{totalRewardTimes}}</view>
+        <view class="m-label">成长分</view>
+        <view class="m-value">{{totalRewardTimes || 0}}</view>
       </view>
     </view>
   </view>
@@ -41,10 +46,13 @@
     <button class="btn btn-ghost" bindtap="goHome">回首页</button>
   </view>
 
-<!-- [ADD] commission center entry -->
-<navigator url="/pages/commissionCenter/index" class="commission-entry-link">
-  <view class="commission-entry-card">
-    <view class="commission-entry-title">成长中心</view>
-    <view class="commission-entry-desc">查看贡献记录与成长排行</view>
+  <!-- 成长中心入口 -->
+  <view class="commission-entry-link" bindtap="goGrowthCenter">
+    <view class="commission-entry-card">
+      <view class="commission-entry-title">成长中心</view>
+      <view class="commission-entry-desc">
+        邀请码：{{myInviteCode || '待生成'}} ｜ 邀请人：{{invitedByCode || '暂无'}} ｜ 成长分：{{totalRewardTimes || 0}}
+      </view>
+    </view>
   </view>
-</navigator></view>
+</view>

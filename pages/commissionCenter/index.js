@@ -70,12 +70,21 @@ function getCurrentUser() {
     0
   ) || 0;
 
+  const totalRewardTimes = Number(
+    profile.total_reward_times ||
+    profile.totalRewardTimes ||
+    rights.fissionSyncedTimes ||
+    rights.total_reward_times ||
+    0
+  ) || 0;
+
   return {
     userId,
     inviteCode,
     invitedByCode,
     openid,
-    mobile
+    mobile,
+    totalRewardTimes
   };
 }
 
@@ -107,7 +116,8 @@ Page({
       inviteCode: '',
       invitedByCode: '',
       openid: '',
-      mobile: ''
+      mobile: '',
+      totalRewardTimes: 0
     },
 
     statusOptions: [
