@@ -1,11 +1,16 @@
 ﻿// pages/fissionTask/index.js
 // MOD: P1_4_GROWTH_CENTER_LINKAGE_20260323
+// MOD: FIX_SHARE_TARGET_TO_RISK_CALCULATOR_20260324
 
 let cfg = {};
 try { cfg = require('../../config'); } catch (e) { cfg = {}; }
 
 let clientIdUtil = null;
 try { clientIdUtil = require('../../utils/clientId'); } catch (e) { clientIdUtil = null; }
+
+const SHARE_TITLE = '熵盾风控计算器';
+const SHARE_TARGET_PATH = '/pages/riskCalculator/index';
+const QRCODE_TARGET_PAGE = 'pages/riskCalculator/index';
 
 // ===== 防白屏工具 =====
 function safeSetData(ctx, patch) { try { ctx.setData(patch); } catch (e) {} }
@@ -289,6 +294,7 @@ Page({
       API_BASE +
       '/api/fission/qrcode?inviteCode=' + encodeURIComponent(code) +
       '&env_version=' + encodeURIComponent(env) +
+      '&page=' + encodeURIComponent(QRCODE_TARGET_PAGE) +
       '&t=' + Date.now();
 
     safeSetData(this, { qrcodeUrl: url });
@@ -297,15 +303,15 @@ Page({
   onShareAppMessage() {
     const code = cleanCode(this.data.myInviteCode);
     return {
-      title: '熵盾训练营',
-      path: '/pages/campIntro/index?inviteCode=' + encodeURIComponent(code || '')
+      title: SHARE_TITLE,
+      path: SHARE_TARGET_PATH + '?inviteCode=' + encodeURIComponent(code || '')
     };
   },
 
   onShareTimeline() {
     const code = cleanCode(this.data.myInviteCode);
     return {
-      title: '熵盾训练营',
+      title: SHARE_TITLE,
       query: 'inviteCode=' + encodeURIComponent(code || '')
     };
   },
