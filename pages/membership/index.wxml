@@ -13,7 +13,7 @@
     </view>
 
     <view wx:if="{{membershipExpireText}}" class="row">
-      <text class="label">到期时间</text>
+      <text class="label">有效期</text>
       <text class="value">{{membershipExpireText}}</text>
     </view>
 
@@ -22,14 +22,30 @@
       <text class="value">{{inviteCode}}</text>
     </view>
 
-    <button wx:if="{{!isLifetimeMember}}" class="btn" bindtap="goPayIntro">
-      去开通会员 / 查看收费方案
-    </button>
-
-    <button wx:if="{{isLifetimeMember}}" class="btn" bindtap="goPayIntro">
-      查看服务说明
-    </button>
+    <view wx:if="{{isLifetimeMember}}" class="row">
+      <text class="label">会员说明</text>
+      <text class="value">当前账号已识别为终身会员，保留既有权益</text>
+    </view>
 
     <button class="btn" bindtap="goBack">返回</button>
+  </view>
+
+  <view class="card">
+    <view class="title">可选服务</view>
+
+    <view
+      class="row"
+      wx:for="{{planList}}"
+      wx:key="key"
+      data-level-name="{{item.title}}"
+      bindtap="goPayIntro"
+    >
+      <text class="label">{{item.title}}</text>
+      <text class="value">查看</text>
+    </view>
+
+    <button class="btn" data-level-name="会员服务" bindtap="goPayIntro">
+      {{isLifetimeMember ? '查看服务说明' : '去开通会员 / 查看收费方案'}}
+    </button>
   </view>
 </view>
