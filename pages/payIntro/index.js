@@ -1,24 +1,22 @@
 // pages/payIntro/index.js
-// MOD: RESTORE_PAY_INTRO_BASELINE_20260324
+// FIX: decode levelName to avoid %E4%BC... garbled text
 
 const funnel = require('../../utils/funnel.js');
 
 Page({
   data: {
-    wechatId: 'dcd7467',
-    levelName: '',
-    copied: false,
-    pageTitle: '进阶服务说明'
+    wechatId: "dcd7467",
+    levelName: "",
+    copied: false
   },
 
   onLoad(options) {
-    const levelName = (options && options.levelName) || '会员服务';
-    const pageTitle = levelName ? `${levelName} · 开通说明` : '进阶服务说明';
+    let levelName = (options && options.levelName) || "";
+    try {
+      levelName = decodeURIComponent(levelName);
+    } catch (e) {}
 
-    this.setData({
-      levelName,
-      pageTitle
-    });
+    this.setData({ levelName });
 
     funnel.log('PAY_VIEW_INTRO', { levelName });
   },
@@ -61,8 +59,8 @@ Page({
 
         setTimeout(() => {
           wx.openCustomerServiceChat({
-            extInfo: { url: '' },
-            corpId: '',
+            extInfo: { url: "" },
+            corpId: "",
             success: () => {},
             fail: () => {
               wx.showToast({ title: '请手动打开微信添加顾问', icon: 'none' });
