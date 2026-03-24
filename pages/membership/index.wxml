@@ -13,7 +13,7 @@
     </view>
 
     <view wx:if="{{membershipExpireText}}" class="row">
-      <text class="label">有效期</text>
+      <text class="label">到期时间</text>
       <text class="value">{{membershipExpireText}}</text>
     </view>
 
@@ -23,29 +23,36 @@
     </view>
 
     <view wx:if="{{isLifetimeMember}}" class="row">
-      <text class="label">会员说明</text>
-      <text class="value">当前账号已识别为终身会员，保留既有权益</text>
+      <text class="label">终身说明</text>
+      <text class="value">终身会员仅限你自己的 ID 使用</text>
     </view>
-
-    <button class="btn" bindtap="goBack">返回</button>
   </view>
 
   <view class="card">
-    <view class="title">可选服务</view>
+    <view class="title">风控计算器官方收费口径</view>
 
-    <view
-      class="row"
-      wx:for="{{planList}}"
-      wx:key="key"
-      data-level-name="{{item.title}}"
-      bindtap="goPayIntro"
-    >
-      <text class="label">{{item.title}}</text>
-      <text class="value">查看</text>
-    </view>
-
-    <button class="btn" data-level-name="会员服务" bindtap="goPayIntro">
-      {{isLifetimeMember ? '查看服务说明' : '去开通会员 / 查看收费方案'}}
-    </button>
+    <block wx:for="{{feeList}}" wx:key="key">
+      <view class="row">
+        <text class="label">{{item.name}}</text>
+        <text class="value">{{item.rights}}</text>
+      </view>
+      <view class="row">
+        <text class="label">说明</text>
+        <text class="value">{{item.desc}}</text>
+      </view>
+    </block>
   </view>
+
+  <view class="card">
+    <view class="row">
+      <text class="label">产品</text>
+      <text class="value">风控计算器</text>
+    </view>
+    <view class="row">
+      <text class="label">对外售卖</text>
+      <text class="value">9.9/3次、月卡999、季卡2999、年卡9999</text>
+    </view>
+  </view>
+
+  <button class="btn" bindtap="goBack">返回</button>
 </view>
