@@ -219,7 +219,7 @@ Page({
         cancelText: '看看进阶服务',
         success: (res) => {
           if (res.cancel) {
-            wx.navigateTo({ url: '/pages/payIntro/index' });
+            wx.navigateTo({ url: '/pages/pay/index' });
           } else {
             this.goCampIntro();
           }
@@ -237,7 +237,7 @@ Page({
         cancelText: '稍后再说',
         success: (res) => {
           if (res.confirm) {
-            wx.navigateTo({ url: '/pages/membership/index?type=steady' });
+            wx.navigateTo({ url: '/pages/pay/index?type=steady' });
           } else {
             this.goCampIntro();
           }

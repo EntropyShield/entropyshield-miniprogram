@@ -434,7 +434,7 @@ Page({
       success: (r) => {
         if (!r.confirm) return;
         wx.navigateTo({
-          url: `/pages/membership/index?from=courseDetail&courseId=${course.id}`
+          url: `/pages/pay/index?from=courseDetail&courseId=${course.id}`
         });
       }
     });

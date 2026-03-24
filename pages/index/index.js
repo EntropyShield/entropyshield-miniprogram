@@ -236,7 +236,7 @@ Page({
     const source = getTapSource(e, 'unknown');
     console.log('[index] goMembership source:', source);
     safeTrack(stepWithSource('HOME_CTA_GO_MEMBERSHIP', source), { source });
-    wx.navigateTo({ url: '/pages/membership/index' });
+    wx.navigateTo({ url: '/pages/pay/index' });
   },
 
   // 分享带邀请码

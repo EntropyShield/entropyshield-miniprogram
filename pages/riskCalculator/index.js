@@ -1,4 +1,4 @@
-﻿// pages/riskCalculator/index.js
+// pages/riskCalculator/index.js
 const funnel = require('../../utils/funnel.js');
 const UR = require('../../utils/userRights.js');
 
@@ -283,7 +283,7 @@ Page({
         if (r.confirm) {
           wx.navigateTo({
             url:
-              `/pages/membership/index?type=advanced` +
+              `/pages/pay/index?type=advanced` +
               `&balance=${encodeURIComponent(balance)}` +
               `&price=${encodeURIComponent(price)}` +
               `&code=${encodeURIComponent(code || '')}`
@@ -566,7 +566,7 @@ Page({
         if (idx === 0) {
           wx.navigateTo({
             url:
-              `/pages/membership/index?type=${planType}` +
+              `/pages/pay/index?type=${planType}` +
               `&balance=${encodeURIComponent(balance)}` +
               `&price=${encodeURIComponent(price)}` +
               `&code=${encodeURIComponent(code || '')}`
