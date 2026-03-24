@@ -4,6 +4,7 @@
 // MOD: PRIVACY_DEFAULT_UNCHECKED_20260310
 // MOD: P1_4_GROWTH_ENTRY_SUMMARY_20260323
 // MOD: P1_4_GROWTH_CENTER_LINKAGE_20260323
+// MOD: RESTORE_MEMBERSHIP_PAYMENT_ENTRY_20260324
 
 const funnel = require('../../utils/funnel.js');
 const { API_BASE } = require('../../config');
@@ -534,6 +535,17 @@ Page({
 
   goMyInvite() {
     wx.navigateTo({ url: '/pages/myInvite/index' });
+  },
+
+  goMembership() {
+    wx.navigateTo({
+      url: '/pages/membership/index',
+      fail: () => {
+        wx.navigateTo({
+          url: '/pages/payIntro/index?levelName=' + encodeURIComponent('年度会员')
+        });
+      }
+    });
   },
 
   goOrderCenter() {

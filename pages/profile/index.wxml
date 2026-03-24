@@ -203,7 +203,7 @@
         <view class="nav-main">
           <text class="nav-title">裂变任务 · 邀请好友控亏</text>
           <text class="nav-desc">
-            邀邀请码：{{myInviteCode || '待生成'}} ｜ 邀请人：{{invitedByCode || '暂无'}}
+            邀请码：{{myInviteCode || '待生成'}} ｜ 邀请人：{{invitedByCode || '暂无'}}
           </text>
         </view>
         <text class="nav-arrow">›</text>
@@ -221,13 +221,23 @@
     </view>
   </view>
 
-  <!-- 模块 B：订单中心 -->
+  <!-- 模块 B：正式服务 -->
   <view class="card">
     <view class="card-header">
       <text class="card-title">正式服务</text>
-      <text class="card-subtitle">线下来访</text>
+      <text class="card-subtitle">付费开通 · 线下来访</text>
     </view>
     <view class="nav-list">
+      <view class="nav-item" bindtap="goMembership">
+        <view class="nav-main">
+          <text class="nav-title">开通会员 / 付费中心</text>
+          <text class="nav-desc">
+            当前会员：{{membershipName || '体验会员'}} ｜ 点击进入付费界面
+          </text>
+        </view>
+        <text class="nav-arrow">›</text>
+      </view>
+
       <view class="nav-item" bindtap="goVisitBooking">
         <view class="nav-main">
           <text class="nav-title">公司来访预约</text>
@@ -237,6 +247,7 @@
         </view>
         <text class="nav-arrow">›</text>
       </view>
+
       <view wx:if="{{isVisitAdmin}}" class="nav-item" bindtap="goVisitAdmin">
         <view class="nav-main">
           <text class="nav-title">来访预约管理</text>
