@@ -1,16 +1,24 @@
 // pages/payIntro/index.js
+// MOD: RESTORE_PAY_INTRO_BASELINE_20260324
+
 const funnel = require('../../utils/funnel.js');
 
 Page({
   data: {
-    wechatId: "dcd7467",
-    levelName: "",
-    copied: false
+    wechatId: 'dcd7467',
+    levelName: '',
+    copied: false,
+    pageTitle: '进阶服务说明'
   },
 
   onLoad(options) {
-    const levelName = (options && options.levelName) || "";
-    this.setData({ levelName });
+    const levelName = (options && options.levelName) || '会员服务';
+    const pageTitle = levelName ? `${levelName} · 开通说明` : '进阶服务说明';
+
+    this.setData({
+      levelName,
+      pageTitle
+    });
 
     funnel.log('PAY_VIEW_INTRO', { levelName });
   },
@@ -53,8 +61,8 @@ Page({
 
         setTimeout(() => {
           wx.openCustomerServiceChat({
-            extInfo: { url: "" },
-            corpId: "",
+            extInfo: { url: '' },
+            corpId: '',
             success: () => {},
             fail: () => {
               wx.showToast({ title: '请手动打开微信添加顾问', icon: 'none' });
@@ -71,6 +79,17 @@ Page({
     wx.showToast({
       title: '已记录你的选择',
       icon: 'none'
+    });
+  },
+
+  goBack() {
+    wx.navigateBack({
+      delta: 1,
+      fail() {
+        wx.switchTab({
+          url: '/pages/profile/index'
+        });
+      }
     });
   }
 });

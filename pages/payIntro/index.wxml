@@ -1,5 +1,15 @@
 <view class="page">
 
+<view class="card notice-card">
+  <view class="notice-title">{{pageTitle}}</view>
+  <view class="notice-text">
+    <text wx:if="{{levelName}}">当前查看：{{levelName}}</text>
+    <text>如需开通会员、进阶训练营、1 对 1 风控诊断或高级工具包，请先复制顾问微信号。</text>
+    <text>添加后备注「熵盾 + 昵称 + {{levelName || '服务咨询'}}」，顾问会按你的当前阶段给出合适方案。</text>
+    <text>具体收费与服务内容，以顾问最终确认为准。</text>
+  </view>
+</view>
+
 <view class="card plan-card">
   <view class="plan-header">
     <text class="plan-title">方案 A · 1 对 1 风控诊断</text>
@@ -7,15 +17,14 @@
   </view>
 
   <view class="plan-price-row">
-    <text class="plan-price-prefix">￥？</text>
-    <text class="plan-price-unit">/ 次</text>
+    <text class="plan-price-prefix">顾问报价</text>
     <text class="plan-price-desc">（视频 / 语音，约 60-90 分钟）</text>
   </view>
 
   <view class="plan-desc">
     <text>· 梳理你最近 3-6 个月的关键交易与回撤轨迹。</text>
     <text>· 针对你的训练营打卡记录，诊断目前风控短板。</text>
-    <text>· 现场给出一份「个人风控执行清单」。</text>
+    <text>· 给出一份个人风控执行清单与后续训练建议。</text>
   </view>
 </view>
 
@@ -26,15 +35,14 @@
   </view>
 
   <view class="plan-price-row">
-    <text class="plan-price-prefix">￥？</text>
-    <text class="plan-price-unit">/ 期</text>
+    <text class="plan-price-prefix">顾问报价</text>
     <text class="plan-price-desc">（4-6 周，固定节奏陪跑）</text>
   </view>
 
   <view class="plan-desc">
-    <text>· 每周一次小组课堂 + 复盘 / 线上实盘答疑。</text>
-    <text>· 输出你的「仓位规则、止损规则、复盘模板」。</text>
-    <text>· 小组密度陪跑督导，持续修正执行与反馈。</text>
+    <text>· 每周一次小组课堂 + 复盘 / 线上答疑。</text>
+    <text>· 输出仓位规则、止损规则、复盘模板。</text>
+    <text>· 陪跑督导执行与反馈，持续修正交易纪律。</text>
   </view>
 </view>
 
@@ -45,24 +53,14 @@
   </view>
 
   <view class="plan-price-row">
-    <text class="plan-price-prefix">￥？</text>
-    <text class="plan-price-unit">/ 套</text>
+    <text class="plan-price-prefix">顾问报价</text>
     <text class="plan-price-desc">（含多套模板与指标）</text>
   </view>
 
   <view class="plan-desc">
-    <text>· 扩展版「风控计算器」与资金曲线分析工具。</text>
+    <text>· 扩展版风控计算器与资金曲线分析工具。</text>
     <text>· 针对不同周期风格的风控模板示例库。</text>
     <text>· 后续新增工具与模块持续升级更新。</text>
-  </view>
-</view>
-
-<view class="card notice-card">
-  <view class="notice-title">如何开启进阶服务？</view>
-  <view class="notice-text">
-    <text>1. 长按或复制下方微信号，添加熵盾官方顾问。</text>
-    <text>2. 备注「风控训练营 + 昵称」，并发送你的需求简述。</text>
-    <text>3. 顾问会根据你训练营打卡表现推荐适合你的起步方案。</text>
   </view>
 </view>
 
@@ -82,6 +80,10 @@
 
   <button class="btn-ghost" bindtap="onThinkMore">
     先继续自己训练一段时间
+  </button>
+
+  <button class="btn-ghost" bindtap="goBack">
+    返回
   </button>
 </view>
 
