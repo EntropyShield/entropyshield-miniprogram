@@ -20,24 +20,5 @@
     "ignoreDevUnusedFiles": false
   },
   "libVersion": "3.14.2",
-  "condition": {
-    "miniprogram": {
-      "list": [
-        {
-          "name": "pages/commissionCenter/index",
-          "pathName": "pages/commissionCenter/index",
-          "query": "",
-          "scene": null,
-          "launchMode": "default"
-        },
-        {
-          "name": "B-扫码-7BZLN3",
-          "pathName": "pages/fissionTask/index",
-          "query": "scene=7BZLN3",
-          "launchMode": "default",
-          "scene": null
-        }
-      ]
-    }
-  }
+  "condition": {}
 }
