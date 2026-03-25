@@ -9,3 +9,7 @@ scripts/
 tools/
 *.bak_*
 *.tmp
+pages/calculator/**
+pages/funnelLogs/**
+pages/testLossPersonality/**
+pages/testRiskScore/**

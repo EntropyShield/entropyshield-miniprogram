@@ -1,2 +1,48 @@
-<!--pages/pay/index.wxml-->
-<text>pages/pay/index.wxml</text>
+﻿<view class="page">
+  <view class="hero-card">
+    <view class="hero-title">风控计算器支付页</view>
+    <view class="hero-desc">{{topNotice}}</view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">官方收费口径</view>
+
+    <block wx:for="{{plans}}" wx:key="key">
+      <view class="plan-card {{selectedPlanKey === item.key ? 'plan-card-active' : ''}}" data-key="{{item.key}}" bindtap="onSelectPlan">
+        <view class="plan-top">
+          <view class="plan-name">{{item.title}}</view>
+          <view class="plan-rights">{{item.rights}}</view>
+        </view>
+        <view class="plan-desc">{{item.desc}}</view>
+        <view wx:if="{{type === 'advanced' && (item.key === 'times3' || item.key === 'month')}}" class="plan-disabled-tip">
+          加强版不可用
+        </view>
+      </view>
+    </block>
+  </view>
+
+  <view class="card">
+    <view class="section-title">当前选择</view>
+
+    <block wx:for="{{plans}}" wx:key="key">
+      <view wx:if="{{selectedPlanKey === item.key}}" class="summary-row">
+        <text class="summary-label">方案</text>
+        <text class="summary-value">{{item.title}}</text>
+      </view>
+      <view wx:if="{{selectedPlanKey === item.key}}" class="summary-row">
+        <text class="summary-label">权限</text>
+        <text class="summary-value">{{item.rights}}</text>
+      </view>
+      <view wx:if="{{selectedPlanKey === item.key}}" class="summary-row">
+        <text class="summary-label">说明</text>
+        <text class="summary-value">{{item.desc}}</text>
+      </view>
+    </block>
+
+    <button class="btn-primary" loading="{{paying}}" bindtap="onPayTap">
+      {{paying ? '支付处理中...' : '立即购买'}}
+    </button>
+
+    <button class="btn-ghost" bindtap="goBack">返回</button>
+  </view>
+</view>

@@ -1,4 +1,4 @@
-﻿// pages/planSteady/index.js
+// pages/planSteady/index.js
 const funnel = require('../../utils/funnel.js');
 
 Page({
@@ -206,7 +206,7 @@ Page({
 
     wx.navigateTo({
       url:
-        '/pages/payIntro/index'
+        '/pages/pay/index'
         + '?from=planSteady'
         + '&membershipType=' + encodeURIComponent(membershipType || '')
         + '&balance=' + encodeURIComponent(totalCapital || '')

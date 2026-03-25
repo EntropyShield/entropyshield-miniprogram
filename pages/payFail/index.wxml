@@ -1,4 +1,16 @@
-<!-- pages/payfail/index.wxml -->
 <view class="page">
-  <text>风控计算器页面加载成功！</text>
+  <view class="card">
+    <view class="title">支付未完成</view>
+    <view class="desc">你可以返回支付页重新购买，或先回到风控计算器继续查看。</view>
+  </view>
+
+  <view wx:if="{{errMsg}}" class="card">
+    <view class="row">
+      <text class="label">提示</text>
+      <text class="value">{{errMsg}}</text>
+    </view>
+  </view>
+
+  <button class="btn-primary" bindtap="goPay">返回支付页</button>
+  <button class="btn-ghost" bindtap="goCalc">返回风控计算器</button>
 </view>

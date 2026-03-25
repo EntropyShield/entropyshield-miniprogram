@@ -1,4 +1,4 @@
-﻿// pages/profile/index.js
+// pages/profile/index.js
 // MOD: FIX_PROFILE_INNER_TABS_20260213
 // MOD: PATCH_AUDIT_PRIVACY_20260310_LOCAL_PAGE
 // MOD: PRIVACY_DEFAULT_UNCHECKED_20260310
@@ -539,10 +539,10 @@ Page({
 
   goMembership() {
     wx.navigateTo({
-      url: '/pages/membership/index',
+      url: '/pages/pay/index',
       fail: () => {
         wx.navigateTo({
-          url: '/pages/payIntro/index?levelName=' + encodeURIComponent('年度会员')
+          url: '/pages/pay/index?levelName=' + encodeURIComponent('年度会员')
         });
       }
     });

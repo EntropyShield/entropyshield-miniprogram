@@ -1,4 +1,4 @@
-﻿// pages/planAdvanced/index.js
+// pages/planAdvanced/index.js
 const funnel = require('../../utils/funnel.js');
 
 function getUserRights() {
@@ -83,7 +83,7 @@ Page({
 
           if (r.confirm) {
             wx.redirectTo({
-              url: `/pages/membership/index?type=advanced${q}`
+              url: `/pages/pay/index?type=advanced${q}`
             });
           } else {
             wx.navigateBack({ delta: 1 });
@@ -244,7 +244,7 @@ Page({
 
     wx.navigateTo({
       url:
-        '/pages/payIntro/index'
+        '/pages/pay/index'
         + '?from=planAdvanced'
         + '&membershipType=' + encodeURIComponent(membershipType || '')
         + '&balance=' + encodeURIComponent(totalCapital || '')
