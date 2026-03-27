@@ -1,0 +1,61 @@
+<view class="mc-page">
+  <view class="mc-card">
+    <view class="mc-title-row">
+      <text class="mc-title">Mainchain Debug</text>
+      <text class="mc-badge">{{syncStatus}}</text>
+    </view>
+    <view class="mc-meta">Last sync: {{lastSyncAtText}}</view>
+    <view wx:if="{{syncError}}" class="mc-error">Error: {{syncError}}</view>
+  </view>
+
+  <view class="mc-actions">
+    <view class="mc-btn mc-btn-primary" bindtap="handleSyncMainchain">Sync now</view>
+    <view class="mc-btn mc-btn-secondary" bindtap="handleResetState">Reset</view>
+    <view class="mc-btn mc-btn-secondary" bindtap="handleToggleRaw">{{showRaw ? 'Hide raw' : 'Show raw'}}</view>
+  </view>
+
+  <view class="mc-card">
+    <view class="mc-section-title">Summary</view>
+    <view class="mc-grid">
+      <view class="mc-cell"><text class="mc-label">Drafts</text><text class="mc-value">{{summary.draftCount}}</text></view>
+      <view class="mc-cell"><text class="mc-label">Trades</text><text class="mc-value">{{summary.tradeCount}}</text></view>
+      <view class="mc-cell"><text class="mc-label">Reports</text><text class="mc-value">{{summary.reportCount}}</text></view>
+      <view class="mc-cell"><text class="mc-label">Archives</text><text class="mc-value">{{summary.archiveCount}}</text></view>
+      <view class="mc-cell"><text class="mc-label">Queue</text><text class="mc-value">{{summary.queueSize}}</text></view>
+      <view class="mc-cell"><text class="mc-label">History</text><text class="mc-value">{{summary.historySize}}</text></view>
+    </view>
+    <view class="mc-meta">Mode: {{summary.mode || 'local-only'}}</view>
+    <view class="mc-meta">API_BASE: {{summary.apiBase || 'not-set'}}</view>
+  </view>
+
+  <view class="mc-card">
+    <view class="mc-section-title">Source status</view>
+    <block wx:for="{{sourceStatusList}}" wx:key="key">
+      <view class="mc-row">
+        <text class="mc-row-key">{{item.key}}</text>
+        <text class="mc-row-value">{{item.value}}</text>
+      </view>
+    </block>
+  </view>
+
+  <view class="mc-card">
+    <view class="mc-section-title">Logs</view>
+    <block wx:if="{{debugLogs.length}}">
+      <block wx:for="{{debugLogs}}" wx:key="ts">
+        <view class="mc-log-row">
+          <text class="mc-log-time">{{item.ts}}</text>
+          <text class="mc-log-level">{{item.level}}</text>
+          <text class="mc-log-msg">{{item.message}}</text>
+        </view>
+      </block>
+    </block>
+    <view wx:else class="mc-empty">No logs</view>
+  </view>
+
+  <view wx:if="{{showRaw}}" class="mc-card">
+    <view class="mc-section-title">Raw data</view>
+    <scroll-view scroll-y="true" class="mc-raw-box">
+      <text class="mc-raw-text" selectable="true">{{rawText}}</text>
+    </scroll-view>
+  </view>
+</view>

@@ -1,0 +1,112 @@
+<view class="rr-page">
+  <block wx:if="{{report}}">
+    <view class="rr-card rr-hero">
+      <view class="rr-hero-top">
+        <text class="rr-title">风控报告</text>
+        <view class="rr-badge">{{planTypeMap[report.planType] || report.planType || '当前方案'}}</view>
+      </view>
+      <text class="rr-sub">代码：{{report.code || '—'}}</text>
+      <text class="rr-sub">时间：{{timeText || '—'}}</text>
+      <text class="rr-sub">来源：{{report.source || 'riskCalculator'}}</text>
+      <text class="rr-sub">版本：{{report.entryVersion || 'V1.4'}}</text>
+    </view>
+
+    <view class="rr-card">
+      <view class="rr-section-title">AI增强解读</view>
+
+      <view class="rr-ai-item">
+        <text class="rr-ai-label">AI总结</text>
+        <text class="rr-ai-value">{{aiEnhancement.summary}}</text>
+      </view>
+
+      <view class="rr-ai-item">
+        <text class="rr-ai-label">风险解释</text>
+        <text class="rr-ai-value">{{aiEnhancement.riskExplanation}}</text>
+      </view>
+
+      <view class="rr-ai-item">
+        <text class="rr-ai-label">仓位执行</text>
+        <text class="rr-ai-value">{{aiEnhancement.positionExplanation}}</text>
+      </view>
+
+      <view class="rr-ai-item">
+        <text class="rr-ai-label">止损纪律</text>
+        <text class="rr-ai-value">{{aiEnhancement.stopLossExplanation}}</text>
+      </view>
+
+      <view class="rr-ai-item">
+        <text class="rr-ai-label">止盈理解</text>
+        <text class="rr-ai-value">{{aiEnhancement.targetExplanation}}</text>
+      </view>
+
+      <view class="rr-ai-item">
+        <text class="rr-ai-label">纪律提醒</text>
+        <text class="rr-ai-value">{{aiEnhancement.disciplineWarning}}</text>
+      </view>
+
+      <view class="rr-ai-item">
+        <text class="rr-ai-label">下一步动作</text>
+        <text class="rr-ai-value">{{aiEnhancement.nextActionSuggestion}}</text>
+      </view>
+    </view>
+
+    <view class="rr-card">
+      <view class="rr-section-title">报告摘要</view>
+      <view class="rr-row">
+        <text class="rr-k">首次价格</text>
+        <text class="rr-v">{{report.firstPrice || report.entryPrice || '—'}}</text>
+      </view>
+      <view class="rr-row">
+        <text class="rr-k">止损价格</text>
+        <text class="rr-v">{{report.stopLossPrice || report.stopPrice || '—'}}</text>
+      </view>
+      <view class="rr-row">
+        <text class="rr-k">目标价格</text>
+        <text class="rr-v">{{report.targetPrice || '—'}}</text>
+      </view>
+      <view class="rr-row">
+        <text class="rr-k">最大风险</text>
+        <text class="rr-v">{{report.maxLossAmount || report.riskAmount || report.totalRisk || report.totalLoss || '—'}}</text>
+      </view>
+    </view>
+
+    <view class="rr-card">
+      <view class="rr-section-title">执行步骤</view>
+      <block wx:if="{{steps.length}}">
+        <block wx:for="{{steps}}" wx:key="index">
+          <view class="rr-list-item">
+            <text class="rr-step-index">步骤{{index + 1}}</text>
+            <text class="rr-step-text">{{item.label || item.title || item.desc || item.text || item}}</text>
+          </view>
+        </block>
+      </block>
+      <view wx:else class="rr-empty">暂无执行步骤</view>
+    </view>
+
+    <view class="rr-card">
+      <view class="rr-section-title">纪律提醒</view>
+      <block wx:if="{{disciplineTips.length}}">
+        <block wx:for="{{disciplineTips}}" wx:key="index">
+          <view class="rr-list-item">
+            <text class="rr-step-text">{{item}}</text>
+          </view>
+        </block>
+      </block>
+      <view wx:else class="rr-empty">暂无纪律提醒</view>
+    </view>
+
+    <view class="rr-actions">
+      <view class="rr-btn rr-btn-primary" bindtap="saveLongArchive">加入长期档案</view>
+      <view class="rr-btn rr-btn-secondary" bindtap="goLongArchive">查看长期档案</view>
+      <view class="rr-btn rr-btn-secondary" bindtap="goMainchainOverview">查看主链总览</view>
+      <view class="rr-btn rr-btn-secondary" bindtap="goTradeRecord">查看交易记录</view>
+      <view class="rr-btn rr-btn-primary" bindtap="goRiskCalculator">继续生成方案</view>
+      <view class="rr-btn rr-btn-secondary" bindtap="goHome">返回首页</view>
+    </view>
+  </block>
+
+  <view wx:else class="rr-card">
+    <view class="rr-section-title">风控报告</view>
+    <view class="rr-empty">暂无风控报告</view>
+  </view>
+</view>

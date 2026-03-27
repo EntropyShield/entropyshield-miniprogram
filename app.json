@@ -23,6 +23,11 @@
     "pages/planBasic/index",
     "pages/planPro/index",
     "pages/planSteady/index",
+    "pages/tradeRecord/index",
+    "pages/riskReport/index",
+    "pages/longArchive/index",
+    "pages/mainchainOverview/index",
+    "pages/mainchainDebug/index",
     "pages/resultCommon/index",
     "pages/riskCalculator/index",
     "pages/riskCalculator/pay/index",
@@ -44,7 +49,7 @@
     "pages/commissionCenter/index"
   ],
   "window": {
-    "navigationBarTitleText": "熵盾研究院",
+    "navigationBarTitleText": "\u71b5\u76fe\u7814\u7a76\u9662",
     "navigationBarBackgroundColor": "#0D0D0D",
     "navigationBarTextStyle": "white",
     "backgroundColor": "#0D0D0D",
@@ -58,15 +63,15 @@
     "list": [
       {
         "pagePath": "pages/index/index",
-        "text": "首页"
+        "text": "\u9996\u9875"
       },
       {
         "pagePath": "pages/controller/index",
-        "text": "控局者"
+        "text": "\u63a7\u5c40\u8005"
       },
       {
         "pagePath": "pages/profile/index",
-        "text": "个人中心"
+        "text": "\u4e2a\u4eba\u4e2d\u5fc3"
       }
     ]
   },

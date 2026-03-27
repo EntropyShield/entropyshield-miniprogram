@@ -1,0 +1,27 @@
+.mc-page{padding:24rpx;background:#f6f7fb;min-height:100vh;box-sizing:border-box;}
+.mc-card{background:#fff;border-radius:20rpx;padding:24rpx;margin-bottom:20rpx;box-shadow:0 8rpx 24rpx rgba(0,0,0,.04);}
+.mc-title-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:12rpx;}
+.mc-title{font-size:34rpx;font-weight:700;color:#111827;}
+.mc-badge{font-size:24rpx;color:#2563eb;background:#eff6ff;padding:8rpx 16rpx;border-radius:999rpx;}
+.mc-section-title{font-size:28rpx;font-weight:600;color:#111827;margin-bottom:16rpx;}
+.mc-meta{font-size:24rpx;color:#6b7280;line-height:1.7;}
+.mc-error{margin-top:12rpx;font-size:24rpx;color:#dc2626;line-height:1.7;}
+.mc-actions{display:flex;flex-direction:column;gap:16rpx;margin-bottom:20rpx;}
+.mc-btn{text-align:center;border-radius:16rpx;padding:24rpx 20rpx;font-size:28rpx;font-weight:600;}
+.mc-btn-primary{background:#2563eb;color:#fff;}
+.mc-btn-secondary{background:#fff;color:#111827;border:2rpx solid #e5e7eb;}
+.mc-grid{display:flex;flex-wrap:wrap;justify-content:space-between;margin-bottom:16rpx;}
+.mc-cell{width:48%;background:#f9fafb;border-radius:16rpx;padding:20rpx;box-sizing:border-box;margin-bottom:16rpx;}
+.mc-label{display:block;font-size:24rpx;color:#6b7280;margin-bottom:8rpx;}
+.mc-value{display:block;font-size:34rpx;font-weight:700;color:#111827;}
+.mc-row{display:flex;justify-content:space-between;align-items:center;padding:18rpx 0;border-bottom:1rpx solid #f1f5f9;}
+.mc-row:last-child,.mc-log-row:last-child{border-bottom:none;}
+.mc-row-key,.mc-row-value{font-size:24rpx;color:#111827;}
+.mc-log-row{padding:16rpx 0;border-bottom:1rpx solid #f1f5f9;}
+.mc-log-time,.mc-log-level,.mc-log-msg{display:block;font-size:22rpx;line-height:1.7;word-break:break-all;}
+.mc-log-time{color:#6b7280;}
+.mc-log-level{color:#2563eb;}
+.mc-log-msg{color:#111827;}
+.mc-empty{font-size:24rpx;color:#9ca3af;}
+.mc-raw-box{height:700rpx;background:#0f172a;border-radius:16rpx;padding:20rpx;box-sizing:border-box;}
+.mc-raw-text{font-size:22rpx;line-height:1.7;color:#e5e7eb;word-break:break-all;}

@@ -1,0 +1,108 @@
+<view class="la-page">
+  <view class="la-summary-card">
+    <view class="la-summary-top">
+      <view>
+        <text class="la-summary-title">长期档案</text>
+        <text class="la-summary-sub">把交易记录与风控报告沉淀为可回看、可复盘、可升级的长期档案。</text>
+      </view>
+      <view class="la-summary-badge">{{totalCount}} 条</view>
+    </view>
+
+    <view class="la-summary-meta" wx:if="{{latestTime}}">
+      最近归档：{{latestTime}}
+    </view>
+  </view>
+
+  <view wx:if="{{!list.length}}" class="la-empty-card">
+    <text class="la-empty-title">还没有长期档案</text>
+    <text class="la-empty-desc">先进入风控报告页，再点击“加入长期档案”。</text>
+    <view class="la-empty-btn" bindtap="goRiskCalculator">去风控计算器</view>
+  </view>
+
+  <view wx:else class="la-list">
+    <block wx:for="{{list}}" wx:key="archiveId">
+      <view class="la-card">
+        <view class="la-card-top">
+          <view class="la-top-left">
+            <text class="la-code">{{item.code || '未填写标的'}}</text>
+            <text class="la-type">{{planTypeMap[item.planType] || item.planType || '方案'}}</text>
+          </view>
+          <text class="la-time">{{item.archivedTimeText}}</text>
+        </view>
+
+        <view class="la-grid">
+          <view class="la-cell">
+            <text class="la-label">账户资金</text>
+            <text class="la-value">{{item.totalCapital || '—'}} 元</text>
+          </view>
+          <view class="la-cell">
+            <text class="la-label">首次价格</text>
+            <text class="la-value">{{item.firstPrice || item.entryPrice || '—'}} 元</text>
+          </view>
+          <view class="la-cell">
+            <text class="la-label">目标价格</text>
+            <text class="la-value la-strong">{{item.targetPrice || '—'}} 元</text>
+          </view>
+          <view class="la-cell">
+            <text class="la-label">目标利润</text>
+            <text class="la-value la-strong">{{item.targetProfit || '—'}} 元</text>
+          </view>
+          <view class="la-cell">
+            <text class="la-label">会员类型</text>
+            <text class="la-value">{{item.membershipType || '—'}}</text>
+          </view>
+          <view class="la-cell">
+            <text class="la-label">入口来源</text>
+            <text class="la-value">{{item.source || 'riskCalculator'}}</text>
+          </view>
+          <view class="la-cell">
+            <text class="la-label">版本</text>
+            <text class="la-value">{{item.entryVersion || 'V1.4'}}</text>
+          </view>
+          <view class="la-cell">
+            <text class="la-label">步骤数量</text>
+            <text class="la-value">{{item.steps.length}} 步</text>
+          </view>
+        </view>
+
+        <view class="la-card" style="margin-top: 20rpx; margin-bottom: 0;">
+          <view class="la-summary-title" style="font-size: 28rpx; color: #2aff2a;">AI复盘</view>
+
+          <view class="la-cell" style="margin-top: 16rpx;">
+            <text class="la-label">复盘总结</text>
+            <text class="la-value">{{aiReviewMap[item.archiveId || item.reportId || item.draftId || item.createdAt].summary}}</text>
+          </view>
+
+          <view class="la-cell">
+            <text class="la-label">常见错误检查</text>
+            <text class="la-value">{{aiReviewMap[item.archiveId || item.reportId || item.draftId || item.createdAt].mistakeReview}}</text>
+          </view>
+
+          <view class="la-cell">
+            <text class="la-label">纪律执行复盘</text>
+            <text class="la-value">{{aiReviewMap[item.archiveId || item.reportId || item.draftId || item.createdAt].disciplineReview}}</text>
+          </view>
+
+          <view class="la-cell">
+            <text class="la-label">行为偏差复盘</text>
+            <text class="la-value">{{aiReviewMap[item.archiveId || item.reportId || item.draftId || item.createdAt].behaviorReview}}</text>
+          </view>
+
+          <view class="la-cell">
+            <text class="la-label">下一步建议</text>
+            <text class="la-value">{{aiReviewMap[item.archiveId || item.reportId || item.draftId || item.createdAt].nextSuggestion}}</text>
+          </view>
+        </view>
+      </view>
+    </block>
+
+    <view class="la-bottom-actions">
+      <view class="la-bottom-btn la-bottom-btn-secondary" bindtap="goLatestRiskReport">查看最新风控报告</view>
+      <view class="la-bottom-btn la-bottom-btn-secondary" bindtap="goTradeRecord">查看我的交易记录</view>
+      <view class="la-bottom-btn la-bottom-btn-secondary" bindtap="goMainchainOverview">查看主链总览</view>
+      <view class="la-bottom-btn la-bottom-btn-secondary" bindtap="clearAll">清空长期档案</view>
+      <view class="la-bottom-btn" bindtap="goRiskCalculator">继续生成方案</view>
+      <view class="la-bottom-btn" bindtap="goHome">返回首页</view>
+    </view>
+  </view>
+</view>

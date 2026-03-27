@@ -1,0 +1,104 @@
+<view class="mo-page">
+  <view class="mo-summary-card">
+    <view class="mo-summary-top">
+      <view>
+        <text class="mo-summary-title">主链总览</text>
+        <text class="mo-summary-sub">统一查看交易记录、风控报告与长期档案的沉淀情况，并在这里做主链问答。</text>
+      </view>
+      <view class="mo-summary-badge">V1</view>
+    </view>
+  </view>
+
+  <view class="mo-count-grid">
+    <view class="mo-count-card">
+      <text class="mo-count-label">交易记录</text>
+      <text class="mo-count-value">{{tradeCount}}</text>
+    </view>
+    <view class="mo-count-card">
+      <text class="mo-count-label">风控报告</text>
+      <text class="mo-count-value">{{reportCount}}</text>
+    </view>
+    <view class="mo-count-card">
+      <text class="mo-count-label">长期档案</text>
+      <text class="mo-count-value">{{archiveCount}}</text>
+    </view>
+  </view>
+
+  <view class="mo-card">
+    <view class="mo-card-title">最近一条交易记录</view>
+    <view wx:if="{{latestTrade}}" class="mo-card-body">
+      <text class="mo-item-main">{{latestTrade.code || '—'}} · {{latestTrade.planType || '方案'}}</text>
+      <text class="mo-item-sub">时间：{{latestTradeTime}}</text>
+      <text class="mo-item-sub">目标价格：{{latestTrade.targetPrice || '—'}} 元</text>
+      <text class="mo-item-sub">目标利润：{{latestTrade.targetProfit || '—'}} 元</text>
+    </view>
+    <view wx:else class="mo-empty-text">暂无交易记录</view>
+  </view>
+
+  <view class="mo-card">
+    <view class="mo-card-title">最近一份风控报告</view>
+    <view wx:if="{{latestReport}}" class="mo-card-body">
+      <text class="mo-item-main">{{latestReport.code || '—'}} · {{latestReport.planType || '方案'}}</text>
+      <text class="mo-item-sub">时间：{{latestReportTime}}</text>
+      <text class="mo-item-sub">入口来源：{{latestReport.source || 'riskCalculator'}}</text>
+      <text class="mo-item-sub">版本：{{latestReport.entryVersion || 'V1.4'}}</text>
+    </view>
+    <view wx:else class="mo-empty-text">暂无风控报告</view>
+  </view>
+
+  <view class="mo-card">
+    <view class="mo-card-title">最近一条长期档案</view>
+    <view wx:if="{{latestArchive}}" class="mo-card-body">
+      <text class="mo-item-main">{{latestArchive.code || '—'}} · {{latestArchive.planType || '方案'}}</text>
+      <text class="mo-item-sub">时间：{{latestArchiveTime}}</text>
+      <text class="mo-item-sub">步骤数量：{{latestArchive.steps.length}} 步</text>
+      <text class="mo-item-sub">版本：{{latestArchive.entryVersion || 'V1.4'}}</text>
+    </view>
+    <view wx:else class="mo-empty-text">暂无长期档案</view>
+  </view>
+
+  <view class="mo-card">
+    <view class="mo-card-title">AI主链问答</view>
+
+    <input
+      class="mo-qa-input"
+      placeholder="例如：当前主链状态如何？下一步做什么？"
+      value="{{questionInput}}"
+      bindinput="onQuestionInput"
+      confirm-type="send"
+      bindconfirm="askQuestion"
+    />
+
+    <view class="mo-qa-preset-row">
+      <view class="mo-preset-btn" data-q="当前主链状态如何？" bindtap="fillPreset">当前状态</view>
+      <view class="mo-preset-btn" data-q="最新风控报告怎么看？" bindtap="fillPreset">最新报告</view>
+      <view class="mo-preset-btn" data-q="下一步做什么？" bindtap="fillPreset">下一步</view>
+    </view>
+
+    <view class="mo-btn mo-btn-primary" bindtap="askQuestion">开始提问</view>
+
+    <view class="mo-qa-answer-card" wx:if="{{qaAnswer}}">
+      <text class="mo-qa-answer-label">回答</text>
+      <text class="mo-qa-answer-text">{{qaAnswer}}</text>
+    </view>
+
+    <view class="mo-qa-history" wx:if="{{qaHistory.length}}">
+      <view class="mo-card-title" style="margin-bottom: 12rpx;">最近问答</view>
+      <block wx:for="{{qaHistory}}" wx:key="index">
+        <view class="mo-qa-history-item">
+          <text class="mo-qa-q">问：{{item.q}}</text>
+          <text class="mo-qa-a">答：{{item.a}}</text>
+          <text class="mo-qa-time">{{item.createdAt}}</text>
+        </view>
+      </block>
+    </view>
+  </view>
+
+  <view class="mo-bottom-actions">
+    <view class="mo-btn mo-btn-secondary" bindtap="goTradeRecord">查看我的交易记录</view>
+    <view class="mo-btn mo-btn-secondary" bindtap="goRiskReport">查看最新风控报告</view>
+    <view class="mo-btn mo-btn-secondary" bindtap="goLongArchive">查看长期档案</view>
+    <view class="mo-btn mo-btn-primary" bindtap="goRiskCalculator">继续生成方案</view>
+    <view class="mo-btn mo-btn-primary" bindtap="goHome">返回首页</view>
+  </view>
+</view>
