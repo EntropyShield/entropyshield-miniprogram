@@ -24,35 +24,38 @@
     </view>
   </view>
 
-  <view class="mo-card">
+  <view class="mo-card" bindtap="openLatestTrade">
     <view class="mo-card-title">最近一条交易记录</view>
     <view wx:if="{{latestTrade}}" class="mo-card-body">
       <text class="mo-item-main">{{latestTrade.code || '—'}} · {{latestTrade.planType || '方案'}}</text>
       <text class="mo-item-sub">时间：{{latestTradeTime}}</text>
       <text class="mo-item-sub">目标价格：{{latestTrade.targetPrice || '—'}} 元</text>
       <text class="mo-item-sub">目标利润：{{latestTrade.targetProfit || '—'}} 元</text>
+      <text class="mo-item-sub">点击可直达交易记录</text>
     </view>
     <view wx:else class="mo-empty-text">暂无交易记录</view>
   </view>
 
-  <view class="mo-card">
+  <view class="mo-card" bindtap="openLatestReport">
     <view class="mo-card-title">最近一份风控报告</view>
     <view wx:if="{{latestReport}}" class="mo-card-body">
       <text class="mo-item-main">{{latestReport.code || '—'}} · {{latestReport.planType || '方案'}}</text>
       <text class="mo-item-sub">时间：{{latestReportTime}}</text>
       <text class="mo-item-sub">入口来源：{{latestReport.source || 'riskCalculator'}}</text>
       <text class="mo-item-sub">版本：{{latestReport.entryVersion || 'V1.4'}}</text>
+      <text class="mo-item-sub">点击可直达风控报告</text>
     </view>
     <view wx:else class="mo-empty-text">暂无风控报告</view>
   </view>
 
-  <view class="mo-card">
+  <view class="mo-card" bindtap="openLatestArchive">
     <view class="mo-card-title">最近一条长期档案</view>
     <view wx:if="{{latestArchive}}" class="mo-card-body">
       <text class="mo-item-main">{{latestArchive.code || '—'}} · {{latestArchive.planType || '方案'}}</text>
       <text class="mo-item-sub">时间：{{latestArchiveTime}}</text>
       <text class="mo-item-sub">步骤数量：{{latestArchive.steps.length}} 步</text>
       <text class="mo-item-sub">版本：{{latestArchive.entryVersion || 'V1.4'}}</text>
+      <text class="mo-item-sub">点击可直达长期档案</text>
     </view>
     <view wx:else class="mo-empty-text">暂无长期档案</view>
   </view>

@@ -191,3 +191,14 @@ page {
   line-height: 1.7;
   word-break: break-all;
 }
+.mo-clickable {
+  position: relative;
+}
+
+.mo-tap-tip {
+  display: block;
+  margin-top: 10rpx;
+  font-size: 20rpx;
+  color: #2aff2a;
+  opacity: 0.9;
+}
