@@ -25,9 +25,9 @@
         <view class="la-card-top">
           <view class="la-top-left">
             <text class="la-code">{{item.code || '未填写标的'}}</text>
-            <text class="la-type">{{planTypeMap[item.planType] || item.planType || '方案'}}</text>
+            <text class="la-type">{{item.__planTypeText}}</text>
           </view>
-          <text class="la-time">{{item.archivedTimeText}}</text>
+          <text class="la-time">{{item.archivedTimeText || '—'}}</text>
         </view>
 
         <view class="la-grid">
@@ -61,36 +61,36 @@
           </view>
           <view class="la-cell">
             <text class="la-label">步骤数量</text>
-            <text class="la-value">{{item.steps.length}} 步</text>
+            <text class="la-value">{{item.__stepsCount}} 步</text>
           </view>
         </view>
 
         <view class="la-card" style="margin-top: 20rpx; margin-bottom: 0;">
-          <view class="la-summary-title" style="font-size: 28rpx; color: #2aff2a;">AI复盘</view>
+          <view class="la-ai-title">AI复盘</view>
 
           <view class="la-cell" style="margin-top: 16rpx;">
             <text class="la-label">复盘总结</text>
-            <text class="la-value">{{aiReviewMap[item.archiveId || item.reportId || item.draftId || item.createdAt].summary}}</text>
+            <text class="la-value">{{aiReviewMap[item.__reviewKey].summary}}</text>
           </view>
 
           <view class="la-cell">
             <text class="la-label">常见错误检查</text>
-            <text class="la-value">{{aiReviewMap[item.archiveId || item.reportId || item.draftId || item.createdAt].mistakeReview}}</text>
+            <text class="la-value">{{aiReviewMap[item.__reviewKey].mistakeReview}}</text>
           </view>
 
           <view class="la-cell">
             <text class="la-label">纪律执行复盘</text>
-            <text class="la-value">{{aiReviewMap[item.archiveId || item.reportId || item.draftId || item.createdAt].disciplineReview}}</text>
+            <text class="la-value">{{aiReviewMap[item.__reviewKey].disciplineReview}}</text>
           </view>
 
           <view class="la-cell">
             <text class="la-label">行为偏差复盘</text>
-            <text class="la-value">{{aiReviewMap[item.archiveId || item.reportId || item.draftId || item.createdAt].behaviorReview}}</text>
+            <text class="la-value">{{aiReviewMap[item.__reviewKey].behaviorReview}}</text>
           </view>
 
           <view class="la-cell">
             <text class="la-label">下一步建议</text>
-            <text class="la-value">{{aiReviewMap[item.archiveId || item.reportId || item.draftId || item.createdAt].nextSuggestion}}</text>
+            <text class="la-value">{{aiReviewMap[item.__reviewKey].nextSuggestion}}</text>
           </view>
         </view>
       </view>
