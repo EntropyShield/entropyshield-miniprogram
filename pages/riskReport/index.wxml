@@ -52,22 +52,12 @@
 
     <view class="rr-card">
       <view class="rr-section-title">报告摘要</view>
-      <view class="rr-row">
-        <text class="rr-k">首次价格</text>
-        <text class="rr-v">{{report.firstPrice || report.entryPrice || '—'}}</text>
-      </view>
-      <view class="rr-row">
-        <text class="rr-k">止损价格</text>
-        <text class="rr-v">{{report.stopLossPrice || report.stopPrice || '—'}}</text>
-      </view>
-      <view class="rr-row">
-        <text class="rr-k">目标价格</text>
-        <text class="rr-v">{{report.targetPrice || '—'}}</text>
-      </view>
-      <view class="rr-row">
-        <text class="rr-k">最大风险</text>
-        <text class="rr-v">{{report.maxLossAmount || report.riskAmount || report.totalRisk || report.totalLoss || '—'}}</text>
-      </view>
+      <block wx:for="{{summaryRows}}" wx:key="k">
+        <view class="rr-row">
+          <text class="rr-k">{{item.k}}</text>
+          <text class="rr-v">{{item.v}}</text>
+        </view>
+      </block>
     </view>
 
     <view class="rr-card">
@@ -75,8 +65,8 @@
       <block wx:if="{{steps.length}}">
         <block wx:for="{{steps}}" wx:key="index">
           <view class="rr-list-item">
-            <text class="rr-step-index">步骤{{index + 1}}</text>
-            <text class="rr-step-text">{{item.label || item.title || item.desc || item.text || item}}</text>
+            <text class="rr-step-index">步骤{{item.index}}</text>
+            <text class="rr-step-text">{{item.displayText}}</text>
           </view>
         </block>
       </block>
