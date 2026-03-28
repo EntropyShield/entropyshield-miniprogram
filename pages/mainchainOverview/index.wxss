@@ -150,19 +150,26 @@ page {
 }
 
 .mc-presets {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12rpx;
   margin-bottom: 16rpx;
 }
 
 .mc-chip {
-  padding: 10rpx 16rpx;
+  min-height: 64rpx;
+  padding: 0 16rpx;
   border-radius: 9999rpx;
   font-size: 22rpx;
   color: #2aff2a;
   background: rgba(42, 255, 42, 0.08);
   border: 1rpx solid rgba(42, 255, 42, 0.24);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  line-height: 1.4;
+  box-sizing: border-box;
 }
 
 .mc-qa-item {

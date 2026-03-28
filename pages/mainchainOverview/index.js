@@ -4,7 +4,7 @@ const linkage = require('../../utils/mainchainLinkage.js');
 
 const PLAN_TYPE_MAP = {
   steady: '稳健方案',
-  advanced: '加强方案'
+  advanced: '稳健方案'
 };
 
 function safeText(v, d = '') {
@@ -225,7 +225,7 @@ Page({
     });
   },
 
-  askQuestion() {
+askQuestion() {
     const question = safeText(this.data.questionInput, '').trim();
     const ctx = {
       tradeCount: this.data.tradeCount,
@@ -237,11 +237,13 @@ Page({
     };
     const answer = answerQuestion(question, ctx);
 
+    const nextItem = {
+      q: question || '未输入问题',
+      a: answer
+    };
+
     this.setData({
-      qaHistory: [{
-        q: question || '未输入问题',
-        a: answer
-      }].concat(this.data.qaHistory || []).slice(0, 12)
+      qaHistory: [nextItem]
     });
   },
 
