@@ -37,8 +37,9 @@ function buildSnapshot(note) {
   const mode = mainchainApi.getApiMode ? String(mainchainApi.getApiMode() || "") : "";
   const apiBase = mainchainApi.getApiBase ? String(mainchainApi.getApiBase() || "") : "";
 
-  const failedCount = queue.filter((x) => x && x.status === "failed").length;
-  const pendingCount = queue.filter((x) => x && x.status === "queued").length;
+  const activeQueue = queue.filter((x) => x && (x.status === "queued" || x.status === "failed"));
+  const failedCount = activeQueue.filter((x) => x && x.status === "failed").length;
+  const pendingCount = activeQueue.filter((x) => x && x.status === "queued").length;
 
   let syncStatus = "idle";
   if (queue.length || history.length || Object.keys(lastSyncMap).length) {
@@ -50,7 +51,7 @@ function buildSnapshot(note) {
     tradeRecords: tradeRecords.length ? "has-data" : "empty",
     riskReport: riskReport ? "ready" : "empty",
     longtermProfile: longtermProfile ? "ready" : "empty",
-    syncQueue: queue.length ? (failedCount ? "failed" : (pendingCount ? "pending" : "ready")) : "empty",
+    syncQueue: activeQueue.length ? (failedCount ? "failed" : (pendingCount ? "pending" : "ready")) : "empty",
     syncHistory: history.length ? "has-data" : "empty",
     lastSyncMap: Object.keys(lastSyncMap).length ? "has-data" : "empty"
   };
@@ -78,7 +79,7 @@ function buildSnapshot(note) {
         syncAt: now,
         mode,
         apiBase,
-        queueSize: queue.length,
+        queueSize: activeQueue.length,
         historySize: history.length,
         failedCount,
         pendingCount,
@@ -147,11 +148,16 @@ Page({
 
   handleSyncMainchain() {
     try {
-      if (mainchainApi.getApiMode && mainchainApi.getApiMode() === "api-ready" && mainchainApi.flushSyncQueue) {
+      const mode = mainchainApi.getApiMode ? String(mainchainApi.getApiMode() || "") : "";
+      if (mode === "api-ready" && mainchainApi.flushSyncQueue) {
         mainchainApi.flushSyncQueue();
+        this.refreshPage("sync_clicked_api_ready");
+        wx.showToast({ title: "Sync queued", icon: "success" });
+        return;
       }
-      this.refreshPage("sync_clicked");
-      wx.showToast({ title: "Synced", icon: "success" });
+
+      this.refreshPage("sync_clicked_local_only");
+      wx.showToast({ title: "Local snapshot", icon: "success" });
     } catch (e) {
       const errMsg = String((e && e.message) || e || "sync_failed");
       this.setData({
@@ -164,6 +170,9 @@ Page({
 
   handleResetState() {
     this.setData({ showRaw: false });
+    if (mainchainApi.clearSyncState) {
+      mainchainApi.clearSyncState({ keepMode: true, keepBase: true });
+    }
     this.refreshPage("reset_clicked");
     wx.showToast({ title: "Reset", icon: "success" });
   },

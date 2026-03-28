@@ -92,6 +92,28 @@ function getSyncQueue() {
     : [];
 }
 
+
+function clearSyncState(options = {}) {
+  const keepMode = options.keepMode !== false;
+  const keepBase = options.keepBase !== false;
+
+  wx.removeStorageSync(SYNC_KEYS.LAST_MAP);
+  wx.removeStorageSync(SYNC_KEYS.HISTORY);
+  wx.removeStorageSync(SYNC_KEYS.QUEUE);
+
+  if (!keepMode) {
+    wx.removeStorageSync(SYNC_KEYS.MODE);
+  }
+  if (!keepBase) {
+    wx.removeStorageSync(SYNC_KEYS.BASE);
+  }
+
+  return {
+    keepMode,
+    keepBase
+  };
+}
+
 function saveSyncReceipt(entityType, receipt) {
   const map = getLastSyncMap();
   map[String(entityType || '')] = receipt;
@@ -251,7 +273,9 @@ function requestSync(task) {
 
 function syncEntity(entityType, payload) {
   const task = buildQueueTask(entityType, payload);
-  saveSyncQueueTask(task);
+  if (String(task.mode || '') === 'api-ready') {
+    saveSyncQueueTask(task);
+  }
   return requestSync(task);
 }
 
@@ -331,6 +355,7 @@ module.exports = {
   getLastSyncMap,
   getSyncHistory,
   getSyncQueue,
+  clearSyncState,
 
   saveSyncReceipt,
   saveSyncQueueTask,
