@@ -1,69 +1,48 @@
 // pages/riskReport/index.js
 const store = require('../../utils/mainchainStore.js');
 const mainchainApi = require('../../utils/mainchainApi.js');
+const linkage = require('../../utils/mainchainLinkage.js');
 
-function fmtTime(ts) {
-  const n = Number(ts || 0);
-  if (!n) return '';
-  const d = new Date(n);
-  if (isNaN(d.getTime())) return '';
-  const pad = (x) => String(x).padStart(2, '0');
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-
-function safeText(v, fallback = '') {
-  if (v === undefined || v === null || v === '') return fallback;
-  return String(v);
+function safeText(v, d = '') {
+  if (v === undefined || v === null) return d;
+  return String(v).trim();
 }
 
 function safeArray(v) {
   return Array.isArray(v) ? v : [];
 }
 
+function fmtTime(v) {
+  if (!v) return '';
+  const d = new Date(v);
+  if (isNaN(d.getTime())) return '';
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  const hh = String(d.getHours()).padStart(2, '0');
+  const mi = String(d.getMinutes()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd} ${hh}:${mi}`;
+}
+
 function buildAiEnhancement(report = {}) {
   const planTypeMap = {
-    steady: '稳健版',
-    advanced: '加强版'
+    steady: '稳健方案',
+    advanced: '加强方案'
   };
 
   const planTypeText = planTypeMap[report.planType] || safeText(report.planType, '当前方案');
-  const firstPrice = Number(report.firstPrice || report.entryPrice || 0);
-  const stopLossPrice = Number(report.stopLossPrice || report.stopPrice || 0);
   const targetPrice = Number(report.targetPrice || 0);
-  const steps = safeArray(report.steps);
-  const disciplineTips = safeArray(report.disciplineTips);
-
-  const stopDistance = firstPrice && stopLossPrice
-    ? (((firstPrice - stopLossPrice) / firstPrice) * 100).toFixed(2) + '%'
-    : '—';
-
-  const targetDistance = firstPrice && targetPrice
-    ? (((targetPrice - firstPrice) / firstPrice) * 100).toFixed(2) + '%'
-    : '—';
-
-  const riskAmount = safeText(
+  const riskText = safeText(
     report.maxLossAmount || report.riskAmount || report.totalRisk || report.totalLoss,
-    '已按方案约束'
+    '未识别'
   );
 
   return {
-    summary: `${planTypeText}已生成，当前重点不是预测对错，而是先把亏损边界和执行顺序锁住。`,
-    riskExplanation: `本次方案把最大风险控制在 ${riskAmount} 的范围内，先看能亏多少，再看能赚多少。`,
-    positionExplanation: steps.length
-      ? `当前报告包含 ${steps.length} 个执行步骤，建议按步骤推进，不要临盘改规则。`
-      : '当前报告没有拆出多步骤执行，建议单次执行也严格按固定节奏推进。',
-    stopLossExplanation: stopLossPrice
-      ? `止损位已给出，和首次价格相比回撤空间约 ${stopDistance}。触发后优先执行，不拖延。`
-      : '本报告未识别出明确止损位，执行前先确认退出边界。',
-    targetExplanation: targetPrice
-      ? `目标位已给出，和首次价格相比目标空间约 ${targetDistance}。到位后按计划处理，不贪不赌。`
-      : '本报告未识别出明确目标位，建议先确认止盈路径。',
-    disciplineWarning: disciplineTips.length
-      ? disciplineTips[0]
-      : '不要加仓摊低，不要因为波动临时改规则。',
-    nextActionSuggestion: report.reportId
-      ? '先保存本报告，再归档到长期档案，后续按同一逻辑复盘。'
-      : '先完成当前方案执行，再进入长期档案复盘。'
+    summary: `${planTypeText} 已生成，先看风险边界，再看利润目标。`,
+    riskReview: `当前最大风险口径为 ${riskText}。先守边界，不要临盘放宽。`,
+    targetReview: targetPrice ? `目标价为 ${targetPrice}，到位后按计划处理。` : '目标价暂未识别，请先核对计划。',
+    disciplineReview: '执行纪律固定：不开赌局，不拖止损，不临盘改规则。',
+    nextActionSuggestion: report.reportId || ''
   };
 }
 
@@ -71,27 +50,27 @@ Page({
   data: {
     report: null,
     reportId: '',
+    from: '',
+    focus: '',
     timeText: '',
     disciplineTips: [],
     steps: [],
     aiEnhancement: {
       summary: '',
-      riskExplanation: '',
-      positionExplanation: '',
-      stopLossExplanation: '',
-      targetExplanation: '',
-      disciplineWarning: '',
+      riskReview: '',
+      targetReview: '',
+      disciplineReview: '',
       nextActionSuggestion: ''
-    },
-    planTypeMap: {
-      steady: '稳健版',
-      advanced: '加强版'
     }
   },
 
   onLoad(options = {}) {
-    const reportId = safeText(options.reportId, '');
-    this.loadReport(reportId);
+    const nav = linkage.parseNavOptions(options, 'riskReport');
+    this.setData({
+      from: nav.from,
+      focus: nav.focus
+    });
+    this.loadReport(nav.reportId);
   },
 
   onShow() {
@@ -101,8 +80,7 @@ Page({
   },
 
   loadReport(reportId = '') {
-    const report = store.getResolvedRiskReport(reportId);
-
+    const report = store.getResolvedRiskReport ? store.getResolvedRiskReport(reportId) : null;
     if (!report) {
       wx.showToast({ title: '暂无风控报告', icon: 'none' });
       return;
@@ -118,40 +96,56 @@ Page({
     });
   },
 
-  saveLongArchive() {
-    try {
-      if (!this.data.report) {
-        wx.showToast({ title: '暂无可归档报告', icon: 'none' });
-        return;
-      }
-
-      try {
-        mainchainApi.persistLongArchiveFromReport(this.data.report);
-      } catch (e) {
-        store.saveLongArchiveFromReport(this.data.report);
-      }
-
-      wx.showToast({ title: '已加入长期档案', icon: 'success' });
-    } catch (e) {
-      wx.showToast({ title: '归档失败', icon: 'none' });
+  saveToLongArchive() {
+    if (!this.data.report) {
+      wx.showToast({ title: '暂无可归档报告', icon: 'none' });
+      return;
     }
+    if (mainchainApi.persistLongArchiveFromReport) {
+      mainchainApi.persistLongArchiveFromReport(this.data.report);
+    }
+    if (store.saveLongArchiveFromReport) {
+      store.saveLongArchiveFromReport(this.data.report);
+    }
+    wx.showToast({ title: '已写入长期档案', icon: 'success' });
+  },
+
+  
+  saveLongArchive() {
+    return this.saveToLongArchive();
+  },
+
+  onSaveArchive() {
+    this.saveToLongArchive();
   },
 
   goLongArchive() {
-    wx.navigateTo({
-      url: '/pages/longArchive/index?from=riskReport'
+    wx.redirectTo({
+      url: linkage.buildNavUrl('/pages/longArchive/index', {
+        from: 'riskReport',
+        focus: 'reportId',
+        reportId: this.data.reportId || ''
+      })
     });
   },
 
   goMainchainOverview() {
-    wx.navigateTo({
-      url: '/pages/mainchainOverview/index?from=riskReport'
+    wx.redirectTo({
+      url: linkage.buildNavUrl('/pages/mainchainOverview/index', {
+        from: 'riskReport',
+        focus: 'reportId',
+        reportId: this.data.reportId || ''
+      })
     });
   },
 
   goTradeRecord() {
-    wx.navigateTo({
-      url: '/pages/tradeRecord/index?from=riskReport'
+    wx.redirectTo({
+      url: linkage.buildNavUrl('/pages/tradeRecord/index', {
+        from: 'riskReport',
+        focus: 'reportId',
+        reportId: this.data.reportId || ''
+      })
     });
   },
 
@@ -162,8 +156,6 @@ Page({
   },
 
   goHome() {
-    wx.switchTab({
-      url: '/pages/index/index'
-    });
+    wx.switchTab({ url: '/pages/index/index' });
   }
 });
