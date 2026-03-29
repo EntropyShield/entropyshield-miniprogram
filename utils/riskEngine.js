@@ -1,4 +1,4 @@
-// utils/riskEngine.js
+﻿// utils/riskEngine.js
 function safeNum(value, fallback = 0) {
   const n = parseFloat(value);
   return Number.isFinite(n) ? n : fallback;
@@ -25,12 +25,74 @@ function toTs(value, fallback = 0) {
   return Number.isFinite(n) && n > 0 ? n : fallback;
 }
 
+function normalizeStringArray(value) {
+  if (Array.isArray(value)) {
+    return value
+      .map(item => String(item == null ? '' : item).trim())
+      .filter(Boolean);
+  }
+
+  if (typeof value === 'string') {
+    return value
+      .split(/[，,、|]/)
+      .map(item => item.trim())
+      .filter(Boolean);
+  }
+
+  return [];
+}
+
+function normalizeExecutionStatus(value) {
+  const raw = String(value || '').trim().toLowerCase();
+
+  const map = {
+    pending: 'pending',
+    unknown: 'pending',
+    planned: 'planned',
+    partial: 'partial',
+    deviated: 'deviated',
+    done: 'done',
+    completed: 'done',
+    archived: 'archived',
+
+    待执行: 'pending',
+    已计划: 'planned',
+    部分执行: 'partial',
+    已偏离: 'deviated',
+    已完成: 'done',
+    已归档: 'archived'
+  };
+
+  return map[raw] || (raw ? raw : 'pending');
+}
+
+function normalizeSrrScore(value) {
+  if (value === '' || value === null || value === undefined) return null;
+  const n = Number(value);
+  if (!Number.isFinite(n)) return null;
+  if (n < 0) return 0;
+  if (n > 100) return 100;
+  return Number(n.toFixed(2));
+}
+
+function withEvaluationMeta(entity = {}) {
+  return {
+    ...entity,
+    srrScore: normalizeSrrScore(entity.srrScore),
+    executionStatus: normalizeExecutionStatus(entity.executionStatus),
+    deviationTags: normalizeStringArray(entity.deviationTags),
+    groupTag: String(entity.groupTag || '').trim(),
+    stageTag: String(entity.stageTag || '').trim(),
+    archiveTags: normalizeStringArray(entity.archiveTags)
+  };
+}
+
 function withChainMeta(entity = {}) {
   const generatedAt = toTs(entity.generatedAt, 0);
   const createdAt = toTs(entity.createdAt, generatedAt || Date.now());
   const savedAt = toTs(entity.savedAt, createdAt);
 
-  return {
+  return withEvaluationMeta({
     ...entity,
     draftId: String(entity.draftId || ''),
     resultId: String(entity.resultId || ''),
@@ -47,7 +109,18 @@ function withChainMeta(entity = {}) {
     generatedAt,
     createdAt,
     savedAt
-  };
+  });
+}
+
+function buildEvaluationPatch(payload = {}) {
+  return withEvaluationMeta({
+    srrScore: payload.srrScore,
+    executionStatus: payload.executionStatus,
+    deviationTags: payload.deviationTags,
+    groupTag: payload.groupTag,
+    stageTag: payload.stageTag,
+    archiveTags: payload.archiveTags
+  });
 }
 
 function buildRiskEntryDraft(payload = {}) {
@@ -87,6 +160,7 @@ function buildPlanSnapshot(payload = {}) {
 function buildTradeRecord(payload = {}) {
   return withChainMeta({
     recordId: payload.recordId || `tr_${payload.resultId || Date.now()}`,
+    reportId: payload.reportId || '',
     planType: payload.planType || '',
     code: payload.code || '',
     membershipType: payload.membershipType || '',
@@ -310,7 +384,8 @@ function buildLongArchiveFromReport(report = {}) {
     createdAt: report.createdAt || Date.now(),
     savedAt: Date.now(),
     archivedAt: Date.now(),
-    disciplineTips: Array.isArray(report.disciplineTips) ? report.disciplineTips : []
+    disciplineTips: Array.isArray(report.disciplineTips) ? report.disciplineTips : [],
+    archiveTags: report.archiveTags || report.deviationTags || []
   });
 }
 
@@ -321,7 +396,12 @@ module.exports = {
   safeDiv,
   buildId,
   toTs,
+  normalizeStringArray,
+  normalizeExecutionStatus,
+  normalizeSrrScore,
+  withEvaluationMeta,
   withChainMeta,
+  buildEvaluationPatch,
   buildRiskEntryDraft,
   buildPlanSnapshot,
   buildTradeRecord,
