@@ -313,16 +313,30 @@ Page({
   },
 
   buildRiskEntryDraft(planType) {
-    const { balance, price, code, source, entryVersion } = this.data;
+    const { balance, price, code, source, entryVersion, draftId } = this.data;
+  
+    if (riskEngine && typeof riskEngine.buildRiskEntryDraft === 'function') {
+      return riskEngine.buildRiskEntryDraft({
+        draftId: draftId || '',
+        createdAt: Date.now(),
+        source,
+        entryVersion,
+        planType,
+        balance: this.sanitizeNumberInput(balance, 2),
+        price: this.sanitizeNumberInput(price, 4),
+        code: this.sanitizeCodeInput(code)
+      });
+    }
+  
     return {
-      draftId: `rcd_${Date.now()}`,
+      draftId: draftId || `rcd_${Date.now()}`,
       createdAt: Date.now(),
       source,
       entryVersion,
       planType,
-      balance: String(balance || '').trim(),
-      price: String(price || '').trim(),
-      code: String(code || '').trim()
+      balance: this.sanitizeNumberInput(balance, 2),
+      price: this.sanitizeNumberInput(price, 4),
+      code: this.sanitizeCodeInput(code)
     };
   },
 
