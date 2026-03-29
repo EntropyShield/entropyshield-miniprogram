@@ -7,14 +7,19 @@ const PLAN_TYPE_MAP = {
   advanced: '加强方案'
 };
 
-const EXECUTION_STATUS_MAP = {
-  pending: '待执行',
-  planned: '已计划',
-  partial: '部分执行',
-  deviated: '已偏离',
-  done: '已完成',
-  archived: '已归档'
-};
+const EXECUTION_OPTIONS = [
+  { value: 'pending', label: '待执行' },
+  { value: 'planned', label: '已计划' },
+  { value: 'partial', label: '部分执行' },
+  { value: 'deviated', label: '已偏离' },
+  { value: 'done', label: '已完成' },
+  { value: 'archived', label: '已归档' }
+];
+
+const EXECUTION_STATUS_MAP = EXECUTION_OPTIONS.reduce((acc, item) => {
+  acc[item.value] = item.label;
+  return acc;
+}, {});
 
 const DISPLAY_SOURCE = '熵盾风控系统';
 const DISPLAY_VERSION = 'RiskOS1.0';
@@ -60,9 +65,20 @@ function normalizeTags(value) {
   return [];
 }
 
+function tagsToText(value) {
+  const list = normalizeTags(value);
+  return list.length ? list.join(' / ') : '无';
+}
+
 function normalizeExecutionStatus(value) {
   const raw = safeText(value, '').toLowerCase();
   return raw || 'pending';
+}
+
+function getExecutionIndex(status) {
+  const key = normalizeExecutionStatus(status);
+  const idx = EXECUTION_OPTIONS.findIndex(item => item.value === key);
+  return idx >= 0 ? idx : 0;
 }
 
 function getPlanTypeText(v) {
@@ -72,6 +88,23 @@ function getPlanTypeText(v) {
 function getExecutionStatusText(v) {
   const key = normalizeExecutionStatus(v);
   return EXECUTION_STATUS_MAP[key] || safeText(v, '待执行');
+}
+
+function buildEvalForm(entity = {}) {
+  const status = normalizeExecutionStatus(entity.executionStatus);
+  const index = getExecutionIndex(status);
+  return {
+    srrScoreInput: entity.srrScore === null || entity.srrScore === undefined || entity.srrScore === ''
+      ? ''
+      : String(entity.srrScore),
+    executionStatus: status,
+    executionStatusIndex: index,
+    executionStatusText: EXECUTION_OPTIONS[index].label,
+    deviationTagsInput: normalizeTags(entity.deviationTags).join('、'),
+    groupTagInput: safeText(entity.groupTag, ''),
+    stageTagInput: safeText(entity.stageTag, ''),
+    archiveTagsInput: normalizeTags(entity.archiveTags).join('、')
+  };
 }
 
 function normalizeRecord(item = {}) {
@@ -114,7 +147,9 @@ function normalizeRecord(item = {}) {
     archiveTags,
     archiveTagsText: archiveTags.length ? archiveTags.join(' / ') : '无',
     timeText: fmtTime(item.savedAt || item.generatedAt || item.createdAt || 0),
-    __activeKey: linkage.safeText(item.recordId || item.reportId || item.id, '')
+    __activeKey: safeText(item.recordId || item.reportId || item.id, ''),
+    reportId: safeText(item.reportId, ''),
+    recordId: safeText(item.recordId, '')
   };
 }
 
@@ -130,9 +165,20 @@ function moveHitToTop(list = [], hitIndex = -1) {
 Page({
   data: {
     list: [],
+    currentItem: null,
     totalCount: 0,
     latestTime: '',
     planTypeMap: PLAN_TYPE_MAP,
+    executionOptionLabels: EXECUTION_OPTIONS.map(item => item.label),
+    executionStatus: 'pending',
+    executionStatusIndex: 0,
+    executionStatusText: EXECUTION_OPTIONS[0].label,
+    srrScoreInput: '',
+    deviationTagsInput: '',
+    groupTagInput: '',
+    stageTagInput: '',
+    archiveTagsInput: '',
+    savingEvaluation: false,
     from: '',
     focus: '',
     reportId: '',
@@ -152,6 +198,10 @@ Page({
     this.loadList();
   },
 
+  setEvaluationForm(entity = {}) {
+    this.setData(buildEvalForm(entity));
+  },
+
   loadList() {
     const raw = store.getTradeRecords ? store.getTradeRecords() : [];
     let list = safeList(raw).map(item => normalizeRecord(item));
@@ -164,17 +214,91 @@ Page({
       list = moveHitToTop(list, hitIndex);
     }
 
+    const currentItem = list[0] || null;
+
     this.setData({
       list,
+      currentItem,
       totalCount: list.length,
-      latestTime: list[0] ? safeText(list[0].timeText, '') : ''
+      latestTime: currentItem ? safeText(currentItem.timeText, '') : ''
     });
+
+    if (currentItem) {
+      this.setEvaluationForm(currentItem);
+    }
   },
 
   getCurrentReportId() {
-    const first = (this.data.list && this.data.list[0]) || {};
+    const current = this.data.currentItem || {};
     const latest = store.getLatestRiskReport ? (store.getLatestRiskReport() || {}) : {};
-    return linkage.safeText(this.data.reportId || first.reportId || latest.reportId || '', '');
+    return safeText(this.data.reportId || current.reportId || latest.reportId || '', '');
+  },
+
+  onFormInput(e) {
+    const field = e.currentTarget.dataset.field;
+    if (!field) return;
+    this.setData({
+      [field]: safeText(e.detail && e.detail.value, '')
+    });
+  },
+
+  onExecutionChange(e) {
+    const index = Number(e.detail && e.detail.value);
+    const next = EXECUTION_OPTIONS[index] || EXECUTION_OPTIONS[0];
+    this.setData({
+      executionStatusIndex: index,
+      executionStatus: next.value,
+      executionStatusText: next.label
+    });
+  },
+
+  saveEvaluation() {
+    const reportId = this.getCurrentReportId();
+    if (!reportId) {
+      wx.showToast({ title: '当前记录没有关联报告', icon: 'none' });
+      return;
+    }
+
+    const scoreText = safeText(this.data.srrScoreInput, '');
+    let srrScore = null;
+    if (scoreText) {
+      const num = Number(scoreText);
+      if (!Number.isFinite(num)) {
+        wx.showToast({ title: 'SRR 评分格式错误', icon: 'none' });
+        return;
+      }
+      srrScore = num;
+    }
+
+    const patch = {
+      srrScore,
+      executionStatus: this.data.executionStatus || 'pending',
+      deviationTags: normalizeTags(this.data.deviationTagsInput),
+      groupTag: safeText(this.data.groupTagInput, ''),
+      stageTag: safeText(this.data.stageTagInput, ''),
+      archiveTags: normalizeTags(this.data.archiveTagsInput)
+    };
+
+    this.setData({ savingEvaluation: true });
+
+    try {
+      const updated = store.applyEvaluationToChain
+        ? store.applyEvaluationToChain(reportId, patch)
+        : null;
+
+      if (!updated) {
+        wx.showToast({ title: '回写失败', icon: 'none' });
+        return;
+      }
+
+      this.loadList();
+      wx.showToast({ title: '已保存', icon: 'success' });
+    } catch (err) {
+      console.error('[tradeRecord] saveEvaluation error', err);
+      wx.showToast({ title: '保存失败', icon: 'none' });
+    } finally {
+      this.setData({ savingEvaluation: false });
+    }
   },
 
   goRiskReport() {

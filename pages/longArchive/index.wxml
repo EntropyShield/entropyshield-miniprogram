@@ -1,99 +1,134 @@
 <view class="la-page">
-  <view class="la-summary-card">
-    <view class="la-summary-top">
-      <view>
-        <text class="la-summary-title">长期档案</text>
-        <text class="la-summary-sub">把交易记录与风控报告沉淀为可回看、可复盘、可升级的长期档案。</text>
+  <view wx:if="{{archive}}" class="la-list">
+    <view class="la-summary-card">
+      <view class="la-summary-top">
+        <view>
+          <text class="la-summary-title">长期档案</text>
+          <text class="la-summary-sub">把交易记录与风控报告沉淀为可回看、可复盘、可升级的长期档案。</text>
+        </view>
+        <view class="la-summary-badge">{{archive.planTypeText}}</view>
       </view>
-      <view class="la-summary-badge">{{totalCount}} 条</view>
+
+      <view class="la-summary-meta">归档时间：{{archive.timeText}}</view>
+      <view class="la-summary-meta">代码：{{archive.code || '—'}}</view>
+      <view class="la-summary-meta">来源：{{archive.source || 'riskReport'}}</view>
+      <view class="la-summary-meta">版本：{{archive.entryVersion || 'V1.4'}}</view>
     </view>
 
-    <view class="la-summary-meta" wx:if="{{latestTime}}">
-      最近归档：{{latestTime}}
-    </view>
-  </view>
-
-  <view wx:if="{{!list.length}}" class="la-empty-card">
-    <text class="la-empty-title">还没有长期档案</text>
-    <text class="la-empty-desc">先进入风控报告页，再点击“加入长期档案”。</text>
-    <view class="la-empty-btn" bindtap="goRiskCalculator">去风控计算器</view>
-  </view>
-
-  <view wx:else class="la-list">
-    <block wx:for="{{list}}" wx:key="__activeKey">
-      <view class="la-card">
-        <view class="la-card-top">
-          <view class="la-top-left">
-            <text class="la-code">{{item.code || '未填写标的'}}</text>
-            <text class="la-type">{{planTypeMap[item.planType] || item.planType || '方案'}}</text>
-          </view>
-          <text class="la-time">{{item.archivedTimeText}}</text>
+    <view class="la-card">
+      <view class="la-card-top">
+        <view class="la-top-left">
+          <text class="la-code">{{archive.code || '未填写标的'}}</text>
+          <text class="la-type">{{archive.planTypeText}}</text>
         </view>
+        <text class="la-time">{{archive.timeText}}</text>
+      </view>
 
-        <view class="la-grid">
-          <view class="la-cell">
-            <text class="la-label">来源</text>
-            <text class="la-value">{{item.source}}</text>
-          </view>
-          <view class="la-cell">
-            <text class="la-label">版本</text>
-            <text class="la-value">{{item.entryVersion}}</text>
-          </view>
-          <view class="la-cell">
-            <text class="la-label">首次价格</text>
-            <text class="la-value">{{item.firstPrice || item.entryPrice || '—'}} 元</text>
-          </view>
-          <view class="la-cell">
-            <text class="la-label">止损价格</text>
-            <text class="la-value">{{item.stopLossPrice || '—'}}</text>
-          </view>
-          <view class="la-cell">
-            <text class="la-label">最大风险</text>
-            <text class="la-value la-strong">{{item.maxLossAmount || '—'}} 元</text>
-          </view>
-          <view class="la-cell">
-            <text class="la-label">目标价格</text>
-            <text class="la-value la-strong">{{item.targetPrice || '—'}} 元</text>
-          </view>
+      <view class="la-grid">
+        <view class="la-cell">
+          <text class="la-label">首次价格</text>
+          <text class="la-value">{{archive.firstPrice || '—'}} 元</text>
         </view>
-
-        <view class="la-card" style="margin-top: 20rpx; margin-bottom: 0;">
-          <view class="la-summary-title" style="font-size: 28rpx; color: #2aff2a;">AI复盘</view>
-
-          <view class="la-cell" style="margin-top: 16rpx;">
-            <text class="la-label">复盘总结</text>
-            <text class="la-value">{{item.aiReview.summary}}</text>
-          </view>
-
-          <view class="la-cell">
-            <text class="la-label">常见错误检查</text>
-            <text class="la-value">{{item.aiReview.mistakeReview}}</text>
-          </view>
-
-          <view class="la-cell">
-            <text class="la-label">纪律执行复盘</text>
-            <text class="la-value">{{item.aiReview.disciplineReview}}</text>
-          </view>
-
-          <view class="la-cell">
-            <text class="la-label">行为偏差复盘</text>
-            <text class="la-value">{{item.aiReview.behaviorReview}}</text>
-          </view>
-
-          <view class="la-cell">
-            <text class="la-label">下一步建议</text>
-            <text class="la-value">{{item.aiReview.nextSuggestion}}</text>
-          </view>
+        <view class="la-cell">
+          <text class="la-label">止损价格</text>
+          <text class="la-value">{{archive.stopLossPrice || '—'}}</text>
+        </view>
+        <view class="la-cell">
+          <text class="la-label">最大风险</text>
+          <text class="la-value la-strong">{{archive.maxLossAmount || '—'}} 元</text>
+        </view>
+        <view class="la-cell">
+          <text class="la-label">目标价格</text>
+          <text class="la-value la-strong">{{archive.targetPrice || '—'}} 元</text>
+        </view>
+        <view class="la-cell">
+          <text class="la-label">执行状态</text>
+          <text class="la-value">{{archive.executionStatusText}}</text>
+        </view>
+        <view class="la-cell">
+          <text class="la-label">SRR评分</text>
+          <text class="la-value">{{archive.srrScoreText}}</text>
+        </view>
+        <view class="la-cell">
+          <text class="la-label">偏差标签</text>
+          <text class="la-value">{{archive.deviationTagsText}}</text>
+        </view>
+        <view class="la-cell">
+          <text class="la-label">组标签</text>
+          <text class="la-value">{{archive.groupTag || '无'}}</text>
+        </view>
+        <view class="la-cell">
+          <text class="la-label">阶段标签</text>
+          <text class="la-value">{{archive.stageTag || '无'}}</text>
+        </view>
+        <view class="la-cell">
+          <text class="la-label">档案标签</text>
+          <text class="la-value">{{archive.archiveTagsText}}</text>
         </view>
       </view>
-    </block>
+    </view>
+
+    <view class="la-card">
+      <view class="la-summary-title" style="font-size: 30rpx;">评分与标签回写</view>
+
+      <view style="margin-top: 20rpx;">
+        <text class="la-label">SRR评分（0-100）</text>
+        <input value="{{srrScoreInput}}" data-field="srrScoreInput" bindinput="onFormInput" type="digit" placeholder="例如 85" style="margin-top:12rpx;padding:20rpx;border:1rpx solid rgba(255,255,255,0.12);border-radius:20rpx;color:#fff;" />
+      </view>
+
+      <view style="margin-top: 20rpx;">
+        <text class="la-label">执行状态</text>
+        <picker mode="selector" range="{{executionOptionLabels}}" value="{{executionStatusIndex}}" bindchange="onExecutionChange">
+          <view style="margin-top:12rpx;padding:20rpx;border:1rpx solid rgba(255,255,255,0.12);border-radius:20rpx;color:#fff;">
+            {{executionStatusText}}
+          </view>
+        </picker>
+      </view>
+
+      <view style="margin-top: 20rpx;">
+        <text class="la-label">偏差标签</text>
+        <textarea value="{{deviationTagsInput}}" data-field="deviationTagsInput" bindinput="onFormInput" auto-height placeholder="例如：拖延止损、抢跑加仓" style="margin-top:12rpx;min-height:120rpx;padding:20rpx;border:1rpx solid rgba(255,255,255,0.12);border-radius:20rpx;color:#fff;"></textarea>
+      </view>
+
+      <view style="margin-top: 20rpx;">
+        <text class="la-label">组标签</text>
+        <input value="{{groupTagInput}}" data-field="groupTagInput" bindinput="onFormInput" placeholder="例如：第1组" style="margin-top:12rpx;padding:20rpx;border:1rpx solid rgba(255,255,255,0.12);border-radius:20rpx;color:#fff;" />
+      </view>
+
+      <view style="margin-top: 20rpx;">
+        <text class="la-label">阶段标签</text>
+        <input value="{{stageTagInput}}" data-field="stageTagInput" bindinput="onFormInput" placeholder="例如：阶段A" style="margin-top:12rpx;padding:20rpx;border:1rpx solid rgba(255,255,255,0.12);border-radius:20rpx;color:#fff;" />
+      </view>
+
+      <view style="margin-top: 20rpx;">
+        <text class="la-label">档案标签</text>
+        <textarea value="{{archiveTagsInput}}" data-field="archiveTagsInput" bindinput="onFormInput" auto-height placeholder="例如：执行稳定、止损合规" style="margin-top:12rpx;min-height:120rpx;padding:20rpx;border:1rpx solid rgba(255,255,255,0.12);border-radius:20rpx;color:#fff;"></textarea>
+      </view>
+
+      <view class="la-bottom-btn" bindtap="saveEvaluation" style="margin-top: 24rpx; opacity: {{savingEvaluation ? 0.6 : 1}};">保存评分与标签</view>
+    </view>
+
+    <view class="la-card" wx:if="{{archive.disciplineTips.length}}">
+      <view class="la-summary-title" style="font-size: 30rpx;">纪律提醒</view>
+      <block wx:for="{{archive.disciplineTips}}" wx:key="index">
+        <view class="la-cell" style="margin-top: 16rpx;">
+          <text class="la-value">{{item}}</text>
+        </view>
+      </block>
+    </view>
 
     <view class="la-bottom-actions">
-      <view class="la-bottom-btn la-bottom-btn-secondary" bindtap="goLatestRiskReport">查看最新风控报告</view>
+      <view class="la-bottom-btn la-bottom-btn-secondary" bindtap="goRiskReport">查看风控报告</view>
       <view class="la-bottom-btn la-bottom-btn-secondary" bindtap="goTradeRecord">查看我的交易记录</view>
       <view class="la-bottom-btn la-bottom-btn-secondary" bindtap="goMainchainOverview">查看主链总览</view>
       <view class="la-bottom-btn" bindtap="goRiskCalculator">继续生成方案</view>
       <view class="la-bottom-btn" bindtap="goHome">返回首页</view>
     </view>
+  </view>
+
+  <view wx:else class="la-empty-card">
+    <text class="la-empty-title">还没有长期档案</text>
+    <text class="la-empty-desc">先进入风控报告页，再点击“加入长期档案”。</text>
+    <view class="la-empty-btn" bindtap="goRiskCalculator">去风控计算器</view>
   </view>
 </view>

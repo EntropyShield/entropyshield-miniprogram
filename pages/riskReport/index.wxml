@@ -3,67 +3,73 @@
     <view class="rr-card rr-hero">
       <view class="rr-hero-top">
         <text class="rr-title">风控报告</text>
-        <view class="rr-badge">{{planTypeMap[report.planType] || report.planType || '当前方案'}}</view>
+        <view class="rr-badge">{{report.planTypeText}}</view>
       </view>
       <text class="rr-sub">代码：{{report.code || '—'}}</text>
-      <text class="rr-sub">时间：{{timeText || '—'}}</text>
+      <text class="rr-sub">时间：{{report.timeText || '—'}}</text>
       <text class="rr-sub">来源：{{report.source || 'riskCalculator'}}</text>
       <text class="rr-sub">版本：{{report.entryVersion || 'V1.4'}}</text>
     </view>
 
     <view class="rr-card">
-      <view class="rr-section-title">AI增强解读</view>
-
-      <view class="rr-ai-item">
-        <text class="rr-ai-label">AI总结</text>
-        <text class="rr-ai-value">{{aiEnhancement.summary}}</text>
-      </view>
-
-      <view class="rr-ai-item">
-        <text class="rr-ai-label">风险解释</text>
-        <text class="rr-ai-value">{{aiEnhancement.riskExplanation}}</text>
-      </view>
-
-      <view class="rr-ai-item">
-        <text class="rr-ai-label">仓位执行</text>
-        <text class="rr-ai-value">{{aiEnhancement.positionExplanation}}</text>
-      </view>
-
-      <view class="rr-ai-item">
-        <text class="rr-ai-label">止损纪律</text>
-        <text class="rr-ai-value">{{aiEnhancement.stopLossExplanation}}</text>
-      </view>
-
-      <view class="rr-ai-item">
-        <text class="rr-ai-label">止盈理解</text>
-        <text class="rr-ai-value">{{aiEnhancement.targetExplanation}}</text>
-      </view>
-
-      <view class="rr-ai-item">
-        <text class="rr-ai-label">纪律提醒</text>
-        <text class="rr-ai-value">{{aiEnhancement.disciplineWarning}}</text>
-      </view>
-
-      <view class="rr-ai-item">
-        <text class="rr-ai-label">下一步动作</text>
-        <text class="rr-ai-value">{{aiEnhancement.nextActionSuggestion}}</text>
-      </view>
+      <view class="rr-section-title">报告摘要</view>
+      <view class="rr-row"><text class="rr-k">首次价格</text><text class="rr-v">{{report.firstPrice || '—'}}</text></view>
+      <view class="rr-row"><text class="rr-k">止损价格</text><text class="rr-v">{{report.stopLossPrice || '—'}}</text></view>
+      <view class="rr-row"><text class="rr-k">最大风险</text><text class="rr-v">{{report.maxLossAmount || '—'}}</text></view>
+      <view class="rr-row"><text class="rr-k">目标价格</text><text class="rr-v">{{report.targetPrice || '—'}}</text></view>
+      <view class="rr-row"><text class="rr-k">目标利润</text><text class="rr-v">{{report.targetProfit || '—'}}</text></view>
+      <view class="rr-row"><text class="rr-k">执行状态</text><text class="rr-v">{{report.executionStatusText}}</text></view>
+      <view class="rr-row"><text class="rr-k">SRR评分</text><text class="rr-v">{{report.srrScoreText}}</text></view>
+      <view class="rr-row"><text class="rr-k">偏差标签</text><text class="rr-v">{{report.deviationTagsText}}</text></view>
+      <view class="rr-row"><text class="rr-k">组标签</text><text class="rr-v">{{report.groupTag || '无'}}</text></view>
+      <view class="rr-row"><text class="rr-k">阶段标签</text><text class="rr-v">{{report.stageTag || '无'}}</text></view>
+      <view class="rr-row"><text class="rr-k">档案标签</text><text class="rr-v">{{report.archiveTagsText}}</text></view>
     </view>
 
     <view class="rr-card">
-      <view class="rr-section-title">报告摘要</view>
-      <block wx:for="{{summaryRows}}" wx:key="k">
-        <view class="rr-row">
-          <text class="rr-k">{{item.k}}</text>
-          <text class="rr-v">{{item.v}}</text>
-        </view>
-      </block>
+      <view class="rr-section-title">评分与标签回写</view>
+
+      <view class="rr-ai-item">
+        <text class="rr-ai-label">SRR评分（0-100）</text>
+        <input value="{{srrScoreInput}}" data-field="srrScoreInput" bindinput="onFormInput" type="digit" placeholder="例如 82" style="margin-top:12rpx;padding:20rpx;border:1rpx solid rgba(255,255,255,0.12);border-radius:20rpx;color:#fff;" />
+      </view>
+
+      <view class="rr-ai-item">
+        <text class="rr-ai-label">执行状态</text>
+        <picker mode="selector" range="{{executionOptionLabels}}" value="{{executionStatusIndex}}" bindchange="onExecutionChange">
+          <view style="margin-top:12rpx;padding:20rpx;border:1rpx solid rgba(255,255,255,0.12);border-radius:20rpx;color:#fff;">
+            {{executionStatusText}}
+          </view>
+        </picker>
+      </view>
+
+      <view class="rr-ai-item">
+        <text class="rr-ai-label">偏差标签</text>
+        <textarea value="{{deviationTagsInput}}" data-field="deviationTagsInput" bindinput="onFormInput" auto-height placeholder="例如：拖延止损、抢跑加仓" style="margin-top:12rpx;min-height:120rpx;padding:20rpx;border:1rpx solid rgba(255,255,255,0.12);border-radius:20rpx;color:#fff;"></textarea>
+      </view>
+
+      <view class="rr-ai-item">
+        <text class="rr-ai-label">组标签</text>
+        <input value="{{groupTagInput}}" data-field="groupTagInput" bindinput="onFormInput" placeholder="例如：第1组" style="margin-top:12rpx;padding:20rpx;border:1rpx solid rgba(255,255,255,0.12);border-radius:20rpx;color:#fff;" />
+      </view>
+
+      <view class="rr-ai-item">
+        <text class="rr-ai-label">阶段标签</text>
+        <input value="{{stageTagInput}}" data-field="stageTagInput" bindinput="onFormInput" placeholder="例如：阶段A" style="margin-top:12rpx;padding:20rpx;border:1rpx solid rgba(255,255,255,0.12);border-radius:20rpx;color:#fff;" />
+      </view>
+
+      <view class="rr-ai-item">
+        <text class="rr-ai-label">档案标签</text>
+        <textarea value="{{archiveTagsInput}}" data-field="archiveTagsInput" bindinput="onFormInput" auto-height placeholder="例如：执行稳定、止损合规" style="margin-top:12rpx;min-height:120rpx;padding:20rpx;border:1rpx solid rgba(255,255,255,0.12);border-radius:20rpx;color:#fff;"></textarea>
+      </view>
+
+      <view class="rr-btn rr-btn-primary" bindtap="saveEvaluation" style="margin-top: 20rpx; opacity: {{savingEvaluation ? 0.6 : 1}};">保存评分与标签</view>
     </view>
 
     <view class="rr-card">
       <view class="rr-section-title">执行步骤</view>
-      <block wx:if="{{steps.length}}">
-        <block wx:for="{{steps}}" wx:key="index">
+      <block wx:if="{{report.displaySteps.length}}">
+        <block wx:for="{{report.displaySteps}}" wx:key="index">
           <view class="rr-list-item">
             <text class="rr-step-index">步骤{{item.index}}</text>
             <text class="rr-step-text">{{item.displayText}}</text>
@@ -75,8 +81,8 @@
 
     <view class="rr-card">
       <view class="rr-section-title">纪律提醒</view>
-      <block wx:if="{{disciplineTips.length}}">
-        <block wx:for="{{disciplineTips}}" wx:key="index">
+      <block wx:if="{{report.disciplineTips.length}}">
+        <block wx:for="{{report.disciplineTips}}" wx:key="index">
           <view class="rr-list-item">
             <text class="rr-step-text">{{item}}</text>
           </view>
