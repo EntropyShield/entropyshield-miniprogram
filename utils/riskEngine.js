@@ -20,8 +20,38 @@ function buildId(prefix = 'id') {
   return `${prefix}_${Date.now()}`;
 }
 
-function buildRiskEntryDraft(payload = {}) {
+function toTs(value, fallback = 0) {
+  const n = Number(value);
+  return Number.isFinite(n) && n > 0 ? n : fallback;
+}
+
+function withChainMeta(entity = {}) {
+  const generatedAt = toTs(entity.generatedAt, 0);
+  const createdAt = toTs(entity.createdAt, generatedAt || Date.now());
+  const savedAt = toTs(entity.savedAt, createdAt);
+
   return {
+    ...entity,
+    draftId: String(entity.draftId || ''),
+    resultId: String(entity.resultId || ''),
+    recordId: String(entity.recordId || ''),
+    reportId: String(entity.reportId || ''),
+    archiveId: String(entity.archiveId || ''),
+    planType: String(entity.planType || ''),
+    code: String(entity.code || '').trim(),
+    targetPrice: entity.targetPrice || '',
+    targetProfit: entity.targetProfit || '',
+    steps: Array.isArray(entity.steps) ? entity.steps : [],
+    source: entity.source || 'riskCalculator',
+    entryVersion: entity.entryVersion || 'V1.4',
+    generatedAt,
+    createdAt,
+    savedAt
+  };
+}
+
+function buildRiskEntryDraft(payload = {}) {
+  return withChainMeta({
     draftId: payload.draftId || buildId('rcd'),
     createdAt: payload.createdAt || Date.now(),
     source: payload.source || 'index',
@@ -30,12 +60,12 @@ function buildRiskEntryDraft(payload = {}) {
     balance: String(payload.balance || '').trim(),
     price: String(payload.price || '').trim(),
     code: String(payload.code || '').trim()
-  };
+  });
 }
 
 function buildPlanSnapshot(payload = {}) {
   const planType = String(payload.planType || 'steady');
-  return {
+  return withChainMeta({
     snapshotType: 'riskPlanResult',
     planType,
     code: payload.code || '',
@@ -51,11 +81,11 @@ function buildPlanSnapshot(payload = {}) {
     entryVersion: payload.entryVersion || 'V1.4',
     resultId: payload.resultId || buildId(planType),
     generatedAt: payload.generatedAt || Date.now()
-  };
+  });
 }
 
 function buildTradeRecord(payload = {}) {
-  return {
+  return withChainMeta({
     recordId: payload.recordId || `tr_${payload.resultId || Date.now()}`,
     planType: payload.planType || '',
     code: payload.code || '',
@@ -72,7 +102,7 @@ function buildTradeRecord(payload = {}) {
     resultId: payload.resultId || '',
     generatedAt: payload.generatedAt || Date.now(),
     savedAt: payload.savedAt || Date.now()
-  };
+  });
 }
 
 function buildSteadyPlan(totalCapitalInput, firstPriceInput) {
@@ -226,7 +256,7 @@ function buildRiskReport(snapshot = {}) {
   const planType = String(snapshot.planType || 'steady');
   const isAdvanced = planType === 'advanced';
 
-  return {
+  return withChainMeta({
     reportId: `rr_${snapshot.resultId || Date.now()}`,
     snapshotType: 'riskReport',
     planType,
@@ -255,11 +285,11 @@ function buildRiskReport(snapshot = {}) {
           '分批建仓按既定顺序执行，任何一步触发止损都应整体执行。',
           '本报告仅用于风控推演与复盘，不替代临盘判断。'
         ]
-  };
+  });
 }
 
-function buildLongArchiveItem(report = {}) {
-  return {
+function buildLongArchiveFromReport(report = {}) {
+  return withChainMeta({
     archiveId: `la_${report.reportId || report.resultId || Date.now()}`,
     snapshotType: 'riskLongArchive',
     reportId: report.reportId || '',
@@ -273,13 +303,15 @@ function buildLongArchiveItem(report = {}) {
     targetPrice: report.targetPrice || '',
     targetProfit: report.targetProfit || '',
     steps: Array.isArray(report.steps) ? report.steps : [],
-    source: report.source || 'riskCalculator',
+    source: report.source || 'riskReport',
     draftId: report.draftId || '',
     entryVersion: report.entryVersion || 'V1.4',
-    generatedAt: report.generatedAt || Date.now(),
+    generatedAt: report.generatedAt || 0,
     createdAt: report.createdAt || Date.now(),
-    archivedAt: Date.now()
-  };
+    savedAt: Date.now(),
+    archivedAt: Date.now(),
+    disciplineTips: Array.isArray(report.disciplineTips) ? report.disciplineTips : []
+  });
 }
 
 module.exports = {
@@ -288,11 +320,13 @@ module.exports = {
   roundLotDown,
   safeDiv,
   buildId,
+  toTs,
+  withChainMeta,
   buildRiskEntryDraft,
   buildPlanSnapshot,
   buildTradeRecord,
   buildSteadyPlan,
   buildAdvancedPlan,
   buildRiskReport,
-  buildLongArchiveItem
+  buildLongArchiveFromReport
 };
