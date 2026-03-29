@@ -48,6 +48,14 @@ function pickEntityId(entityType, payload = {}) {
   }
 }
 
+function mergeEntityPatch(entity = {}, patch = {}) {
+  const merged = {
+    ...entity,
+    ...patch
+  };
+  return riskEngine.withChainMeta ? riskEngine.withChainMeta(merged) : merged;
+}
+
 function saveRiskCalcDraft(draft = {}) {
   const nextDraft = riskEngine.buildRiskEntryDraft
     ? riskEngine.buildRiskEntryDraft(draft)
@@ -118,6 +126,28 @@ function getTradeRecords() {
   return safeList(wx.getStorageSync(KEYS.TRADE_LIST));
 }
 
+function getTradeRecordById(recordId) {
+  const list = getTradeRecords();
+  return list.find(item => String(item.recordId || '') === String(recordId || '')) || null;
+}
+
+function updateTradeRecordById(recordId, patch = {}) {
+  const list = getTradeRecords();
+  let hit = null;
+
+  const next = list.map(item => {
+    if (String(item.recordId || '') !== String(recordId || '')) return item;
+    hit = mergeEntityPatch(item, patch);
+    return hit;
+  });
+
+  if (hit) {
+    wx.setStorageSync(KEYS.TRADE_LIST, next.slice(0, 300));
+  }
+
+  return hit;
+}
+
 function clearTradeRecords() {
   wx.removeStorageSync(KEYS.TRADE_LIST);
 }
@@ -158,6 +188,29 @@ function getRiskReportHistory() {
 function getRiskReportById(reportId) {
   const map = safeMap(wx.getStorageSync(KEYS.REPORT_BY_ID));
   return map[String(reportId || '')] || null;
+}
+
+function updateRiskReportById(reportId, patch = {}) {
+  const current = getRiskReportById(reportId);
+  if (!current) return null;
+
+  const nextReport = mergeEntityPatch(current, patch);
+
+  const history = getRiskReportHistory().map(item => {
+    return String(item.reportId || '') === String(reportId || '') ? nextReport : item;
+  });
+  wx.setStorageSync(KEYS.REPORT_HISTORY, history.slice(0, 300));
+
+  const map = safeMap(wx.getStorageSync(KEYS.REPORT_BY_ID));
+  map[String(reportId || '')] = nextReport;
+  wx.setStorageSync(KEYS.REPORT_BY_ID, map);
+
+  const latest = getLatestRiskReport();
+  if (latest && String(latest.reportId || '') === String(reportId || '')) {
+    wx.setStorageSync(KEYS.REPORT_LATEST, nextReport);
+  }
+
+  return nextReport;
 }
 
 function getResolvedRiskReport(reportId) {
@@ -215,6 +268,34 @@ function getLongArchives() {
   return safeList(wx.getStorageSync(KEYS.ARCHIVE_LIST));
 }
 
+function getLongArchiveById(archiveId) {
+  const map = safeMap(wx.getStorageSync(KEYS.ARCHIVE_BY_ID));
+  return map[String(archiveId || '')] || null;
+}
+
+function updateLongArchiveById(archiveId, patch = {}) {
+  const current = getLongArchiveById(archiveId);
+  if (!current) return null;
+
+  const nextItem = mergeEntityPatch(current, patch);
+
+  const list = getLongArchives().map(item => {
+    return String(item.archiveId || '') === String(archiveId || '') ? nextItem : item;
+  });
+  wx.setStorageSync(KEYS.ARCHIVE_LIST, list.slice(0, 300));
+
+  const map = safeMap(wx.getStorageSync(KEYS.ARCHIVE_BY_ID));
+  map[String(archiveId || '')] = nextItem;
+  wx.setStorageSync(KEYS.ARCHIVE_BY_ID, map);
+
+  const latest = getLatestLongArchive();
+  if (latest && String(latest.archiveId || '') === String(archiveId || '')) {
+    wx.setStorageSync(KEYS.ARCHIVE_LATEST, nextItem);
+  }
+
+  return nextItem;
+}
+
 function getLongArchivesSorted() {
   return sortByTimeDesc(getLongArchives());
 }
@@ -229,19 +310,59 @@ function clearLongArchives() {
   wx.removeStorageSync(KEYS.ARCHIVE_BY_ID);
 }
 
+function applyEvaluationToChain(reportId, patch = {}) {
+  const evalPatch = riskEngine.buildEvaluationPatch
+    ? riskEngine.buildEvaluationPatch(patch)
+    : patch;
+
+  const report = updateRiskReportById(reportId, evalPatch);
+  if (!report) return null;
+
+  const resultId = String(report.resultId || '');
+
+  const tradeList = getTradeRecords();
+  tradeList.forEach(item => {
+    const hit =
+      String(item.reportId || '') === String(reportId || '') ||
+      (resultId && String(item.resultId || '') === resultId);
+
+    if (hit) {
+      updateTradeRecordById(item.recordId, evalPatch);
+    }
+  });
+
+  const archives = getLongArchives();
+  archives.forEach(item => {
+    const hit =
+      String(item.reportId || '') === String(reportId || '') ||
+      (resultId && String(item.resultId || '') === resultId);
+
+    if (hit) {
+      updateLongArchiveById(item.archiveId, {
+        ...evalPatch,
+        archiveTags: evalPatch.archiveTags && evalPatch.archiveTags.length
+          ? evalPatch.archiveTags
+          : evalPatch.deviationTags
+      });
+    }
+  });
+
+  return getResolvedRiskReport(reportId);
+}
+
 function getOverview() {
-  const drafts = getLatestRiskCalcDraft();
+  const latestDraft = getLatestRiskCalcDraft();
   const latestPlan = getLatestPlanResult();
   const trades = getTradeRecords();
   const reports = getRiskReportHistory();
   const archives = getLongArchivesSorted();
 
   return {
-    draftCount: drafts ? 1 : 0,
+    draftCount: latestDraft ? 1 : 0,
     tradeCount: trades.length,
     reportCount: reports.length,
     archiveCount: archives.length,
-    latestDraft: drafts || null,
+    latestDraft: latestDraft || null,
     latestPlan: latestPlan || null,
     latestTrade: trades[0] || null,
     latestReport: reports[0] || null,
@@ -280,20 +401,27 @@ module.exports = {
 
   saveTradeRecord,
   getTradeRecords,
+  getTradeRecordById,
+  updateTradeRecordById,
   clearTradeRecords,
 
   saveRiskReport,
   getLatestRiskReport,
   getRiskReportHistory,
   getRiskReportById,
+  updateRiskReportById,
   getResolvedRiskReport,
 
   saveLongArchive,
   saveLongArchiveFromReport,
   getLongArchives,
+  getLongArchiveById,
+  updateLongArchiveById,
   getLongArchivesSorted,
   getLatestLongArchive,
   clearLongArchives,
+
+  applyEvaluationToChain,
 
   getOverview,
   buildSyncPayload
