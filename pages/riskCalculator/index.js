@@ -1,6 +1,8 @@
 // pages/riskCalculator/index.js
 const funnel = require('../../utils/funnel.js');
 const UR = require('../../utils/userRights.js');
+const riskEngine = require('../../utils/riskEngine.js');
+const mainchainStore = require('../../utils/mainchainStore.js');
 
 /* ====== RC_V41_CLICK_DEDUPE (v4.1.2 / 2026-03-05) ======
 目标：同一 clientId + 同一输入 + 同一按钮(稳健/加强) 只扣 1 次；第二次点击直接“复用跳转”，不再触发扣次
@@ -31,7 +33,7 @@ function rcV41Normalize(v) {
 
 function rcV41PickKeys(data) {
   const allow = /(balance|amount|money|fund|price|buy|buyPrice|first|code|symbol|ticker|name|mode|type|risk|loss|profit|step|qty|count|__btn)/i;
-  const deny  = /(^_|loading|disabled|plan|result|rights|freeCalc|membership|modal|show|err|error|toast|tips|log)/i;
+  const deny = /(^_|loading|disabled|plan|result|rights|freeCalc|membership|modal|show|err|error|toast|tips|log)/i;
   const keys = Object.keys(data || {});
   const picked = [];
 
@@ -42,6 +44,7 @@ function rcV41PickKeys(data) {
       if (allow.test(k)) picked.push(k);
     }
   }
+
   if (picked.length === 0) {
     for (const k of keys) {
       if (deny.test(k)) continue;
@@ -49,6 +52,7 @@ function rcV41PickKeys(data) {
       if (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean') picked.push(k);
     }
   }
+
   picked.sort();
   return picked;
 }
@@ -60,11 +64,15 @@ function rcV41BuildSig(data) {
   return rcV41Hash32(parts.join('&'));
 }
 
-function rcV41ConsumedKey(cid, sig) { return `${__RCV41_PREFIX}_consumed_${cid}_${sig}`; }
+function rcV41ConsumedKey(cid, sig) {
+  return `${__RCV41_PREFIX}_consumed_${cid}_${sig}`;
+}
+
 function rcV41IsConsumed(sig) {
   const cid = rcV41GetClientId();
   return !!wx.getStorageSync(rcV41ConsumedKey(cid, sig));
 }
+
 function rcV41MarkConsumed(sig) {
   const cid = rcV41GetClientId();
   wx.setStorageSync(rcV41ConsumedKey(cid, sig), Date.now());
@@ -110,26 +118,40 @@ function rcV41PickString(data, patterns) {
 function rcV41ReuseNavigate(pageThis, btn, sig) {
   const data = pageThis.data || {};
   const balance = rcV41PickNumber(data, [/balance/i, /amount/i, /money/i, /fund/i]);
-  const price   = rcV41PickNumber(data, [/buyprice/i, /first/i, /price/i]);
-  const code    = rcV41PickString(data, [/code/i, /symbol/i, /ticker/i, /name/i]);
+  const price = rcV41PickNumber(data, [/buyprice/i, /first/i, /price/i]);
+  const code = rcV41PickString(data, [/code/i, /symbol/i, /ticker/i, /name/i]);
+  const source = rcV41PickString(data, [/source/i]) || 'riskCalculator';
+  const entryVersion = rcV41PickString(data, [/entryversion/i]) || 'V1.4';
 
   if (!balance || !price || !code) {
     wx.showToast({ title: '复用跳转缺少参数，继续走原流程', icon: 'none' });
     return false;
   }
 
-  const membershipType = encodeURIComponent('按次/奖励 · 已扣次复用');
-  const url = (btn === 'advanced')
-    ? `/pages/planAdvanced/index?balance=${encodeURIComponent(balance)}&price=${encodeURIComponent(price)}&code=${encodeURIComponent(code)}&membershipType=${membershipType}`
-    : `/pages/planSteady/index?balance=${encodeURIComponent(balance)}&price=${encodeURIComponent(price)}&code=${encodeURIComponent(code)}&membershipType=${membershipType}`;
+  const membershipType = encodeURIComponent('按次使用');
+  const base =
+    `?balance=${encodeURIComponent(balance)}` +
+    `&price=${encodeURIComponent(price)}` +
+    `&code=${encodeURIComponent(code)}` +
+    `&source=${encodeURIComponent(source)}` +
+    `&entryVersion=${encodeURIComponent(entryVersion)}` +
+    `&membershipType=${membershipType}`;
 
-  try { console.log('[riskCalculator][v4.1] reuse navigate sig=', sig, 'url=', url); } catch (e) {}
+  const url = (btn === 'advanced')
+    ? `/pages/planAdvanced/index${base}`
+    : `/pages/planSteady/index${base}`;
+
+  try {
+    console.log('[riskCalculator][v4.1] reuse navigate sig=', sig, 'url=', url);
+  } catch (e) {}
+
   wx.navigateTo({ url });
   return true;
 }
 
 function rcV41OnClickGate(pageThis, btn) {
   const sig = rcV41BuildSig(Object.assign({}, pageThis.data || {}, { __btn: btn }));
+
   if (rcV41IsConsumed(sig)) {
     const ok = rcV41ReuseNavigate(pageThis, btn, sig);
     if (ok) return { blocked: true, sig };
@@ -140,7 +162,9 @@ function rcV41OnClickGate(pageThis, btn) {
     const after = rcV41GetTimes();
     if (before !== null && after !== null && after < before) {
       rcV41MarkConsumed(sig);
-      try { console.log('[riskCalculator][v4.1] marked consumed sig=', sig, 'before=', before, 'after=', after); } catch (e) {}
+      try {
+        console.log('[riskCalculator][v4.1] marked consumed sig=', sig, 'before=', before, 'after=', after);
+      } catch (e) {}
     }
   }, 2500);
 
@@ -150,29 +174,173 @@ function rcV41OnClickGate(pageThis, btn) {
 
 Page({
   data: {
-    balance: '',        // 可用资金
-    price: '',          // 首次买入价格
-    code: '',           // 标的代码或名称（必填）
+    balance: '',
+    price: '',
+    code: '',
 
-    freeCalcTimes: 0,   // 剩余按次/奖励次数
-    membershipName: '', // 当前会员名称展示
+    freeCalcTimes: 0,
+    membershipName: '',
     advancedEnabled: false,
     remainingDays: 0,
     unlimitedActive: false,
 
-    // V1.2：行内错误提示
     balanceError: '',
     priceError: '',
-    codeError: ''
+    codeError: '',
+
+    source: 'index',
+    sourceLabel: '首页',
+    entryVersion: 'V1.4',
+    submitLoading: false,
+    submitPlanType: '',
+    globalError: '',
+    draftId: ''
   },
 
-  onLoad() {
+  onLoad(options = {}) {
+    const meta = this.getSourceMeta(options);
+
+    const nextData = {
+      source: meta.source,
+      sourceLabel: meta.sourceLabel
+    };
+
+    if (options.balance) nextData.balance = this.sanitizeNumberInput(options.balance, 2);
+    if (options.price) nextData.price = this.sanitizeNumberInput(options.price, 4);
+    if (options.code) nextData.code = this.sanitizeCodeInput(options.code);
+
+    if (!options.balance && !options.price && !options.code) {
+      try {
+        const latestDraft = mainchainStore.getLatestRiskCalcDraft();
+        if (latestDraft) {
+          if (latestDraft.balance) nextData.balance = this.sanitizeNumberInput(latestDraft.balance, 2);
+          if (latestDraft.price) nextData.price = this.sanitizeNumberInput(latestDraft.price, 4);
+          if (latestDraft.code) nextData.code = this.sanitizeCodeInput(latestDraft.code);
+          if (latestDraft.source) {
+            nextData.source = latestDraft.source;
+            nextData.sourceLabel = this.getSourceMeta({ source: latestDraft.source }).sourceLabel;
+          }
+          if (latestDraft.draftId) nextData.draftId = latestDraft.draftId;
+        }
+      } catch (e) {
+        console.log('[riskCalculator] hydrate latest draft fail', e);
+      }
+    }
+
+    this.setData(nextData);
     this.refreshFreeTimes();
   },
 
   onShow() {
     this.refreshFreeTimes();
     this.syncProfileFreeTimes();
+  },
+
+  getSourceMeta(options = {}) {
+    const raw = String(
+      options.source ||
+      options.from ||
+      options.entrySource ||
+      options.sceneSource ||
+      'index'
+    ).trim().toLowerCase();
+
+    const source = raw || 'index';
+
+    const map = {
+      index: '首页',
+      controller: '控局者',
+      profile: '个人中心',
+      camp: '训练营',
+      report: '报告页',
+      pay: '支付页',
+      fission: '裂变任务'
+    };
+
+    return {
+      source,
+      sourceLabel: map[source] || source
+    };
+  },
+
+  sanitizeNumberInput(value, maxDecimals = 4) {
+    let s = String(value == null ? '' : value);
+
+    s = s
+      .replace(/，/g, ',')
+      .replace(/。/g, '.')
+      .replace(/[^\d.,]/g, '')
+      .replace(/,/g, '');
+
+    s = s.replace(/^\./, '');
+
+    const firstDot = s.indexOf('.');
+    if (firstDot >= 0) {
+      s = s.slice(0, firstDot + 1) + s.slice(firstDot + 1).replace(/\./g, '');
+      const parts = s.split('.');
+      const intPart = parts[0] || '';
+      const decPart = (parts[1] || '').slice(0, maxDecimals);
+      s = decPart ? `${intPart}.${decPart}` : `${intPart}.`;
+    }
+
+    return s;
+  },
+
+  sanitizeCodeInput(value) {
+    return String(value == null ? '' : value)
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, 30);
+  },
+
+  acquireSubmitLock(planType) {
+    if (this.data.submitLoading) return false;
+    this.setData({
+      submitLoading: true,
+      submitPlanType: planType || '',
+      globalError: ''
+    });
+    return true;
+  },
+
+  releaseSubmitLock(delay = 250) {
+    setTimeout(() => {
+      this.setData({
+        submitLoading: false,
+        submitPlanType: ''
+      });
+    }, delay);
+  },
+
+  buildRiskEntryDraft(planType) {
+    const { balance, price, code, source, entryVersion } = this.data;
+    return {
+      draftId: `rcd_${Date.now()}`,
+      createdAt: Date.now(),
+      source,
+      entryVersion,
+      planType,
+      balance: String(balance || '').trim(),
+      price: String(price || '').trim(),
+      code: String(code || '').trim()
+    };
+  },
+
+  saveRiskEntryDraft(planType) {
+    try {
+      const draft = this.buildRiskEntryDraft(planType);
+      wx.setStorageSync('riskCalcLatestDraft', draft);
+
+      const list = wx.getStorageSync('riskCalcDraftHistory') || [];
+      list.unshift(draft);
+      wx.setStorageSync('riskCalcDraftHistory', list.slice(0, 100));
+
+      this.setData({ draftId: draft.draftId });
+      return draft;
+    } catch (e) {
+      console.log('[riskCalculator] saveRiskEntryDraft fail', e);
+      return { draftId: '' };
+    }
   },
 
   refreshFreeTimes() {
@@ -275,73 +443,114 @@ Page({
     const { balance, price, code } = this.data;
 
     wx.showModal({
-      title: '加强版权限',
-      content: '加强版仅对「季卡/年卡」开放。\n月卡/体验/9.9按次/训练营奖励仅支持稳健版。',
+      title: '需要季卡/年卡',
+      content: '加强版仅对「季卡/年卡」开放；9.9次卡、14天体验、月卡仅支持稳健版。',
       confirmText: '去开通',
-      cancelText: '用稳健版',
+      cancelText: '返回',
       success: (r) => {
+        this.releaseSubmitLock(0);
+
         if (r.confirm) {
           wx.navigateTo({
             url:
               `/pages/pay/index?type=advanced` +
               `&balance=${encodeURIComponent(balance)}` +
               `&price=${encodeURIComponent(price)}` +
-              `&code=${encodeURIComponent(code || '')}`
+              `&code=${encodeURIComponent(code || '')}` +
+              `&source=${encodeURIComponent(this.data.source || 'riskCalculator')}`
           });
-        } else {
-          this.handleGeneratePlan('steady', { skipValidate: true });
         }
+      },
+      fail: () => {
+        this.releaseSubmitLock(0);
       }
     });
   },
 
   onBalanceInput(e) {
     this.setData({
-      balance: e.detail.value,
-      balanceError: ''
+      balance: this.sanitizeNumberInput(e.detail.value, 2),
+      balanceError: '',
+      globalError: ''
     });
   },
 
   onPriceInput(e) {
     this.setData({
-      price: e.detail.value,
-      priceError: ''
+      price: this.sanitizeNumberInput(e.detail.value, 4),
+      priceError: '',
+      globalError: ''
     });
   },
 
   onCodeInput(e) {
     this.setData({
-      code: e.detail.value,
-      codeError: ''
+      code: this.sanitizeCodeInput(e.detail.value),
+      codeError: '',
+      globalError: ''
     });
   },
 
   validateForm() {
-    const balance = String(this.data.balance || '').trim();
-    const price = String(this.data.price || '').trim();
-    const code = String(this.data.code || '').trim();
+    let balance = this.sanitizeNumberInput(this.data.balance, 2);
+    let price = this.sanitizeNumberInput(this.data.price, 4);
+    const code = this.sanitizeCodeInput(this.data.code);
+
+    if (balance.endsWith('.')) balance = balance.slice(0, -1);
+    if (price.endsWith('.')) price = price.slice(0, -1);
 
     let balanceError = '';
     let priceError = '';
     let codeError = '';
 
+    const balanceNum = Number(balance);
+    const priceNum = Number(price);
+
     if (!balance) {
       balanceError = '请输入可用资金';
-    } else if (!/^\d+(\.\d+)?$/.test(balance) || Number(balance) <= 0) {
-      balanceError = '请填写大于 0 的数字';
+    } else if (!/^\d+(\.\d{1,2})?$/.test(balance) || !Number.isFinite(balanceNum)) {
+      balanceError = '请填写正确的资金数字';
+    } else if (balanceNum < 100) {
+      balanceError = '可用资金不能低于100元';
     }
 
     if (!price) {
       priceError = '请输入首次买入价格';
-    } else if (!/^\d+(\.\d+)?$/.test(price) || Number(price) <= 0) {
-      priceError = '请填写大于 0 的数字';
+    } else if (!/^\d+(\.\d{1,4})?$/.test(price) || !Number.isFinite(priceNum)) {
+      priceError = '请填写正确的价格数字';
+    } else if (priceNum < 0.01) {
+      priceError = '首次买入价格不能低于0.01';
     }
 
     if (!code) {
       codeError = '请输入标的代码或名称';
+    } else {
+      const pureDigits = /^\d+$/.test(code);
+      const pureLetters = /^[A-Za-z]+$/.test(code);
+      const hasChinese = /[\u4e00-\u9fa5]/.test(code);
+      const mixedAlphaNum = /^[A-Za-z0-9._-]+$/.test(code);
+
+      let codeOk = false;
+
+      if (pureDigits) {
+        codeOk = /^\d{4,8}$/.test(code);
+      } else if (pureLetters) {
+        codeOk = /^[A-Za-z]{4,20}$/.test(code);
+      } else if (hasChinese) {
+        codeOk = code.length >= 2 && code.length <= 20;
+      } else if (mixedAlphaNum) {
+        codeOk = code.length >= 4 && code.length <= 20;
+      }
+
+      if (!codeOk) {
+        codeError = '请输入有效的代码或名称';
+      }
     }
 
     this.setData({
+      balance,
+      price,
+      code,
       balanceError,
       priceError,
       codeError
@@ -361,24 +570,39 @@ Page({
   onClickSteady() {
     console.log('[riskCalculator] click steady');
     if (!this.validateForm()) return;
+    if (!this.acquireSubmitLock('steady')) return;
 
     const gate = rcV41OnClickGate(this, 'steady');
-    if (gate && gate.blocked) return;
+    if (gate && gate.blocked) {
+      this.releaseSubmitLock(0);
+      return;
+    }
 
-    funnel.log('CALC_CLICK_STEADY', {});
+    funnel.log('CALC_CLICK_STEADY', {
+      source: this.data.source || 'index'
+    });
+
     this.handleGeneratePlan('steady', { skipValidate: true });
   },
 
   onClickAdvanced() {
     console.log('[riskCalculator] click advanced');
     if (!this.validateForm()) return;
+    if (!this.acquireSubmitLock('advanced')) return;
 
     const gate = rcV41OnClickGate(this, 'advanced');
-    if (gate && gate.blocked) return;
+    if (gate && gate.blocked) {
+      this.releaseSubmitLock(0);
+      return;
+    }
+
+    funnel.log('CALC_CLICK_ADVANCED', {
+      source: this.data.source || 'index'
+    });
 
     try {
       const base = String(wx.getStorageSync('API_BASE') || wx.getStorageSync('apiBaseUrl') || '').replace(/\/$/, '');
-      const cid  = String(wx.getStorageSync('clientId') || '').trim();
+      const cid = String(wx.getStorageSync('clientId') || '').trim();
 
       if (base && cid) {
         wx.request({
@@ -392,7 +616,6 @@ Page({
               const allow = (lv === 'VIP_MONTH' || lv === 'VIP_QUARTER' || lv === 'VIP_YEAR' || lv === 'LIFETIME');
 
               if (allow) {
-                console.log('[riskCalculator] adv allowed by server level=', lv);
                 try {
                   const ur0 = wx.getStorageSync('userRights');
                   const obj = (ur0 && typeof ur0 === 'object') ? ur0 : {};
@@ -414,7 +637,6 @@ Page({
 
                 this.handleGeneratePlan('advanced', { skipValidate: true });
               } else {
-                console.log('[riskCalculator] adv blocked by server level=', lv);
                 this.promptAdvancedBlocked();
               }
             } catch (e) {
@@ -427,24 +649,27 @@ Page({
       }
     } catch (e) {}
 
-    funnel.log('CALC_CLICK_ADVANCED', {});
     this.handleGeneratePlan('advanced', { skipValidate: true });
   },
 
   handleGeneratePlan(planType, options = {}) {
-    if (!options.skipValidate && !this.validateForm()) return;
+    if (!options.skipValidate && !this.validateForm()) {
+      this.releaseSubmitLock(0);
+      return;
+    }
 
     const { balance, price, code, freeCalcTimes } = this.data;
+    const draft = this.saveRiskEntryDraft(planType);
 
     if (planType === 'advanced') {
       const adv = this.getAdvancedAccessInfo();
       if (!adv.ok) {
-        console.log('[riskCalculator] advanced blocked =>', adv);
         funnel.log('CALC_ADV_BLOCK', {
           reason: adv.reason,
           productCode: adv.productCode,
           advancedEnabled: adv.advancedEnabled,
-          expireAt: adv.expireAt
+          expireAt: adv.expireAt,
+          source: this.data.source || 'index'
         });
         this.promptAdvancedBlocked();
         return;
@@ -458,50 +683,66 @@ Page({
     if (unlimitedActive) {
       const days = UR.getRemainingDays(rights);
       const name = rights.membershipName || '会员';
-      const label = `${name}${days ? `（剩余${days}天）` : ''} · 无限使用`;
+      const label = `${name}${days ? `（剩余${days}天）` : ''}·无限`;
 
       funnel.log('CALC_MEMBER_UNLIMITED', {
         planType,
         productCode: pc,
-        expireAt: rights.membershipExpireAt || 0
+        expireAt: rights.membershipExpireAt || 0,
+        source: this.data.source || 'index'
       });
 
       this.gotoPlanResult(planType, {
         balance,
         price,
         code,
-        membershipType: label
+        membershipType: label,
+        source: this.data.source || 'index',
+        draftId: draft.draftId,
+        entryVersion: this.data.entryVersion
       });
-
       return;
     }
 
     if (freeCalcTimes > 0) {
       const left = freeCalcTimes - 1;
-
-      const name = rights.membershipName || '按次/奖励';
-      const label = `${name} · 按次使用`;
+      const label = '按次使用';
 
       this.gotoPlanResult(
         planType,
-        { balance, price, code, membershipType: label },
+        {
+          balance,
+          price,
+          code,
+          membershipType: label,
+          source: this.data.source || 'index',
+          draftId: draft.draftId,
+          entryVersion: this.data.entryVersion
+        },
         {
           onSuccess: () => {
             UR.mergeUserRights({ freeCalcTimes: left });
             this.setData({ freeCalcTimes: left });
 
-            funnel.log('CALC_TIMES_DEDUCT', { planType, leftFreeTimes: left });
+            funnel.log('CALC_TIMES_DEDUCT', {
+              planType,
+              leftFreeTimes: left,
+              source: this.data.source || 'index'
+            });
 
             wx.showToast({
-              title: `已使用 1 次，剩余 ${left} 次`,
+              title: `已使用1次，剩余${left}次`,
               icon: 'none',
-              duration: 2000
+              duration: 1600
             });
           },
           onFail: (err) => {
             console.error('[riskCalculator] gotoPlanResult failed, will NOT deduct times:', err);
+            this.setData({
+              globalError: '页面跳转失败，请重试一次'
+            });
             wx.showToast({
-              title: '页面跳转失败，请检查结果页是否已注册',
+              title: '页面跳转失败，请重试一次',
               icon: 'none',
               duration: 2000
             });
@@ -514,33 +755,40 @@ Page({
     this.chooseNextStep(planType);
   },
 
-  gotoPlanResult(planType, { balance, price, code, membershipType }, hooks = {}) {
+  gotoPlanResult(planType, { balance, price, code, membershipType, source, draftId, entryVersion }, hooks = {}) {
     const base =
       `?balance=${encodeURIComponent(balance)}` +
       `&price=${encodeURIComponent(price)}` +
-      `&code=${encodeURIComponent(code || '')}`;
+      `&code=${encodeURIComponent(code || '')}` +
+      `&source=${encodeURIComponent(source || this.data.source || 'riskCalculator')}` +
+      `&entryVersion=${encodeURIComponent(entryVersion || this.data.entryVersion || 'V1.4')}`;
 
     const mt = membershipType ? `&membershipType=${encodeURIComponent(membershipType)}` : '';
+    const did = draftId ? `&draftId=${encodeURIComponent(draftId)}` : '';
 
-    const url =
-      (planType === 'steady')
-        ? ('/pages/planSteady/index' + base + mt)
-        : ('/pages/planAdvanced/index' + base + mt);
+    const url = (planType === 'steady')
+      ? ('/pages/planSteady/index' + base + mt + did)
+      : ('/pages/planAdvanced/index' + base + mt + did);
 
     console.log('[riskCalculator] will navigate url=', url);
 
     wx.navigateTo({
       url,
       success: () => {
+        this.releaseSubmitLock(0);
         console.log('[riskCalculator] navigate success', url);
         if (hooks && typeof hooks.onSuccess === 'function') hooks.onSuccess();
       },
       fail: (e) => {
+        this.releaseSubmitLock(0);
         console.error('[riskCalculator] navigate fail', e);
+        this.setData({
+          globalError: (e && e.errMsg) ? `跳转失败：${e.errMsg}` : '跳转失败'
+        });
         wx.showToast({
-          title: (e && e.errMsg) ? `跳转失败：${e.errMsg}` : '跳转失败',
+          title: '页面跳转失败，请重试',
           icon: 'none',
-          duration: 2500
+          duration: 2000
         });
         if (hooks && typeof hooks.onFail === 'function') hooks.onFail(e);
       }
@@ -550,18 +798,27 @@ Page({
   chooseNextStep(planType) {
     const { balance, price, code } = this.data;
 
-    funnel.log('CALC_CHOOSE_NEXT', { planType, hasFreeTimes: false });
+    funnel.log('CALC_CHOOSE_NEXT', {
+      planType,
+      hasFreeTimes: false,
+      source: this.data.source || 'index'
+    });
 
     wx.showActionSheet({
       itemList: [
         '直接开通会员，解锁完整方案',
-        '先参加 7 天风控训练营',
+        '先参加7天风控训练营',
         '邀请好友，免费获得使用次数'
       ],
       success: (res) => {
         const idx = res.tapIndex;
+        this.releaseSubmitLock(0);
 
-        funnel.log('CALC_CHOOSE_NEXT_RESULT', { planType, choiceIndex: idx });
+        funnel.log('CALC_CHOOSE_NEXT_RESULT', {
+          planType,
+          choiceIndex: idx,
+          source: this.data.source || 'index'
+        });
 
         if (idx === 0) {
           wx.navigateTo({
@@ -569,22 +826,27 @@ Page({
               `/pages/pay/index?type=${planType}` +
               `&balance=${encodeURIComponent(balance)}` +
               `&price=${encodeURIComponent(price)}` +
-              `&code=${encodeURIComponent(code || '')}`
+              `&code=${encodeURIComponent(code || '')}` +
+              `&source=${encodeURIComponent(this.data.source || 'riskCalculator')}`
           });
           return;
         }
 
         if (idx === 1) {
-          wx.navigateTo({ url: '/pages/campIntro/index' });
+          wx.navigateTo({
+            url: `/pages/campIntro/index?source=${encodeURIComponent(this.data.source || 'riskCalculator')}`
+          });
           return;
         }
 
         if (idx === 2) {
-          wx.navigateTo({ url: `/pages/fissionTask/index?fromPlan=${planType}` });
+          wx.navigateTo({
+            url: `/pages/fissionTask/index?fromPlan=${planType}&source=${encodeURIComponent(this.data.source || 'riskCalculator')}`
+          });
         }
       },
-      fail: (err) => {
-        console.log('[riskCalculator] actionSheet canceled or failed', err);
+      fail: () => {
+        this.releaseSubmitLock(0);
       }
     });
   },
