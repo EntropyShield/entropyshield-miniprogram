@@ -6,6 +6,16 @@ const PLAN_TYPE_MAP = {
   steady: '稳健方案',
   advanced: '加强方案'
 };
+
+const EXECUTION_STATUS_MAP = {
+  pending: '待执行',
+  planned: '已计划',
+  partial: '部分执行',
+  deviated: '已偏离',
+  done: '已完成',
+  archived: '已归档'
+};
+
 const DISPLAY_SOURCE = '熵盾风控系统';
 const DISPLAY_VERSION = 'RiskOS1.0';
 
@@ -37,6 +47,33 @@ function fmtTime(v) {
   return `${yyyy}-${mm}-${dd} ${hh}:${mi}`;
 }
 
+function normalizeTags(value) {
+  if (Array.isArray(value)) {
+    return value.map(item => safeText(item, '')).filter(Boolean);
+  }
+  if (typeof value === 'string') {
+    return value
+      .split(/[，,、|]/)
+      .map(item => item.trim())
+      .filter(Boolean);
+  }
+  return [];
+}
+
+function normalizeExecutionStatus(value) {
+  const raw = safeText(value, '').toLowerCase();
+  return raw || 'pending';
+}
+
+function getPlanTypeText(v) {
+  return PLAN_TYPE_MAP[v] || safeText(v, '当前方案');
+}
+
+function getExecutionStatusText(v) {
+  const key = normalizeExecutionStatus(v);
+  return EXECUTION_STATUS_MAP[key] || safeText(v, '待执行');
+}
+
 function normalizeRecord(item = {}) {
   const steps = safeList(item.steps);
   const firstStep = steps.find(step => step && (step.stopPrice || step.buyPrice)) || {};
@@ -46,27 +83,48 @@ function normalizeRecord(item = {}) {
   const negativeStops = stopAmounts.filter(v => v < 0);
   const derivedMaxLoss = negativeStops.length ? Math.abs(Math.min(...negativeStops)).toFixed(2) : '';
 
-  const stopLossPrice = safeText(item.stopLossPrice || item.stopPrice || firstStep.stopPrice || '', '—');
+  const stopLossPrice = safeText(item.stopLossPrice || item.stopPrice || firstStep.stopPrice || '', '');
   const maxLossAmount = safeText(
     item.maxLossAmount || item.riskAmount || item.totalRisk || item.totalLoss || derivedMaxLoss,
-    '—'
+    ''
   );
+
+  const deviationTags = normalizeTags(item.deviationTags);
+  const archiveTags = normalizeTags(item.archiveTags);
 
   return {
     ...item,
-    stopLossPrice,
-    maxLossAmount,
-    source: DISPLAY_SOURCE,
-    entryVersion: DISPLAY_VERSION,
-    planTypeText: PLAN_TYPE_MAP[item.planType] || safeText(item.planType, '当前方案'),
-    timeText: fmtTime(item.savedAt || item.generatedAt || item.createdAt || 0)
+    stopLossPrice: stopLossPrice || '—',
+    maxLossAmount: maxLossAmount || '—',
+    riskAmount: maxLossAmount || '—',
+    totalRisk: maxLossAmount || '—',
+    totalLoss: maxLossAmount || '—',
+    source: safeText(item.source, DISPLAY_SOURCE),
+    entryVersion: safeText(item.entryVersion, DISPLAY_VERSION),
+    planTypeText: getPlanTypeText(item.planType),
+    executionStatus: normalizeExecutionStatus(item.executionStatus),
+    executionStatusText: getExecutionStatusText(item.executionStatus),
+    srrScoreText: item.srrScore === null || item.srrScore === undefined || item.srrScore === ''
+      ? '待评分'
+      : String(item.srrScore),
+    deviationTags,
+    deviationTagsText: deviationTags.length ? deviationTags.join(' / ') : '无',
+    groupTag: safeText(item.groupTag, ''),
+    stageTag: safeText(item.stageTag, ''),
+    archiveTags,
+    archiveTagsText: archiveTags.length ? archiveTags.join(' / ') : '无',
+    timeText: fmtTime(item.savedAt || item.generatedAt || item.createdAt || 0),
+    __activeKey: linkage.safeText(item.recordId || item.reportId || item.id, '')
   };
 }
 
 function moveHitToTop(list = [], hitIndex = -1) {
   if (!Array.isArray(list) || !list.length || hitIndex <= 0) return list;
   const hit = list[hitIndex];
-  return [hit].concat(list.slice(0, hitIndex)).concat(list.slice(hitIndex + 1));
+  const next = list.slice();
+  next.splice(hitIndex, 1);
+  next.unshift(hit);
+  return next;
 }
 
 Page({
@@ -78,15 +136,14 @@ Page({
     from: '',
     focus: '',
     reportId: '',
-    activeRecordId: ''
+    emptyText: '暂无交易记录'
   },
 
   onLoad(options = {}) {
-    const nav = linkage.parseNavOptions(options, 'tradeRecord');
     this.setData({
-      from: nav.from,
-      focus: nav.focus,
-      reportId: nav.reportId
+      from: safeText(options.from, ''),
+      focus: safeText(options.focus, ''),
+      reportId: safeText(options.reportId, '')
     });
     this.loadList();
   },
@@ -97,22 +154,20 @@ Page({
 
   loadList() {
     const raw = store.getTradeRecords ? store.getTradeRecords() : [];
-    let list = safeList(raw).map(item => ({
-      ...normalizeRecord(item),
-      __activeKey: linkage.safeText(item.recordId || item.reportId || item.id, '')
-    }));
+    let list = safeList(raw).map(item => normalizeRecord(item));
 
-    const hit = linkage.locateTradeItem(list, this.data.reportId, this.data.focus);
-    if (hit && hit.index >= 0) {
-      list = moveHitToTop(list, hit.index);
+    const reportId = safeText(this.data.reportId, '');
+    let hitIndex = -1;
+
+    if (reportId) {
+      hitIndex = list.findIndex(item => safeText(item.reportId, '') === reportId);
+      list = moveHitToTop(list, hitIndex);
     }
 
-    const first = list[0] || {};
     this.setData({
       list,
       totalCount: list.length,
-      latestTime: list.length ? (list[0].timeText || '') : '',
-      activeRecordId: linkage.safeText(first.recordId || first.reportId || first.id, '')
+      latestTime: list[0] ? safeText(list[0].timeText, '') : ''
     });
   },
 
@@ -142,7 +197,7 @@ Page({
     wx.redirectTo({
       url: linkage.buildNavUrl('/pages/longArchive/index', {
         from: 'tradeRecord',
-        focus: reportId ? 'reportId' : '',
+        focus: reportId ? 'reportId' : 'latest',
         reportId
       })
     });
@@ -153,7 +208,7 @@ Page({
     wx.redirectTo({
       url: linkage.buildNavUrl('/pages/mainchainOverview/index', {
         from: 'tradeRecord',
-        focus: reportId ? 'reportId' : '',
+        focus: reportId ? 'reportId' : 'latest',
         reportId
       })
     });
