@@ -3,18 +3,12 @@ const riskEngine = require('./riskEngine.js');
 
 const KEYS = {
   DRAFT_LATEST: 'riskCalcLatestDraft',
-  DRAFT_HISTORY: 'riskCalcDraftHistory',
-
-  PLAN_LATEST: 'riskPlanLatestResult',
-  PLAN_HISTORY: 'riskPlanResultHistory',
-  PLAN_BY_DRAFT: 'riskPlanByDraftId',
-
+  PLAN_LATEST: 'riskPlanLatest',
+  PLAN_BY_DRAFT: 'riskPlanByDraft',
   TRADE_LIST: 'riskTradeRecordList',
-
   REPORT_LATEST: 'riskReportLatest',
   REPORT_HISTORY: 'riskReportHistory',
   REPORT_BY_ID: 'riskReportById',
-
   ARCHIVE_LATEST: 'riskLongArchiveLatest',
   ARCHIVE_LIST: 'riskLongArchiveList',
   ARCHIVE_BY_ID: 'riskLongArchiveById'
@@ -24,56 +18,100 @@ function safeList(v) {
   return Array.isArray(v) ? v : [];
 }
 
-function saveRiskCalcDraft(draft) {
-  wx.setStorageSync(KEYS.DRAFT_LATEST, draft);
-  const history = safeList(wx.getStorageSync(KEYS.DRAFT_HISTORY));
-  history.unshift(draft);
-  wx.setStorageSync(KEYS.DRAFT_HISTORY, history.slice(0, 100));
-  return draft;
+function safeMap(v) {
+  return v && typeof v === 'object' && !Array.isArray(v) ? v : {};
+}
+
+function sortByTimeDesc(list = []) {
+  return safeList(list).sort((a, b) => {
+    const ta = Number(a.archivedAt || a.savedAt || a.createdAt || a.generatedAt || 0);
+    const tb = Number(b.archivedAt || b.savedAt || b.createdAt || b.generatedAt || 0);
+    return tb - ta;
+  });
+}
+
+function pickEntityId(entityType, payload = {}) {
+  const p = payload || {};
+  switch (String(entityType || '')) {
+    case 'riskCalcDraft':
+      return p.draftId || '';
+    case 'riskPlanResult':
+      return p.resultId || '';
+    case 'riskTradeRecord':
+      return p.recordId || p.resultId || '';
+    case 'riskReport':
+      return p.reportId || p.resultId || '';
+    case 'riskLongArchive':
+      return p.archiveId || p.reportId || '';
+    default:
+      return p.id || p.resultId || p.reportId || p.recordId || p.archiveId || p.draftId || '';
+  }
+}
+
+function saveRiskCalcDraft(draft = {}) {
+  const nextDraft = riskEngine.buildRiskEntryDraft
+    ? riskEngine.buildRiskEntryDraft(draft)
+    : draft;
+
+  wx.setStorageSync(KEYS.DRAFT_LATEST, nextDraft);
+  return nextDraft;
 }
 
 function getLatestRiskCalcDraft() {
   return wx.getStorageSync(KEYS.DRAFT_LATEST) || null;
 }
 
-function getRiskCalcDraftHistory() {
-  return safeList(wx.getStorageSync(KEYS.DRAFT_HISTORY));
-}
-
-function clearRiskCalcDrafts() {
+function clearRiskCalcDraft() {
   wx.removeStorageSync(KEYS.DRAFT_LATEST);
-  wx.removeStorageSync(KEYS.DRAFT_HISTORY);
 }
 
-function savePlanResult(snapshot) {
-  wx.setStorageSync(KEYS.PLAN_LATEST, snapshot);
+function savePlanResult(snapshot = {}) {
+  const nextSnapshot = snapshot && snapshot.resultId
+    ? (riskEngine.withChainMeta ? riskEngine.withChainMeta(snapshot) : snapshot)
+    : (riskEngine.buildPlanSnapshot ? riskEngine.buildPlanSnapshot(snapshot) : snapshot);
 
-  const history = safeList(wx.getStorageSync(KEYS.PLAN_HISTORY));
-  history.unshift(snapshot);
-  wx.setStorageSync(KEYS.PLAN_HISTORY, history.slice(0, 100));
+  wx.setStorageSync(KEYS.PLAN_LATEST, nextSnapshot);
 
-  if (snapshot && snapshot.draftId) {
-    const map = wx.getStorageSync(KEYS.PLAN_BY_DRAFT) || {};
-    map[snapshot.draftId] = snapshot;
+  if (nextSnapshot && nextSnapshot.draftId) {
+    const map = safeMap(wx.getStorageSync(KEYS.PLAN_BY_DRAFT));
+    map[nextSnapshot.draftId] = nextSnapshot;
     wx.setStorageSync(KEYS.PLAN_BY_DRAFT, map);
   }
 
-  return snapshot;
-}
-
-function getPlanResultHistory() {
-  return safeList(wx.getStorageSync(KEYS.PLAN_HISTORY));
+  return nextSnapshot;
 }
 
 function getLatestPlanResult() {
   return wx.getStorageSync(KEYS.PLAN_LATEST) || null;
 }
 
-function saveTradeRecord(record) {
-  const list = safeList(wx.getStorageSync(KEYS.TRADE_LIST));
-  const next = [record].concat(list.filter(item => item.resultId !== record.resultId));
-  wx.setStorageSync(KEYS.TRADE_LIST, next.slice(0, 200));
-  return record;
+function getPlanResultByDraftId(draftId) {
+  const map = safeMap(wx.getStorageSync(KEYS.PLAN_BY_DRAFT));
+  return map[String(draftId || '')] || null;
+}
+
+function clearPlanResults() {
+  wx.removeStorageSync(KEYS.PLAN_LATEST);
+  wx.removeStorageSync(KEYS.PLAN_BY_DRAFT);
+}
+
+function saveTradeRecord(record = {}) {
+  const seeded = {
+    ...record,
+    recordId: record.recordId || `tr_${record.resultId || Date.now()}`
+  };
+
+  const nextRecord = seeded.recordId && riskEngine.withChainMeta
+    ? riskEngine.withChainMeta(seeded)
+    : (riskEngine.buildTradeRecord ? riskEngine.buildTradeRecord(seeded) : seeded);
+
+  const list = getTradeRecords();
+  const next = [nextRecord].concat(
+    list.filter(item => String(item.recordId || '') !== String(nextRecord.recordId || ''))
+  );
+
+  wx.setStorageSync(KEYS.TRADE_LIST, next.slice(0, 300));
+  return nextRecord;
 }
 
 function getTradeRecords() {
@@ -84,18 +122,29 @@ function clearTradeRecords() {
   wx.removeStorageSync(KEYS.TRADE_LIST);
 }
 
-function saveRiskReport(report) {
-  wx.setStorageSync(KEYS.REPORT_LATEST, report);
+function saveRiskReport(report = {}) {
+  const seeded = {
+    ...report,
+    reportId: report.reportId || `rr_${report.resultId || Date.now()}`
+  };
 
-  const history = safeList(wx.getStorageSync(KEYS.REPORT_HISTORY));
-  history.unshift(report);
-  wx.setStorageSync(KEYS.REPORT_HISTORY, history.slice(0, 100));
+  const nextReport = seeded.reportId && riskEngine.withChainMeta
+    ? riskEngine.withChainMeta(seeded)
+    : (riskEngine.buildRiskReport ? riskEngine.buildRiskReport(seeded) : seeded);
 
-  const map = wx.getStorageSync(KEYS.REPORT_BY_ID) || {};
-  map[report.reportId] = report;
+  wx.setStorageSync(KEYS.REPORT_LATEST, nextReport);
+
+  const history = getRiskReportHistory();
+  const nextHistory = [nextReport].concat(
+    history.filter(item => String(item.reportId || '') !== String(nextReport.reportId || ''))
+  );
+  wx.setStorageSync(KEYS.REPORT_HISTORY, nextHistory.slice(0, 300));
+
+  const map = safeMap(wx.getStorageSync(KEYS.REPORT_BY_ID));
+  map[nextReport.reportId] = nextReport;
   wx.setStorageSync(KEYS.REPORT_BY_ID, map);
 
-  return report;
+  return nextReport;
 }
 
 function getLatestRiskReport() {
@@ -107,11 +156,11 @@ function getRiskReportHistory() {
 }
 
 function getRiskReportById(reportId) {
-  const map = wx.getStorageSync(KEYS.REPORT_BY_ID) || {};
-  return map[reportId] || null;
+  const map = safeMap(wx.getStorageSync(KEYS.REPORT_BY_ID));
+  return map[String(reportId || '')] || null;
 }
 
-function getResolvedRiskReport(reportId = '') {
+function getResolvedRiskReport(reportId) {
   let report = null;
 
   if (reportId) {
@@ -120,7 +169,7 @@ function getResolvedRiskReport(reportId = '') {
 
   if (!report && reportId) {
     const history = getRiskReportHistory();
-    report = history.find(item => item && item.reportId === reportId) || null;
+    report = history.find(item => String(item.reportId || '') === String(reportId || '')) || null;
   }
 
   if (!report) {
@@ -130,21 +179,35 @@ function getResolvedRiskReport(reportId = '') {
   return report || null;
 }
 
-function saveLongArchive(item) {
-  const list = safeList(wx.getStorageSync(KEYS.ARCHIVE_LIST));
-  const next = [item].concat(list.filter(x => x.reportId !== item.reportId));
-  wx.setStorageSync(KEYS.ARCHIVE_LIST, next.slice(0, 200));
-  wx.setStorageSync(KEYS.ARCHIVE_LATEST, item);
+function saveLongArchive(item = {}) {
+  const seeded = {
+    ...item,
+    archiveId: item.archiveId || `la_${item.reportId || item.resultId || Date.now()}`
+  };
 
-  const map = wx.getStorageSync(KEYS.ARCHIVE_BY_ID) || {};
-  map[item.archiveId] = item;
+  const nextItem = riskEngine.withChainMeta
+    ? riskEngine.withChainMeta(seeded)
+    : seeded;
+
+  const list = getLongArchives();
+  const next = [nextItem].concat(
+    list.filter(row => String(row.archiveId || '') !== String(nextItem.archiveId || ''))
+  );
+
+  wx.setStorageSync(KEYS.ARCHIVE_LATEST, nextItem);
+  wx.setStorageSync(KEYS.ARCHIVE_LIST, next.slice(0, 300));
+
+  const map = safeMap(wx.getStorageSync(KEYS.ARCHIVE_BY_ID));
+  map[nextItem.archiveId] = nextItem;
   wx.setStorageSync(KEYS.ARCHIVE_BY_ID, map);
 
-  return item;
+  return nextItem;
 }
 
-function saveLongArchiveFromReport(report) {
-  const item = riskEngine.buildLongArchiveItem(report || {});
+function saveLongArchiveFromReport(report = {}) {
+  const item = riskEngine.buildLongArchiveFromReport
+    ? riskEngine.buildLongArchiveFromReport(report)
+    : report;
   return saveLongArchive(item);
 }
 
@@ -153,7 +216,7 @@ function getLongArchives() {
 }
 
 function getLongArchivesSorted() {
-  return getLongArchives().slice().sort((a, b) => Number(b.archivedAt || 0) - Number(a.archivedAt || 0));
+  return sortByTimeDesc(getLongArchives());
 }
 
 function getLatestLongArchive() {
@@ -161,37 +224,45 @@ function getLatestLongArchive() {
 }
 
 function clearLongArchives() {
-  wx.removeStorageSync(KEYS.ARCHIVE_LIST);
   wx.removeStorageSync(KEYS.ARCHIVE_LATEST);
+  wx.removeStorageSync(KEYS.ARCHIVE_LIST);
   wx.removeStorageSync(KEYS.ARCHIVE_BY_ID);
 }
 
 function getOverview() {
-  const drafts = getRiskCalcDraftHistory();
+  const drafts = getLatestRiskCalcDraft();
+  const latestPlan = getLatestPlanResult();
   const trades = getTradeRecords();
   const reports = getRiskReportHistory();
   const archives = getLongArchivesSorted();
 
   return {
-    draftCount: drafts.length,
+    draftCount: drafts ? 1 : 0,
     tradeCount: trades.length,
     reportCount: reports.length,
     archiveCount: archives.length,
-    latestDraft: drafts[0] || null,
+    latestDraft: drafts || null,
+    latestPlan: latestPlan || null,
     latestTrade: trades[0] || null,
     latestReport: reports[0] || null,
-    latestArchive: archives[0] || null
+    latestArchive: archives[0] || null,
+    createdAt: Date.now()
   };
 }
 
-function buildSyncPayload(entityType, payload, clientId = '') {
-  const cid = String(clientId || wx.getStorageSync('clientId') || '').trim();
+function buildSyncPayload(entityType, payload = {}, clientId = '') {
+  const normalized = riskEngine.withChainMeta
+    ? riskEngine.withChainMeta(payload)
+    : (payload || {});
+
   return {
-    clientId: cid,
-    entityType: String(entityType || '').trim(),
-    entityVersion: 'V1',
+    entityType: String(entityType || ''),
+    entityId: pickEntityId(entityType, normalized),
+    clientId: String(clientId || ''),
+    source: normalized.source || 'riskCalculator',
+    entryVersion: normalized.entryVersion || 'V1.4',
     createdAt: Date.now(),
-    payload: payload || {}
+    payload: normalized
   };
 }
 
@@ -200,12 +271,12 @@ module.exports = {
 
   saveRiskCalcDraft,
   getLatestRiskCalcDraft,
-  getRiskCalcDraftHistory,
-  clearRiskCalcDrafts,
+  clearRiskCalcDraft,
 
   savePlanResult,
-  getPlanResultHistory,
   getLatestPlanResult,
+  getPlanResultByDraftId,
+  clearPlanResults,
 
   saveTradeRecord,
   getTradeRecords,
