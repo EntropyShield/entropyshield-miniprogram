@@ -156,7 +156,6 @@ page {
   border-radius: 18rpx;
   padding: 16rpx;
   box-sizing: border-box;
-  margin-top: 12rpx;
 }
 
 .la-label {

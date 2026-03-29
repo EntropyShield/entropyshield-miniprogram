@@ -4,8 +4,10 @@ const linkage = require('../../utils/mainchainLinkage.js');
 
 const PLAN_TYPE_MAP = {
   steady: '稳健方案',
-  advanced: '稳健方案'
+  advanced: '加强方案'
 };
+const DISPLAY_SOURCE = '熵盾风控系统';
+const DISPLAY_VERSION = 'RiskOS1.0';
 
 function safeText(v, d = '') {
   if (v === undefined || v === null) return d;
@@ -15,6 +17,11 @@ function safeText(v, d = '') {
 
 function safeList(v) {
   return Array.isArray(v) ? v : [];
+}
+
+function safeNum(v) {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : NaN;
 }
 
 function fmtTime(v) {
@@ -30,9 +37,40 @@ function fmtTime(v) {
   return `${yyyy}-${mm}-${dd} ${hh}:${mi}`;
 }
 
+function getPlanTypeText(v) {
+  return PLAN_TYPE_MAP[v] || safeText(v, '当前方案');
+}
+
+function normalizeRiskEntity(item = {}) {
+  const steps = safeList(item.steps);
+  const firstStep = steps.find(step => step && (step.stopPrice || step.buyPrice)) || {};
+  const stopAmounts = steps
+    .map(step => safeNum(step && step.stopAmount))
+    .filter(Number.isFinite);
+  const negativeStops = stopAmounts.filter(v => v < 0);
+  const derivedMaxLoss = negativeStops.length ? Math.abs(Math.min(...negativeStops)).toFixed(2) : '';
+
+  const stopLossPrice = safeText(item.stopLossPrice || item.stopPrice || firstStep.stopPrice || '', '');
+  const maxLossAmount = safeText(
+    item.maxLossAmount || item.riskAmount || item.totalRisk || item.totalLoss || derivedMaxLoss,
+    ''
+  );
+
+  return {
+    ...item,
+    stopLossPrice: stopLossPrice || '—',
+    maxLossAmount: maxLossAmount || '—',
+    riskAmount: maxLossAmount || '—',
+    totalRisk: maxLossAmount || '—',
+    totalLoss: maxLossAmount || '—',
+    source: DISPLAY_SOURCE,
+    entryVersion: DISPLAY_VERSION
+  };
+}
+
 function getTradeList() {
   try {
-    return safeList(store.getTradeRecords ? store.getTradeRecords() : []);
+    return safeList(store.getTradeRecords ? store.getTradeRecords() : []).map(normalizeRiskEntity);
   } catch (e) {
     return [];
   }
@@ -45,7 +83,8 @@ function getLatestTrade() {
 
 function getLatestReport() {
   try {
-    return (store.getLatestRiskReport && store.getLatestRiskReport()) || null;
+    const report = (store.getLatestRiskReport && store.getLatestRiskReport()) || null;
+    return report ? normalizeRiskEntity(report) : null;
   } catch (e) {
     return null;
   }
@@ -53,7 +92,7 @@ function getLatestReport() {
 
 function getArchiveList() {
   try {
-    return safeList(store.getLongArchivesSorted ? store.getLongArchivesSorted() : []);
+    return safeList(store.getLongArchivesSorted ? store.getLongArchivesSorted() : []).map(normalizeRiskEntity);
   } catch (e) {
     return [];
   }
@@ -71,10 +110,6 @@ function getOverview() {
   return {};
 }
 
-function getPlanTypeText(v) {
-  return PLAN_TYPE_MAP[v] || safeText(v, '当前方案');
-}
-
 function answerQuestion(question, ctx) {
   const q = safeText(question).trim().toLowerCase();
   const hasAny = ctx.tradeCount || ctx.reportCount || ctx.archiveCount;
@@ -89,84 +124,62 @@ function answerQuestion(question, ctx) {
 
   const tradeCode = safeText(latestTrade.code || latestTrade.symbol || latestTrade.name, '暂无交易记录');
   const tradePlan = getPlanTypeText(latestTrade.planType || latestTrade.strategyName || latestTrade.planName);
-  const tradeSource = safeText(latestTrade.source || latestTrade.entrySource, 'tradeRecord');
-  const tradeRisk = safeText(
-    latestTrade.maxLossAmount || latestTrade.riskAmount || latestTrade.totalRisk || latestTrade.totalLoss,
-    '未识别'
-  );
-  const tradeTarget = safeText(
-    latestTrade.targetPrice || latestTrade.takeProfitPrice || latestTrade.target,
-    '未设置'
-  );
+  const tradeRisk = safeText(latestTrade.maxLossAmount || latestTrade.riskAmount || latestTrade.totalRisk || latestTrade.totalLoss, '未识别');
+  const tradeStop = safeText(latestTrade.stopLossPrice || latestTrade.stopPrice, '未识别');
+  const tradeTarget = safeText(latestTrade.targetPrice || latestTrade.takeProfitPrice || latestTrade.target, '未设置');
 
   const reportCode = safeText(latestReport.code, '暂无风控报告');
   const reportPlan = getPlanTypeText(latestReport.planType);
-  const reportVersion = safeText(latestReport.entryVersion, 'V1.4');
-  const reportSource = safeText(latestReport.source, 'riskCalculator');
   const reportTarget = safeText(latestReport.targetPrice, '未设置');
-  const reportRisk = safeText(
-    latestReport.maxLossAmount || latestReport.riskAmount || latestReport.totalRisk || latestReport.totalLoss,
-    '未识别'
-  );
+  const reportRisk = safeText(latestReport.maxLossAmount || latestReport.riskAmount || latestReport.totalRisk || latestReport.totalLoss, '未识别');
+  const reportStop = safeText(latestReport.stopLossPrice || latestReport.stopPrice, '未识别');
 
   const archiveCode = safeText(latestArchive.code, '暂无长期档案');
   const archivePlan = getPlanTypeText(latestArchive.planType);
   const archiveTarget = safeText(latestArchive.targetPrice || latestArchive.targetProfit, '未设置');
-  const archiveSource = safeText(latestArchive.source, 'longArchive');
 
   const overviewLine = `当前主链总览：交易记录 ${ctx.tradeCount} 条，风控报告 ${ctx.reportCount} 份，长期档案 ${ctx.archiveCount} 条。`;
-  const objectLine = `当前关键对象：最新交易 ${tradeCode}（${tradePlan}，来源 ${tradeSource}），最新报告 ${reportCode}（${reportPlan}，版本 ${reportVersion}），长期档案 ${archiveCode}（${archivePlan}，来源 ${archiveSource}）。`;
+  const objectLine = `当前关键对象：最新交易 ${tradeCode}（${tradePlan}），最新报告 ${reportCode}（${reportPlan}），长期档案 ${archiveCode}（${archivePlan}）。`;
 
   if (q.includes('当前状态') || q.includes('主链状态') || q.includes('总览') || q.includes('主链')) {
     return [
       overviewLine,
       objectLine,
-      `当前优先顺序：先检查最新交易 ${tradeCode} 是否按计划执行，再对照报告 ${reportCode} 的风险边界 ${reportRisk} 与目标价 ${reportTarget}，最后把有效动作沉淀到长期档案 ${archiveCode}。`
+      `当前风险核心口径已经明确：交易层最大风险 ${tradeRisk}，交易止损价 ${tradeStop}；报告层最大风险 ${reportRisk}，报告止损价 ${reportStop}。`
     ].join('\n\n');
   }
 
   if (q.includes('最新交易') || q.includes('交易记录') || q.includes('执行') || q.includes('先看什么') || q.includes('怎么做')) {
     return [
-      `最新交易记录：${tradeCode}。计划类型 ${tradePlan}，来源 ${tradeSource}，当前风险口径 ${tradeRisk}，目标价 ${tradeTarget}。`,
-      '这笔交易的主链位置是“执行层”，先看是否严格按计划推进，再看是否出现临盘改规则、拖延退出或抢跑加码。',
-      `联动动作：先核对交易记录，再回看风控报告 ${reportCode}，最后把执行结果沉淀到长期档案 ${archiveCode}。`
+      `最新交易记录：${tradeCode}。计划类型 ${tradePlan}。止损价 ${tradeStop}，最大风险 ${tradeRisk}，目标价 ${tradeTarget}。`,
+      '先核对是否按计划执行，再检查是否出现临盘改规则、拖延止损、抢跑加码。'
     ].join('\n\n');
   }
 
   if (q.includes('最新报告') || q.includes('报告') || q.includes('风控报告') || q.includes('风险')) {
     return [
-      `最新风控报告：${reportCode}。方案类型 ${reportPlan}，来源 ${reportSource}，版本 ${reportVersion}。`,
-      `报告重点：最大风险口径 ${reportRisk}，目标价 ${reportTarget}。这份报告的作用是先锁亏损边界，再定义利润目标与执行纪律。`,
-      `联动动作：用报告校验最新交易 ${tradeCode} 是否偏离计划，再把复盘结论写入长期档案 ${archiveCode}。`
+      `最新风控报告：${reportCode}。方案类型 ${reportPlan}。止损价 ${reportStop}，最大风险 ${reportRisk}，目标价 ${reportTarget}。`,
+      '风控报告的核心不是预测，而是先锁亏损边界，再定义利润目标。'
     ].join('\n\n');
   }
 
   if (q.includes('长期档案') || q.includes('复盘') || q.includes('档案')) {
     return [
-      `最新长期档案：${archiveCode}。方案类型 ${archivePlan}，目标口径 ${archiveTarget}，来源 ${archiveSource}。`,
-      '档案层重点不是再做一次计算，而是复盘：哪些动作有效、哪些动作破坏纪律、哪些规则需要下轮保留。',
-      `联动动作：先对照风控报告 ${reportCode} 和交易记录 ${tradeCode}，再把这次复盘沉淀成下一轮可复制的执行模板。`
+      `最新长期档案：${archiveCode}。方案类型 ${archivePlan}，目标口径 ${archiveTarget}。`,
+      '档案层的重点是把执行结果沉淀成下一轮可复制的模板。'
     ].join('\n\n');
   }
 
   if (q.includes('下一步') || q.includes('下一步做什么') || q.includes('接下来') || q.includes('先做什么')) {
     return [
-      `下一步建议：第一步，核对最新交易 ${tradeCode} 是否按计划执行；第二步，对照最新风控报告 ${reportCode} 的风险边界 ${reportRisk} 与目标价 ${reportTarget}；第三步，把结果沉淀到长期档案 ${archiveCode}。`,
-      '如果交易已经偏离计划，就先修纪律；如果交易未偏离计划，就继续按报告执行，不要临盘改规则。'
-    ].join('\n\n');
-  }
-
-  if (q.includes('止损') || q.includes('仓位') || q.includes('目标')) {
-    return [
-      `关键风控口径：交易层风险 ${tradeRisk}，报告层风险 ${reportRisk}，交易目标 ${tradeTarget}，报告目标 ${reportTarget}。`,
-      '解释顺序固定：先看亏损边界是否清楚，再看目标价是否合理，最后看仓位执行是否按步骤推进。'
+      `下一步建议：第一步核对最新交易 ${tradeCode} 的止损价 ${tradeStop} 和最大风险 ${tradeRisk}；第二步对照最新报告 ${reportCode} 的止损价 ${reportStop} 和最大风险 ${reportRisk}；第三步把结果沉淀到长期档案 ${archiveCode}。`
     ].join('\n\n');
   }
 
   return [
     overviewLine,
     objectLine,
-    '建议你优先问这三类问题：最新交易记录怎么看、最新风控报告怎么看、下一步做什么。'
+    '建议优先问：最新交易记录怎么看、最新报告怎么看、下一步做什么。'
   ].join('\n\n');
 }
 
@@ -184,12 +197,7 @@ Page({
     latestArchiveTime: '',
     questionInput: '',
     qaHistory: [],
-    quickQuestions: [
-      '当前状态',
-      '最新交易记录怎么看',
-      '最新报告怎么看',
-      '下一步做什么'
-    ]
+    quickQuestions: ['当前状态', '最新交易记录怎么看', '最新报告怎么看', '下一步做什么']
   },
 
   onLoad() {
@@ -225,7 +233,7 @@ Page({
     });
   },
 
-askQuestion() {
+  askQuestion() {
     const question = safeText(this.data.questionInput, '').trim();
     const ctx = {
       tradeCount: this.data.tradeCount,
@@ -236,14 +244,11 @@ askQuestion() {
       latestArchive: this.data.latestArchive
     };
     const answer = answerQuestion(question, ctx);
-
-    const nextItem = {
-      q: question || '未输入问题',
-      a: answer
-    };
-
     this.setData({
-      qaHistory: [nextItem]
+      qaHistory: [{
+        q: question || '未输入问题',
+        a: answer
+      }]
     });
   },
 
