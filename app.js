@@ -32,6 +32,15 @@
 // ====== [MOD:ENSURE_CLIENTID] END ======
 // app.js - 稳定版启动（不重写 wx.getStorageSync / wx.setStorageSync，避免递归爆栈）
 const { API_BASE, ENV, runtime } = require('./config');
+// ====== [MOD:APP_DEBUG_SILENT_20260330] START ======
+const __APP_DEBUG__ = false;
+function appDebug() {
+  if (!__APP_DEBUG__) return;
+  try {
+    console.log.apply(console, arguments);
+  } catch (e) {}
+}
+// ====== [MOD:APP_DEBUG_SILENT_20260330] END ======
 /* ====== ST_P0_BIND_INVITE_APPJS (P0 手收敛 / 2026-03-06) ======
 目标：扫码进入即绑定邀请关系（不付费也绑定）
 流程：extract inviteCode -> storage.pendingInviteCode -> 等 clientId ready -> POST /api/fission/init {clientId, inviteCode}
@@ -136,12 +145,12 @@ function __stTryBindInviteOnce() {
          }
 
          try {
-           console.log('[ST_BIND_V2] resp', { cid, inviteCode, d, selfBind, already });
+           appDebug('[ST_BIND_V2] resp', { cid, inviteCode, d, selfBind, already });
          } catch (e) {}
        },
        fail(err) {
          try {
-           console.log('[ST_BIND_V2] fail', { cid, inviteCode, err });
+           appDebug('[ST_BIND_V2] fail', { cid, inviteCode, err });
          } catch (e) {}
          scheduleRetry();
        }
@@ -149,7 +158,7 @@ function __stTryBindInviteOnce() {
    },
    fail(err) {
      try {
-       console.log('[ST_INIT_BEFORE_BIND] fail', { cid, inviteCode, err });
+       appDebug('[ST_INIT_BEFORE_BIND] fail', { cid, inviteCode, err });
      } catch (e) {}
      scheduleRetry();
    }
@@ -193,7 +202,7 @@ Page = function(pageOptions) {
        menus: ['shareAppMessage', 'shareTimeline']
      });
    } catch (e) {
-     console.log('[GLOBAL_SHARE] showShareMenu fail =>', e);
+     appDebug('[GLOBAL_SHARE] showShareMenu fail =>', e);
    }
 
    if (typeof rawOnShow === 'function') {
@@ -303,9 +312,9 @@ App({
            // ====== [MOD:FREECALC_PRESERVE_MAX] END ======
 
            wx.setStorageSync('userRights', ur);
-           console.log('[BOOT][SYNC] merged userRights:', ur);
+           appDebug('[BOOT][SYNC] merged userRights:', ur);
          } catch (e) {
-           console.log('[BOOT][SYNC] merge error:', e);
+           appDebug('[BOOT][SYNC] merge error:', e);
          }
        };
 
@@ -319,10 +328,10 @@ App({
              const p0 = d.profile || d.data || null;
              const total = (d.total_reward_times || d.totalRewardTimes || (p0 && (p0.total_reward_times || p0.totalRewardTimes)) || 0);
              const p = p0 ? Object.assign({}, p0, { total_reward_times: total }) : { total_reward_times: total };
-             console.log('[BOOT][SYNC] profile resp:', d);
+             appDebug('[BOOT][SYNC] profile resp:', d);
              if (ok) mergeRights(p);
            },
-           fail: (e) => console.log('[BOOT][SYNC] profile fail:', e)
+           fail: (e) => appDebug('[BOOT][SYNC] profile fail:', e)
          });
        };
 
@@ -339,17 +348,17 @@ App({
                header: { 'content-type': 'application/json' },
                success: (res) => {
                  const openid = (res && res.data && (res.data.openid || res.data.openId)) || (res.data && res.data.data && res.data.data.openid);
-                 console.log('[BOOT] wx/login resp:', res && res.data);
+                 appDebug('[BOOT] wx/login resp:', res && res.data);
                  if (openid) {
                    wx.setStorageSync('clientId', openid);
-                   console.log('[BOOT] clientId(openid)=', openid);
+                   appDebug('[BOOT] clientId(openid)=', openid);
                    syncByClientId(openid);
                  }
                },
-               fail: (e) => console.log('[BOOT] wx/login request fail:', e)
+               fail: (e) => appDebug('[BOOT] wx/login request fail:', e)
              });
            },
-           fail: (e) => console.log('[BOOT] wx.login fail:', e)
+           fail: (e) => appDebug('[BOOT] wx.login fail:', e)
          });
        }
      }
@@ -433,7 +442,7 @@ App({
                      invited_by_code: bootInvitedByCode
                    });
                    wx.setStorageSync('fissionProfile', bootProfile);
-                   console.log('[BOOT][SYNC] userRights merged:', ur);
+                   appDebug('[BOOT][SYNC] userRights merged:', ur);
                  }
                });
              }
@@ -447,7 +456,7 @@ App({
    let sys = {};
    let isDevtools = false;
    try {
-     sys = wx.getSystemInfoSync ? wx.getSystemInfoSync() : {};
+     sys = (wx.getWindowInfo && wx.getWindowInfo()) || ((wx.getDeviceInfo && Object.assign({}, wx.getDeviceInfo(), wx.getAppBaseInfo ? wx.getAppBaseInfo() : {}, wx.getSystemSetting ? wx.getSystemSetting() : {})) || {});
      isDevtools = !!(sys && sys.platform === 'devtools');
    } catch (e) {}
 
@@ -470,8 +479,8 @@ App({
    this.globalData.API_BASE = resolvedBase;
    this.globalData.baseUrl = resolvedBase;
 
-   console.log('[BOOT] ENV=', ENV, 'platform=', runtime && runtime.platform, 'envVersion=', runtime && runtime.envVersion);
-   console.log('[BOOT] API_BASE(resolved)=', resolvedBase);
+   appDebug('[BOOT] ENV=', ENV, 'platform=', runtime && runtime.platform, 'envVersion=', runtime && runtime.envVersion);
+   appDebug('[BOOT] API_BASE(resolved)=', resolvedBase);
 
    try {
      const q = (options && options.query) ? options.query : {};
@@ -496,11 +505,11 @@ App({
        const finalCode = String(raw).trim().toUpperCase();
        if (finalCode) {
          wx.setStorageSync('pendingInviteCode', finalCode);
-         console.log('[BOOT][INVITE] pendingInviteCode=', finalCode);
+         appDebug('[BOOT][INVITE] pendingInviteCode=', finalCode);
        }
      }
    } catch (e) {
-     console.log('[BOOT][INVITE] parse failed:', e);
+     appDebug('[BOOT][INVITE] parse failed:', e);
    }
 
    try {
@@ -508,11 +517,11 @@ App({
        url: resolvedBase + '/api/health',
        method: 'GET',
        timeout: 10000,
-       success: (res) => console.log('[BOOT] /api/health ok:', res && res.data),
-       fail: (err) => console.log('[BOOT] /api/health fail:', err)
+       success: (res) => appDebug('[BOOT] /api/health ok:', res && res.data),
+       fail: (err) => appDebug('[BOOT] /api/health fail:', err)
      });
    } catch (e) {
-     console.log('[BOOT] health request exception:', e);
+     appDebug('[BOOT] health request exception:', e);
    }
 
    try {
@@ -546,7 +555,7 @@ App({
                method: 'POST',
                header: { 'content-type': 'application/json' },
                data: { clientId: clientId },
-               success: function (res) { console.log('[NAV-HOOK] camp/finish resp:', res && res.data); },
+               success: function (res) { appDebug('[NAV-HOOK] camp/finish resp:', res && res.data); },
                fail: function (err) { console.error('[NAV-HOOK] camp/finish fail:', err); }
              });
            }
@@ -581,7 +590,7 @@ App({
            }
 
            _sendFinish();
-         } catch (e) { console.log('[NAV-HOOK] err:', e); }
+         } catch (e) { appDebug('[NAV-HOOK] err:', e); }
        }
 
        wx.__tryFinishRewardOnReportNav = _tryFinishRewardOnReportNav;
@@ -594,7 +603,7 @@ App({
        wx.reLaunch = function (opts) { try { _tryFinishRewardOnReportNav(opts && opts.url); } catch (e) {} return _rel.call(wx, opts); };
      }
    } catch (e) {
-     console.log('[NAV-HOOK] install failed:', e);
+     appDebug('[NAV-HOOK] install failed:', e);
    }
 
    try {
@@ -657,7 +666,7 @@ App({
                invited_by_code: bootInvitedByCode
              });
              wx.setStorageSync('fissionProfile', bootProfile);
-             console.log('[BOOT][MEMBER] userRights synced:', ur);
+             appDebug('[BOOT][MEMBER] userRights synced:', ur);
            } catch (e) {}
          }
        });

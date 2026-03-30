@@ -1,3 +1,12 @@
+// ====== [MOD:FUNNEL_DEBUG_SILENT_20260330] START ======
+const __FUNNEL_DEBUG__ = false;
+function funnelDebug() {
+  if (!__FUNNEL_DEBUG__) return;
+  try {
+    console.log.apply(console, arguments);
+  } catch (e) {}
+}
+// ====== [MOD:FUNNEL_DEBUG_SILENT_20260330] END ======
 // utils/funnel.js
 // 简单本地埋点工具：所有漏斗行为都记在本地 storage 里，方便以后统计 / 上传
 
@@ -32,13 +41,13 @@ function log(step, ext = {}) {
       }
     }
 
-    console.log('[FUNNEL_LOG]', {
+    funnelDebug('[FUNNEL_LOG]', {
       step,
       ext: displayExt,
       ts: now
     });
   } catch (e) {
-    console.warn('[funnel.log] 写入本地埋点失败：', e);
+    funnelDebug('[funnel.log] 写入本地埋点失败：', e);
   }
 }
 
