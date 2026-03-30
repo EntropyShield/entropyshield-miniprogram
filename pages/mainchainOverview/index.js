@@ -1,4 +1,4 @@
-﻿// pages/mainchainOverview/index.js
+// pages/mainchainOverview/index.js
 const store = require('../../utils/mainchainStore.js');
 const linkage = require('../../utils/mainchainLinkage.js');
 
@@ -6,6 +6,16 @@ const PLAN_TYPE_MAP = {
   steady: '稳健方案',
   advanced: '加强方案'
 };
+
+const EXECUTION_STATUS_MAP = {
+  pending: '待执行',
+  planned: '已计划',
+  partial: '部分执行',
+  deviated: '已偏离',
+  done: '已完成',
+  archived: '已归档'
+};
+
 const DISPLAY_SOURCE = '熵盾风控系统';
 const DISPLAY_VERSION = 'RiskOS1.0';
 
@@ -37,8 +47,36 @@ function fmtTime(v) {
   return `${yyyy}-${mm}-${dd} ${hh}:${mi}`;
 }
 
+function normalizeTags(value) {
+  if (Array.isArray(value)) {
+    return value.map(item => safeText(item, '')).filter(Boolean);
+  }
+  if (typeof value === 'string') {
+    return value
+      .split(/[，,、|]/)
+      .map(item => item.trim())
+      .filter(Boolean);
+  }
+  return [];
+}
+
+function tagsToText(value) {
+  const list = normalizeTags(value);
+  return list.length ? list.join(' / ') : '无';
+}
+
+function normalizeExecutionStatus(value) {
+  const raw = safeText(value, '').toLowerCase();
+  return raw || 'pending';
+}
+
 function getPlanTypeText(v) {
   return PLAN_TYPE_MAP[v] || safeText(v, '当前方案');
+}
+
+function getExecutionStatusText(v) {
+  const key = normalizeExecutionStatus(v);
+  return EXECUTION_STATUS_MAP[key] || safeText(v, '待执行');
 }
 
 function normalizeRiskEntity(item = {}) {
@@ -56,6 +94,9 @@ function normalizeRiskEntity(item = {}) {
     ''
   );
 
+  const deviationTags = normalizeTags(item.deviationTags);
+  const archiveTags = normalizeTags(item.archiveTags);
+
   return {
     ...item,
     stopLossPrice: stopLossPrice || '—',
@@ -63,8 +104,21 @@ function normalizeRiskEntity(item = {}) {
     riskAmount: maxLossAmount || '—',
     totalRisk: maxLossAmount || '—',
     totalLoss: maxLossAmount || '—',
-    source: DISPLAY_SOURCE,
-    entryVersion: DISPLAY_VERSION
+    source: safeText(item.source, DISPLAY_SOURCE),
+    entryVersion: safeText(item.entryVersion, DISPLAY_VERSION),
+    planTypeText: getPlanTypeText(item.planType),
+    executionStatus: normalizeExecutionStatus(item.executionStatus),
+    executionStatusText: getExecutionStatusText(item.executionStatus),
+    srrScoreText: item.srrScore === null || item.srrScore === undefined || item.srrScore === ''
+      ? '待评分'
+      : String(item.srrScore),
+    deviationTags,
+    deviationTagsText: tagsToText(item.deviationTags),
+    groupTag: safeText(item.groupTag, ''),
+    stageTag: safeText(item.stageTag, ''),
+    archiveTags,
+    archiveTagsText: tagsToText(item.archiveTags),
+    disciplineTips: normalizeTags(item.disciplineTips)
   };
 }
 
@@ -110,6 +164,19 @@ function getOverview() {
   return {};
 }
 
+function buildEntityScoreLine(label, entity = {}) {
+  const code = safeText(entity.code || entity.symbol || entity.name, '—');
+  const plan = safeText(entity.planTypeText || getPlanTypeText(entity.planType), '当前方案');
+  const score = safeText(entity.srrScoreText || entity.srrScore, '待评分');
+  const status = safeText(entity.executionStatusText || getExecutionStatusText(entity.executionStatus), '待执行');
+  const deviation = safeText(entity.deviationTagsText || tagsToText(entity.deviationTags), '无');
+  const groupTag = safeText(entity.groupTag, '无');
+  const stageTag = safeText(entity.stageTag, '无');
+  const archiveTags = safeText(entity.archiveTagsText || tagsToText(entity.archiveTags), '无');
+
+  return `${label}：标的 ${code}，方案 ${plan}，SRR ${score}，状态 ${status}，偏差 ${deviation}，组标签 ${groupTag}，阶段标签 ${stageTag}，档案标签 ${archiveTags}。`;
+}
+
 function answerQuestion(question, ctx) {
   const q = safeText(question).trim().toLowerCase();
   const hasAny = ctx.tradeCount || ctx.reportCount || ctx.archiveCount;
@@ -122,65 +189,55 @@ function answerQuestion(question, ctx) {
   const latestReport = ctx.latestReport || {};
   const latestArchive = ctx.latestArchive || {};
 
-  const tradeCode = safeText(latestTrade.code || latestTrade.symbol || latestTrade.name, '暂无交易记录');
-  const tradePlan = getPlanTypeText(latestTrade.planType || latestTrade.strategyName || latestTrade.planName);
-  const tradeRisk = safeText(latestTrade.maxLossAmount || latestTrade.riskAmount || latestTrade.totalRisk || latestTrade.totalLoss, '未识别');
-  const tradeStop = safeText(latestTrade.stopLossPrice || latestTrade.stopPrice, '未识别');
-  const tradeTarget = safeText(latestTrade.targetPrice || latestTrade.takeProfitPrice || latestTrade.target, '未设置');
+  const overviewLine = `当前主链共有交易记录 ${ctx.tradeCount || 0} 条，风控报告 ${ctx.reportCount || 0} 条，长期档案 ${ctx.archiveCount || 0} 条。`;
 
-  const reportCode = safeText(latestReport.code, '暂无风控报告');
-  const reportPlan = getPlanTypeText(latestReport.planType);
-  const reportTarget = safeText(latestReport.targetPrice, '未设置');
-  const reportRisk = safeText(latestReport.maxLossAmount || latestReport.riskAmount || latestReport.totalRisk || latestReport.totalLoss, '未识别');
-  const reportStop = safeText(latestReport.stopLossPrice || latestReport.stopPrice, '未识别');
+  const tradeLine = buildEntityScoreLine('最新交易记录', latestTrade);
+  const reportLine = buildEntityScoreLine('最新风控报告', latestReport);
+  const archiveLine = buildEntityScoreLine('最新长期档案', latestArchive);
 
-  const archiveCode = safeText(latestArchive.code, '暂无长期档案');
-  const archivePlan = getPlanTypeText(latestArchive.planType);
-  const archiveTarget = safeText(latestArchive.targetPrice || latestArchive.targetProfit, '未设置');
+  const nextActionLine = `当前建议：优先查看最新风控报告与长期档案是否已经完成评分、执行状态和偏差标签回写，再决定下一次生成方案或继续复盘。`;
 
-  const overviewLine = `当前主链总览：交易记录 ${ctx.tradeCount} 条，风控报告 ${ctx.reportCount} 份，长期档案 ${ctx.archiveCount} 条。`;
-  const objectLine = `当前关键对象：最新交易 ${tradeCode}（${tradePlan}），最新报告 ${reportCode}（${reportPlan}），长期档案 ${archiveCode}（${archivePlan}）。`;
+  if (!q) {
+    return [overviewLine, tradeLine, reportLine, archiveLine, nextActionLine].join('\n\n');
+  }
 
-  if (q.includes('当前状态') || q.includes('主链状态') || q.includes('总览') || q.includes('主链')) {
+  if (q.includes('评分') || q.includes('srr')) {
     return [
       overviewLine,
-      objectLine,
-      `当前风险核心口径已经明确：交易层最大风险 ${tradeRisk}，交易止损价 ${tradeStop}；报告层最大风险 ${reportRisk}，报告止损价 ${reportStop}。`
+      `最新评分概况：交易记录 ${safeText(latestTrade.srrScoreText, '待评分')}，风控报告 ${safeText(latestReport.srrScoreText, '待评分')}，长期档案 ${safeText(latestArchive.srrScoreText, '待评分')}。`,
+      nextActionLine
     ].join('\n\n');
   }
 
-  if (q.includes('最新交易') || q.includes('交易记录') || q.includes('执行') || q.includes('先看什么') || q.includes('怎么做')) {
+  if (q.includes('执行') || q.includes('状态')) {
     return [
-      `最新交易记录：${tradeCode}。计划类型 ${tradePlan}。止损价 ${tradeStop}，最大风险 ${tradeRisk}，目标价 ${tradeTarget}。`,
-      '先核对是否按计划执行，再检查是否出现临盘改规则、拖延止损、抢跑加码。'
+      overviewLine,
+      `最新执行状态：交易记录 ${safeText(latestTrade.executionStatusText, '待执行')}，风控报告 ${safeText(latestReport.executionStatusText, '待执行')}，长期档案 ${safeText(latestArchive.executionStatusText, '待执行')}。`,
+      nextActionLine
     ].join('\n\n');
   }
 
-  if (q.includes('最新报告') || q.includes('报告') || q.includes('风控报告') || q.includes('风险')) {
+  if (q.includes('偏差') || q.includes('标签')) {
     return [
-      `最新风控报告：${reportCode}。方案类型 ${reportPlan}。止损价 ${reportStop}，最大风险 ${reportRisk}，目标价 ${reportTarget}。`,
-      '风控报告的核心不是预测，而是先锁亏损边界，再定义利润目标。'
+      overviewLine,
+      `最新偏差与标签：交易记录 ${safeText(latestTrade.deviationTagsText, '无')}；风控报告 ${safeText(latestReport.deviationTagsText, '无')}；长期档案 ${safeText(latestArchive.archiveTagsText, '无')}。`,
+      `组标签：${safeText(latestReport.groupTag || latestArchive.groupTag, '无')}；阶段标签：${safeText(latestReport.stageTag || latestArchive.stageTag, '无')}。`
     ].join('\n\n');
   }
 
-  if (q.includes('长期档案') || q.includes('复盘') || q.includes('档案')) {
-    return [
-      `最新长期档案：${archiveCode}。方案类型 ${archivePlan}，目标口径 ${archiveTarget}。`,
-      '档案层的重点是把执行结果沉淀成下一轮可复制的模板。'
-    ].join('\n\n');
+  if (q.includes('交易记录')) {
+    return [tradeLine, nextActionLine].join('\n\n');
   }
 
-  if (q.includes('下一步') || q.includes('下一步做什么') || q.includes('接下来') || q.includes('先做什么')) {
-    return [
-      `下一步建议：第一步核对最新交易 ${tradeCode} 的止损价 ${tradeStop} 和最大风险 ${tradeRisk}；第二步对照最新报告 ${reportCode} 的止损价 ${reportStop} 和最大风险 ${reportRisk}；第三步把结果沉淀到长期档案 ${archiveCode}。`
-    ].join('\n\n');
+  if (q.includes('报告')) {
+    return [reportLine, nextActionLine].join('\n\n');
   }
 
-  return [
-    overviewLine,
-    objectLine,
-    '建议优先问：最新交易记录怎么看、最新报告怎么看、下一步做什么。'
-  ].join('\n\n');
+  if (q.includes('档案')) {
+    return [archiveLine, nextActionLine].join('\n\n');
+  }
+
+  return [overviewLine, tradeLine, reportLine, archiveLine, nextActionLine].join('\n\n');
 }
 
 Page({
@@ -197,7 +254,7 @@ Page({
     latestArchiveTime: '',
     questionInput: '',
     qaHistory: [],
-    quickQuestions: ['当前状态', '最新交易记录怎么看', '最新报告怎么看', '下一步做什么']
+    quickQuestions: ['当前状态', '最新评分怎么看', '执行状态怎么看', '偏差标签怎么看', '下一步做什么']
   },
 
   onLoad() {
@@ -266,8 +323,12 @@ Page({
   },
 
   openLatestTradeRecord() {
-    const latest = getLatestReport();
-    const reportId = linkage.pickReportId ? linkage.pickReportId(latest || {}) : safeText(latest && latest.reportId, '');
+    const latestTrade = getLatestTrade();
+    const latestReport = getLatestReport();
+    const reportId = linkage.pickReportId
+      ? linkage.pickReportId(latestTrade || latestReport || {})
+      : safeText((latestTrade && latestTrade.reportId) || (latestReport && latestReport.reportId), '');
+
     wx.redirectTo({
       url: linkage.buildNavUrl('/pages/tradeRecord/index', {
         from: 'mainchainOverview',
@@ -294,8 +355,12 @@ Page({
   },
 
   openLatestArchive() {
-    const latest = getLatestReport();
-    const reportId = linkage.pickReportId ? linkage.pickReportId(latest || {}) : safeText(latest && latest.reportId, '');
+    const latestArchive = getLatestArchive();
+    const latestReport = getLatestReport();
+    const reportId = linkage.pickReportId
+      ? linkage.pickReportId(latestArchive || latestReport || {})
+      : safeText((latestArchive && latestArchive.reportId) || (latestReport && latestReport.reportId), '');
+
     wx.redirectTo({
       url: linkage.buildNavUrl('/pages/longArchive/index', {
         from: 'mainchainOverview',
