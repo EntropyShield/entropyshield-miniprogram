@@ -386,8 +386,17 @@ Page({
     });
   },
 
-  syncProfileFreeTimes() {
+  syncProfileFreeTimes(force = false) {
     try {
+      const now = Date.now();
+      const syncingAt = Number(wx.getStorageSync('rc_profile_sync_ing') || 0) || 0;
+      const lastOkAt = Number(wx.getStorageSync('rc_profile_sync_ok_at') || 0) || 0;
+
+      if (!force) {
+        if (syncingAt && (now - syncingAt) < 15000) return;
+        if (lastOkAt && (now - lastOkAt) < 10 * 60 * 1000) return;
+      }
+
       const apiBase =
         wx.getStorageSync('API_BASE') ||
         wx.getStorageSync('apiBaseUrl') ||
@@ -396,15 +405,20 @@ Page({
       const clientId = wx.getStorageSync('clientId');
       if (!apiBase || !clientId) return;
 
+      wx.setStorageSync('rc_profile_sync_ing', now);
+
       wx.request({
-        url: `${String(apiBase).replace(/\/$/, '')}/api/fission/profile`,
+        url: String(apiBase).replace(/\/$/, '') + '/api/fission/profile',
         method: 'GET',
         data: { clientId },
+        timeout: 5000,
         success: (res) => {
           const d = res && res.data;
           if (!d || !d.ok) return;
 
-          const total = Number((d.total_reward_times ?? (d.profile && d.profile.total_reward_times) ?? 0)) || 0;
+          const total = Number(
+            (d.total_reward_times ?? (d.profile && d.profile.total_reward_times) ?? 0)
+          ) || 0;
 
           const rights = wx.getStorageSync('userRights') || {};
           const currentFree = Number(rights.freeCalcTimes || 0) || 0;
@@ -423,17 +437,21 @@ Page({
             wx.setStorageSync('fission_total_reward_times_synced', total);
           }
 
+          wx.setStorageSync('rc_profile_sync_ok_at', Date.now());
           this.refreshFreeTimes();
         },
         fail: (err) => {
-          console.log('[riskCalculator] syncProfileFreeTimes fail', err);
+          console.warn('[riskCalculator] syncProfileFreeTimes skipped/fail', err);
+        },
+        complete: () => {
+          try { wx.removeStorageSync('rc_profile_sync_ing'); } catch (e) {}
         }
       });
     } catch (e) {
-      console.log('[riskCalculator] syncProfileFreeTimes error', e);
+      console.warn('[riskCalculator] syncProfileFreeTimes error', e);
+      try { wx.removeStorageSync('rc_profile_sync_ing'); } catch (e2) {}
     }
   },
-
   getAdvancedAccessInfo() {
     const rights = UR.getUserRights();
 

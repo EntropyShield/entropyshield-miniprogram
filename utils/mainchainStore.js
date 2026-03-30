@@ -311,63 +311,102 @@ function clearLongArchives() {
 }
 
 function applyEvaluationToChain(reportId, patch = {}) {
-  const evalPatch = riskEngine.buildEvaluationPatch
-    ? riskEngine.buildEvaluationPatch(patch)
-    : patch;
+  const rid = String(reportId || '').trim();
+  if (!rid) return null;
 
-  const report = updateRiskReportById(reportId, evalPatch);
+  const report = getResolvedRiskReport(rid);
   if (!report) return null;
 
-  const resultId = String(report.resultId || '');
+  const merged = Object.assign({}, report || {}, patch || {});
 
-  const tradeList = getTradeRecords();
-  tradeList.forEach(item => {
-    const hit =
-      String(item.reportId || '') === String(reportId || '') ||
-      (resultId && String(item.resultId || '') === resultId);
+  const rawScore =
+    merged.srrScore !== undefined &&
+    merged.srrScore !== null &&
+    String(merged.srrScore).trim() !== ''
+      ? Number(merged.srrScore)
+      : NaN;
 
-    if (hit) {
-      updateTradeRecordById(item.recordId, evalPatch);
+  const normalizeText = (v, fallback = '') => {
+    if (Array.isArray(v)) {
+      const arr = v.map(x => String(x == null ? '' : x).trim()).filter(Boolean);
+      return arr.length ? arr.join('、') : fallback;
+    }
+    const s = String(v == null ? '' : v).trim();
+    return s || fallback;
+  };
+
+  const evalPatch = Object.assign({}, patch || {}, {
+    srrScoreText:
+      normalizeText(merged.srrScoreText, '') ||
+      (Number.isFinite(rawScore) ? String(rawScore) : '') ||
+      normalizeText(report.srrScoreText, '') ||
+      normalizeText(report.srrScore, ''),
+    deviationTagsText: normalizeText(
+      merged.deviationTagsText !== undefined ? merged.deviationTagsText : merged.deviationTags,
+      normalizeText(report.deviationTagsText, '')
+    ),
+    archiveTagsText: normalizeText(
+      merged.archiveTagsText !== undefined
+        ? merged.archiveTagsText
+        : (merged.deviationTagsText !== undefined ? merged.deviationTagsText : merged.deviationTags),
+      normalizeText(report.archiveTagsText, '')
+    ),
+    groupTag: normalizeText(merged.groupTag, normalizeText(report.groupTag, '')),
+    stageTag: normalizeText(merged.stageTag, normalizeText(report.stageTag, '')),
+    evaluationUpdatedAt: Date.now()
+  });
+
+  if (Number.isFinite(rawScore)) {
+    evalPatch.srrScore = rawScore;
+  }
+
+  const nextReport = updateRiskReportById(rid, evalPatch);
+  const finalReport = nextReport || getResolvedRiskReport(rid);
+  if (!finalReport) return null;
+
+  const finalResultId = String(finalReport.resultId || '').trim();
+
+  getTradeRecords().forEach(item => {
+    const sameReport = String(item.reportId || '') === rid;
+    const sameResult = finalResultId && String(item.resultId || '') === finalResultId;
+
+    if (sameReport || sameResult) {
+      updateTradeRecordById(item.recordId, Object.assign({}, evalPatch, {
+        reportId: finalReport.reportId || rid
+      }));
     }
   });
 
-  const archives = getLongArchives();
-  archives.forEach(item => {
-    const hit =
-      String(item.reportId || '') === String(reportId || '') ||
-      (resultId && String(item.resultId || '') === resultId);
+  getLongArchives().forEach(item => {
+    const sameReport = String(item.reportId || '') === rid;
+    const sameResult = finalResultId && String(item.resultId || '') === finalResultId;
 
-    if (hit) {
-      updateLongArchiveById(item.archiveId, {
-        ...evalPatch,
-        archiveTags: evalPatch.archiveTags && evalPatch.archiveTags.length
-          ? evalPatch.archiveTags
-          : evalPatch.deviationTags
-      });
+    if (sameReport || sameResult) {
+      updateLongArchiveById(item.archiveId, Object.assign({}, evalPatch, {
+        reportId: finalReport.reportId || rid,
+        archiveTagsText:
+          normalizeText(evalPatch.archiveTagsText, '') ||
+          normalizeText(evalPatch.deviationTagsText, '') ||
+          normalizeText(item.archiveTagsText, '')
+      }));
     }
   });
 
-  return getResolvedRiskReport(reportId);
+  return getResolvedRiskReport(rid);
 }
 
 function getOverview() {
-  const latestDraft = getLatestRiskCalcDraft();
-  const latestPlan = getLatestPlanResult();
-  const trades = getTradeRecords();
-  const reports = getRiskReportHistory();
+  const trades = sortByTimeDesc(getTradeRecords());
+  const reports = sortByTimeDesc(getRiskReportHistory());
   const archives = getLongArchivesSorted();
 
   return {
-    draftCount: latestDraft ? 1 : 0,
     tradeCount: trades.length,
     reportCount: reports.length,
     archiveCount: archives.length,
-    latestDraft: latestDraft || null,
-    latestPlan: latestPlan || null,
     latestTrade: trades[0] || null,
     latestReport: reports[0] || null,
-    latestArchive: archives[0] || null,
-    createdAt: Date.now()
+    latestArchive: archives[0] || null
   };
 }
 
