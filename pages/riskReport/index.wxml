@@ -20,10 +20,49 @@
       <view class="rr-row"><text class="rr-k">目标利润</text><text class="rr-v">{{report.targetProfit || '—'}}</text></view>
       <view class="rr-row"><text class="rr-k">执行状态</text><text class="rr-v">{{report.executionStatusText}}</text></view>
       <view class="rr-row"><text class="rr-k">SRR评分</text><text class="rr-v">{{report.srrScoreText}}</text></view>
-      <view class="rr-row"><text class="rr-k">偏差标签</text><text class="rr-v">{{report.deviationTagsText}}</text></view>
-      <view class="rr-row"><text class="rr-k">组标签</text><text class="rr-v">{{report.groupTag || '无'}}</text></view>
-      <view class="rr-row"><text class="rr-k">阶段标签</text><text class="rr-v">{{report.stageTag || '无'}}</text></view>
-      <view class="rr-row"><text class="rr-k">档案标签</text><text class="rr-v">{{report.archiveTagsText}}</text></view>
+    </view>
+
+    <view class="rr-card">
+      <view class="rr-section-title">AI 解释当前报告</view>
+
+      <view wx:if="{{!aiExplainLoading}}" class="rr-btn rr-btn-primary" bindtap="runAiExplain">
+        生成 AI 解释
+      </view>
+      <view wx:else class="rr-btn rr-btn-primary">
+        AI 解释生成中...
+      </view>
+
+      <text wx:if="{{aiExplainError}}" class="rr-sub" style="margin-top: 16rpx;">{{aiExplainError}}</text>
+
+      <view wx:if="{{aiExplain}}" style="margin-top: 20rpx;">
+        <view wx:if="{{aiExplain.summary}}" style="margin-bottom: 20rpx;">
+          <text class="rr-ai-label">总结</text>
+          <text class="rr-step-text" style="display:block;margin-top:8rpx;">{{aiExplain.summary}}</text>
+        </view>
+
+        <view wx:if="{{aiExplain.riskFocus.length}}" style="margin-bottom: 20rpx;">
+          <text class="rr-ai-label">风险重点</text>
+          <block wx:for="{{aiExplain.riskFocus}}" wx:key="index">
+            <view class="rr-list-item">
+              <text class="rr-step-text">{{item}}</text>
+            </view>
+          </block>
+        </view>
+
+        <view wx:if="{{aiExplain.scoreInterpretation}}" style="margin-bottom: 20rpx;">
+          <text class="rr-ai-label">评分解释</text>
+          <text class="rr-step-text" style="display:block;margin-top:8rpx;">{{aiExplain.scoreInterpretation}}</text>
+        </view>
+
+        <view wx:if="{{aiExplain.nextActions.length}}">
+          <text class="rr-ai-label">下一步动作</text>
+          <block wx:for="{{aiExplain.nextActions}}" wx:key="index">
+            <view class="rr-list-item">
+              <text class="rr-step-text">{{item}}</text>
+            </view>
+          </block>
+        </view>
+      </view>
     </view>
 
     <view class="rr-card">

@@ -1,4 +1,5 @@
 // pages/longArchive/index.js
+const mainchainAi = require('../../utils/mainchainAi.js');
 const store = require('../../utils/mainchainStore.js');
 const linkage = require('../../utils/mainchainLinkage.js');
 
@@ -176,7 +177,10 @@ Page({
     stageTagInput: '',
     archiveTagsInput: '',
     savingEvaluation: false,
-    emptyText: '暂无长期档案'
+    emptyText: '暂无长期档案',
+    aiReviewLoading: false,
+    aiReviewError: '',
+    aiReview: null
   },
 
   onLoad(options = {}) {
@@ -314,6 +318,73 @@ Page({
       })
     });
   },
+
+  // ====== [MOD:LONGARCHIVE_AI_REVIEW_20260330] START ======
+  getActiveArchive() {
+    return this.data.currentArchive || this.data.latestArchive || this.data.archive || {};
+  },
+
+  buildAiReviewContext() {
+    return {
+      archive: this.getActiveArchive()
+    };
+  },
+
+  getAiArchiveReportId() {
+    const archive = this.getActiveArchive();
+    return String(
+      archive.reportId ||
+      this.data.reportId ||
+      ''
+    ).trim();
+  },
+
+  async runAiReview() {
+    const archive = this.getActiveArchive();
+    if (!archive || !Object.keys(archive).length) {
+      wx.showToast({ title: '暂无长期档案', icon: 'none' });
+      return;
+    }
+
+    const clientId = String(wx.getStorageSync('clientId') || '').trim();
+    const reportId = this.getAiArchiveReportId();
+
+    this.setData({
+      aiReviewLoading: true,
+      aiReviewError: '',
+      aiReview: null
+    });
+
+    try {
+      const res = await mainchainAi.runArchiveReview({
+        clientId,
+        reportId,
+        sourcePage: 'longArchive',
+        entryVersion: String(archive.entryVersion || 'V1.4'),
+        context: this.buildAiReviewContext()
+      });
+
+      const data = (res && res.data) || {};
+      this.setData({
+        aiReview: {
+          summary: String(data.summary || ''),
+          disciplineReview: String(data.disciplineReview || ''),
+          recurringBiases: Array.isArray(data.recurringBiases) ? data.recurringBiases : [],
+          nextCycleChecklist: Array.isArray(data.nextCycleChecklist) ? data.nextCycleChecklist : []
+        }
+      });
+    } catch (err) {
+      console.error('[longArchive] runAiReview error', err);
+      this.setData({
+        aiReviewError: 'AI 复盘暂时不可用'
+      });
+    } finally {
+      this.setData({
+        aiReviewLoading: false
+      });
+    }
+  },
+  // ====== [MOD:LONGARCHIVE_AI_REVIEW_20260330] END ======
 
   goRiskCalculator() {
     wx.navigateTo({

@@ -20,5 +20,45 @@
     "ignoreDevUnusedFiles": false
   },
   "libVersion": "3.14.2",
-  "condition": {}
+  "condition": {
+    "miniprogram": {
+      "list": [
+        {
+          "name": "主链调试页",
+          "pathName": "/pages/mainchainDebug/index",
+          "query": "",
+          "scene": null,
+          "launchMode": "default"
+        },
+        {
+          "name": "我的交易记录",
+          "pathName": "/pages/tradeRecord/index",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
+          "name": "长期档案",
+          "pathName": "/pages/longArchive/index",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
+          "name": "风控报告页",
+          "pathName": "/pages/riskReport/index",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
+          "name": "主链总览",
+          "pathName": "/pages/mainchainOverview/index",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        }
+      ]
+    }
+  }
 }

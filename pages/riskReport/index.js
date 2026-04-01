@@ -1,4 +1,5 @@
 // pages/riskReport/index.js
+const mainchainAi = require('../../utils/mainchainAi.js');
 const store = require('../../utils/mainchainStore.js');
 const linkage = require('../../utils/mainchainLinkage.js');
 
@@ -272,6 +273,60 @@ Page({
     }
   },
 
+  // ====== [MOD:RISKREPORT_AI_EXPLAIN_20260330] START ======
+  buildAiExplainContext() {
+    return {
+      report: this.data.report || {}
+    };
+  },
+
+  async runAiExplain() {
+    const report = this.data.report || {};
+    if (!report || !Object.keys(report).length) {
+      wx.showToast({ title: '暂无风控报告', icon: 'none' });
+      return;
+    }
+
+    const reportId = typeof this.getCurrentReportId === 'function'
+      ? this.getCurrentReportId()
+      : String(this.data.reportId || report.reportId || '').trim();
+
+    const clientId = String(wx.getStorageSync('clientId') || '').trim();
+
+    this.setData({
+      aiExplainLoading: true,
+      aiExplainError: ''
+    });
+
+    try {
+      const res = await mainchainAi.runReportExplain({
+        clientId,
+        reportId,
+        sourcePage: 'riskReport',
+        entryVersion: String(report.entryVersion || 'V1.4'),
+        context: this.buildAiExplainContext()
+      });
+
+      const data = (res && res.data) || {};
+      this.setData({
+        aiExplain: {
+          summary: String(data.summary || ''),
+          riskFocus: Array.isArray(data.riskFocus) ? data.riskFocus : [],
+          scoreInterpretation: String(data.scoreInterpretation || ''),
+          nextActions: Array.isArray(data.nextActions) ? data.nextActions : []
+        }
+      });
+    } catch (err) {
+      this.setData({
+        aiExplainError: 'AI 解读暂时不可用'
+      });
+    } finally {
+      this.setData({
+        aiExplainLoading: false
+      });
+    }
+  },
+  // ====== [MOD:RISKREPORT_AI_EXPLAIN_20260330] END ======
   saveLongArchive() {
     const report = this.data.report;
     if (!report) {

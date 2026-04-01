@@ -117,6 +117,51 @@
       </block>
     </view>
 
+    <view class="la-card">
+      <view class="la-section-title">AI 复盘总结</view>
+
+      <view wx:if="{{!aiReviewLoading}}" class="la-bottom-btn" bindtap="runAiReview" style="margin-top: 20rpx;">
+        生成 AI 复盘
+      </view>
+      <view wx:else class="la-bottom-btn" style="margin-top: 20rpx; opacity: 0.7;">
+        AI 复盘生成中...
+      </view>
+
+      <text wx:if="{{aiReviewError}}" class="la-empty-desc" style="display:block;margin-top:16rpx;">{{aiReviewError}}</text>
+
+      <view wx:if="{{aiReview}}" style="margin-top: 20rpx;">
+        <view wx:if="{{aiReview.summary}}" style="margin-bottom: 20rpx;">
+          <text class="la-label">总结</text>
+          <text class="la-value" style="display:block;margin-top:8rpx;">{{aiReview.summary}}</text>
+        </view>
+
+        <view wx:if="{{aiReview.disciplineReview}}" style="margin-bottom: 20rpx;">
+          <text class="la-label">纪律复盘</text>
+          <text class="la-value" style="display:block;margin-top:8rpx;">{{aiReview.disciplineReview}}</text>
+        </view>
+
+        <view wx:if="{{aiReview.recurringBiases.length}}" style="margin-bottom: 20rpx;">
+          <text class="la-label">重复偏差</text>
+          <block wx:for="{{aiReview.recurringBiases}}" wx:key="index">
+            <view class="la-tip-row">
+              <view class="la-tip-dot"></view>
+              <text class="la-tip-text">{{item}}</text>
+            </view>
+          </block>
+        </view>
+
+        <view wx:if="{{aiReview.nextCycleChecklist.length}}">
+          <text class="la-label">下一轮清单</text>
+          <block wx:for="{{aiReview.nextCycleChecklist}}" wx:key="index">
+            <view class="la-tip-row">
+              <view class="la-tip-dot"></view>
+              <text class="la-tip-text">{{item}}</text>
+            </view>
+          </block>
+        </view>
+      </view>
+    </view>
+
     <view class="la-bottom-actions">
       <view class="la-bottom-btn la-bottom-btn-secondary" bindtap="goRiskReport">查看风控报告</view>
       <view class="la-bottom-btn la-bottom-btn-secondary" bindtap="goTradeRecord">查看我的交易记录</view>

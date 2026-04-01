@@ -1,5 +1,6 @@
 // pages/mainchainOverview/index.js
 const store = require('../../utils/mainchainStore.js');
+const mainchainAi = require('../../utils/mainchainAi.js');
 const linkage = require('../../utils/mainchainLinkage.js');
 
 const PLAN_TYPE_MAP = {
@@ -253,6 +254,9 @@ Page({
     latestReportTime: '',
     latestArchiveTime: '',
     questionInput: '',
+    aiEnabled: true,
+    aiLoading: false,
+    aiError: '',
     qaHistory: [],
     quickQuestions: ['当前状态', '最新评分怎么看', '执行状态怎么看', '偏差标签怎么看', '下一步做什么']
   },
@@ -284,31 +288,121 @@ Page({
     });
   },
 
+  // ====== [MOD:MAINCHAIN_AI_HELPERS_20260330] START ======
+  getAiReportId() {
+    const latestTrade = this.data.latestTrade || {};
+    const latestReport = this.data.latestReport || {};
+    const latestArchive = this.data.latestArchive || {};
+    return safeText(
+      latestReport.reportId ||
+      latestTrade.reportId ||
+      latestArchive.reportId ||
+      '',
+      ''
+    );
+  },
+
+  buildAiOverviewContext() {
+    return {
+      overview: {
+        tradeCount: Number(this.data.tradeCount || 0) || 0,
+        reportCount: Number(this.data.reportCount || 0) || 0,
+        archiveCount: Number(this.data.archiveCount || 0) || 0
+      },
+      latestTrade: this.data.latestTrade || {},
+      latestReport: this.data.latestReport || {},
+      latestArchive: this.data.latestArchive || {}
+    };
+  },
+
+  appendQaItem(question, answer) {
+    const qaHistory = Array.isArray(this.data.qaHistory) ? this.data.qaHistory.slice(0) : [];
+    qaHistory.unshift({
+      q: question || '未输入问题',
+      a: answer || '暂无回答'
+    });
+
+    this.setData({
+      qaHistory: qaHistory.slice(0, 10),
+      questionInput: ''
+    });
+  },
+  // ====== [MOD:MAINCHAIN_AI_HELPERS_20260330] END ======
   onQuestionInput(e) {
     this.setData({
       questionInput: safeText(e && e.detail && e.detail.value, '')
     });
   },
 
-  askQuestion() {
+  async askQuestion() {
     const question = safeText(this.data.questionInput, '').trim();
-    const ctx = {
-      tradeCount: this.data.tradeCount,
-      reportCount: this.data.reportCount,
-      archiveCount: this.data.archiveCount,
-      latestTrade: this.data.latestTrade,
-      latestReport: this.data.latestReport,
-      latestArchive: this.data.latestArchive
-    };
-    const answer = answerQuestion(question, ctx);
-    this.setData({
-      qaHistory: [{
-        q: question || '未输入问题',
-        a: answer
-      }]
-    });
-  },
+    if (!question) {
+      wx.showToast({ title: '请输入问题', icon: 'none' });
+      return;
+    }
 
+    const ctx = typeof buildQuestionContext === 'function'
+      ? buildQuestionContext(this.data)
+      : {
+          latestTrade: this.data.latestTrade || {},
+          latestReport: this.data.latestReport || {},
+          latestArchive: this.data.latestArchive || {}
+        };
+
+    const fallbackAnswer = answerQuestion(question, ctx);
+    const aiEnabled = this.data.aiEnabled !== false;
+
+    if (!aiEnabled) {
+      this.appendQaItem(question, fallbackAnswer);
+      return;
+    }
+
+    this.setData({
+      aiLoading: true,
+      aiError: ''
+    });
+
+    try {
+      const clientId = String(wx.getStorageSync('clientId') || '').trim();
+      const reportId = this.getAiReportId();
+
+      const res = await mainchainAi.runOverviewQa({
+        clientId,
+        reportId,
+        sourcePage: 'mainchainOverview',
+        entryVersion: 'V1.4',
+        question,
+        context: this.buildAiOverviewContext()
+      });
+
+      const data = (res && res.data) || {};
+      let answer = safeText(data.answer, '');
+      const summary = safeText(data.summary, '');
+      const nextActions = Array.isArray(data.nextActions)
+        ? data.nextActions.map(item => safeText(item, '')).filter(Boolean)
+        : [];
+
+      if (!answer) {
+        answer = fallbackAnswer;
+      } else {
+        const extras = [];
+        if (summary) extras.push('总结：' + summary);
+        if (nextActions.length) extras.push('建议：' + nextActions.join('；'));
+        if (extras.length) answer += '\n' + extras.join('\n');
+      }
+
+      this.appendQaItem(question, answer);
+    } catch (err) {
+      this.setData({
+        aiError: 'AI 回答暂时不可用，已切换为本地回答'
+      });
+      this.appendQaItem(question, fallbackAnswer);
+    } finally {
+      this.setData({
+        aiLoading: false
+      });
+    }
+  },
   onQuickQuestionTap(e) {
     const q = safeText(
       e && e.currentTarget && e.currentTarget.dataset && (e.currentTarget.dataset.q || e.currentTarget.dataset.preset),

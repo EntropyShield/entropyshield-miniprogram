@@ -92,7 +92,10 @@
       </view>
     </view>
 
-    <view class="mc-btn mc-btn-primary" bindtap="askQuestion">开始提问</view>
+    <view wx:if="{{!aiLoading}}" class="mc-btn mc-btn-primary" bindtap="askQuestion">开始提问</view>
+<view wx:else class="mc-btn mc-btn-primary">AI 分析中...</view>
+<text class="mc-item-sub" wx:if="{{aiLoading}}">AI 正在分析当前主链，请稍候。</text>
+<text class="mc-item-sub" wx:if="{{aiError}}">{{aiError}}</text>
 
     <view wx:if="{{qaHistory.length}}">
       <block wx:for="{{qaHistory}}" wx:key="index">

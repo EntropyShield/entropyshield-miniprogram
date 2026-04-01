@@ -1,28 +1,122 @@
 // pages/planSteady/index.js
 const funnel = require('../../utils/funnel.js');
+const mainchainApi = require('../../utils/mainchainApi.js');
+
+function safeDecode(v, d = '') {
+  if (v === undefined || v === null || v === '') return d;
+  try {
+    return decodeURIComponent(v);
+  } catch (e) {
+    return String(v);
+  }
+}
+
+function buildStableResultId(payload = {}) {
+  const seed = [
+    'steady',
+    payload.code || '',
+    payload.totalCapital || '',
+    payload.firstPrice || '',
+    payload.source || '',
+    payload.entryVersion || '',
+    payload.membershipType || '',
+    payload.draftId || ''
+  ].join('|');
+
+  return `rs_${String(seed).replace(/[^a-zA-Z0-9_-]+/g, '_').slice(0, 120)}`;
+}
+
+// ====== [MOD:PLAN_STEADY_REMOTE_CREATE_HELPERS] START ======
+function buildRemoteTradeKey(payload = {}) {
+  const seed = [
+    'steady_remote',
+    payload.code || '',
+    payload.totalCapital || '',
+    payload.firstPrice || '',
+    payload.targetPrice || '',
+    payload.source || '',
+    payload.entryVersion || '',
+    payload.membershipType || ''
+  ].join('|');
+
+  return `rt_${String(seed).replace(/[^a-zA-Z0-9_-]+/g, '_').slice(0, 120)}`;
+}
+
+function safeNum(v, d = 0) {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : d;
+}
+
+function toFen(v) {
+  return Math.round(safeNum(v, 0) * 100);
+}
+
+function detectMarket(code = '') {
+  const s = String(code || '').trim().toUpperCase();
+
+  if (!s) return 'OTHER';
+  if (/^\d{6}$/.test(s)) return 'CN_A';
+  if (/(USDT|BTC|ETH|BNB|SOL|DOGE|XRP)/.test(s)) return 'CRYPTO';
+  if (/^[A-Z]{1,5}$/.test(s)) return 'US_EQ';
+
+  return 'OTHER';
+}
+
+function pickStopPriceFromSteps(steps = [], fallback = '') {
+  const list = Array.isArray(steps) ? steps : [];
+  const first = list.find(item => item && item.stopPrice !== undefined && item.stopPrice !== null && item.stopPrice !== '');
+  return first ? String(first.stopPrice) : String(fallback || '');
+}
+
+function sumBuyShares(steps = []) {
+  return (Array.isArray(steps) ? steps : []).reduce((sum, item) => {
+    return sum + safeNum(item && item.buyShares, 0);
+  }, 0);
+}
+
+function sumBuyAmount(steps = []) {
+  return (Array.isArray(steps) ? steps : []).reduce((sum, item) => {
+    return sum + safeNum(item && item.buyAmount, 0);
+  }, 0);
+}
+
+function maxAbsStopAmount(steps = []) {
+  const nums = (Array.isArray(steps) ? steps : [])
+    .map(item => Math.abs(safeNum(item && item.stopAmount, 0)))
+    .filter(v => v > 0);
+
+  return nums.length ? Math.max(...nums) : 0;
+}
+// ====== [MOD:PLAN_STEADY_REMOTE_CREATE_HELPERS] END ======
 
 Page({
   data: {
     code: '',
     membershipType: '稳健策略 · 演示版',
 
-    totalCapital: '',   // 账户资金 T
-    firstPrice: '',     // 首次买入价 P1
+    totalCapital: '',
+    firstPrice: '',
 
-    targetPrice: '',    // 目标收益价格
-    targetProfit: '',   // 目标收益利润
+    targetPrice: '',
+    targetProfit: '',
 
-    steps: []           // 有效建仓步骤（自动过滤 0 股）
+    steps: [],
+
+    source: 'riskCalculator',
+    entryVersion: 'V1.4',
+    draftId: '',
+    resultId: '',
+    reportId: ''
   },
 
   onLoad(options) {
-    // 从上一页接收参数
     const totalCapital = parseFloat(options.balance || options.capital || 0);
     const firstPrice = parseFloat(options.price || options.firstPrice || 0);
-    const code = options.code ? decodeURIComponent(options.code) : '';
-    const membershipType = options.membershipType
-      ? decodeURIComponent(options.membershipType)
-      : '稳健策略 · 演示版';
+    const code = safeDecode(options.code, '');
+    const membershipType = safeDecode(options.membershipType, '稳健策略 · 演示版');
+    const source = safeDecode(options.source, 'riskCalculator');
+    const entryVersion = safeDecode(options.entryVersion, 'V1.4');
+    const draftId = safeDecode(options.draftId, '');
 
     if (!totalCapital || !firstPrice || isNaN(totalCapital) || isNaN(firstPrice)) {
       wx.showToast({
@@ -36,7 +130,7 @@ Page({
 
     if (!plan.steps.length) {
       wx.showToast({
-        title: '当前资金不足以形成1手有效建仓',
+        title: '当前资金不足以形成有效建仓',
         icon: 'none'
       });
     } else if (plan.steps.length < 4) {
@@ -46,6 +140,17 @@ Page({
       });
     }
 
+    const resultId = buildStableResultId({
+      code,
+      totalCapital: plan.totalCapital,
+      firstPrice: plan.firstPrice,
+      source,
+      entryVersion,
+      membershipType,
+      draftId
+    });
+    const reportId = `rr_${resultId}`;
+
     this.setData({
       code,
       membershipType,
@@ -53,26 +158,214 @@ Page({
       firstPrice: plan.firstPrice,
       targetPrice: plan.targetPrice,
       targetProfit: plan.targetProfit,
-      steps: plan.steps
+      steps: plan.steps,
+      source,
+      entryVersion,
+      draftId,
+      resultId,
+      reportId
+    });
+
+    this.persistMainchainSnapshot({
+      code,
+      membershipType,
+      source,
+      entryVersion,
+      draftId,
+      resultId,
+      reportId,
+      plan
     });
   },
 
-  /**
-   * 稳健版 4 次进场 + 止损 公式
-   *
-   * 保持原公式不变，只修 3 个问题：
-   * 1）某一步不足 100 股时，不再展示 0 股
-   * 2）分母为 0 时，避免 NaN / Infinity
-   * 3）过滤无效步骤后，重新编号展示
-   */
+  persistMainchainSnapshot({ code, membershipType, source, entryVersion, draftId, resultId, reportId, plan }) {
+    try {
+      if (!plan || !Array.isArray(plan.steps) || !plan.steps.length) {
+        console.warn('[planSteady] skip persist: empty steps');
+        return;
+      }
+
+      const generatedAt = Date.now();
+
+      const snapshot = {
+        resultId,
+        reportId,
+        planType: 'steady',
+        code,
+        membershipType,
+        totalCapital: plan.totalCapital,
+        firstPrice: plan.firstPrice,
+        maxRiskPriceStep: '',
+        targetPrice: plan.targetPrice,
+        targetProfit: plan.targetProfit,
+        steps: plan.steps,
+        source,
+        draftId,
+        entryVersion,
+        generatedAt,
+        savedAt: generatedAt
+      };
+
+      const resultReceipt = mainchainApi.persistPlanResult(snapshot);
+      const tradeResult = mainchainApi.persistTradeRecord(snapshot);
+      const tradeSaved = tradeResult && tradeResult.saved ? tradeResult.saved : null;
+      const reportResult = mainchainApi.persistRiskReport(snapshot);
+      const reportSaved = reportResult && reportResult.saved ? reportResult.saved : null;
+      const archiveResult = reportSaved
+        ? mainchainApi.persistLongArchiveFromReport(reportSaved)
+        : null;
+
+      this.createRemoteTradeRecord(snapshot, tradeSaved);
+
+      console.log('[planSteady] mainchain persisted', {
+        resultId,
+        reportId,
+        resultReceipt,
+        tradeResult,
+        reportResult,
+        archiveResult
+      });
+    } catch (err) {
+      console.error('[planSteady] persist mainchain failed', err);
+    }
+  },
+
+  // ====== [MOD:PLAN_STEADY_REMOTE_CREATE] START ======
+  createRemoteTradeRecord(snapshot = {}, tradeSaved = {}) {
+    try {
+      const apiBase = String(
+        wx.getStorageSync('API_BASE') ||
+        wx.getStorageSync('apiBaseUrl') ||
+        ((getApp && getApp().globalData && getApp().globalData.API_BASE) || '')
+      ).replace(/\/$/, '');
+
+      const clientId = String(wx.getStorageSync('clientId') || '').trim();
+      const code = String(snapshot.code || tradeSaved.code || '').trim();
+      const steps = Array.isArray(snapshot.steps) ? snapshot.steps : [];
+      const targetPrice = safeNum(snapshot.targetPrice || tradeSaved.targetPrice, 0);
+
+      const remoteTradeKey = buildRemoteTradeKey({
+        code,
+        totalCapital: snapshot.totalCapital || tradeSaved.totalCapital || '',
+        firstPrice: snapshot.firstPrice || tradeSaved.firstPrice || '',
+        targetPrice: targetPrice || '',
+        source: snapshot.source || tradeSaved.source || '',
+        entryVersion: snapshot.entryVersion || tradeSaved.entryVersion || '',
+        membershipType: snapshot.membershipType || tradeSaved.membershipType || ''
+      });
+
+      const remoteDoneKey = `trade_record_remote_done_${remoteTradeKey}`;
+      const remoteIngKey = `trade_record_remote_ing_${remoteTradeKey}`;
+      const ingAt = Number(wx.getStorageSync(remoteIngKey) || 0) || 0;
+
+      if (!apiBase || !clientId || !remoteTradeKey) {
+        console.warn('[planSteady] skip remote create: missing apiBase/clientId/remoteTradeKey', {
+          hasApiBase: !!apiBase,
+          hasClientId: !!clientId,
+          remoteTradeKey
+        });
+        return;
+      }
+
+      if (wx.getStorageSync(remoteDoneKey)) {
+        console.log('[planSteady] remote trade already created, skip', remoteTradeKey);
+        return;
+      }
+
+      if (ingAt && (Date.now() - ingAt) < 15000) {
+        console.log('[planSteady] remote trade in-flight, skip duplicate request', remoteTradeKey);
+        return;
+      }
+
+      const market = detectMarket(code);
+      const entryPrice = safeNum(snapshot.firstPrice || tradeSaved.firstPrice, 0);
+      const stopPrice = safeNum(
+        pickStopPriceFromSteps(steps, tradeSaved.stopLossPrice || tradeSaved.stopPrice || ''),
+        0
+      );
+      const positionSize = sumBuyShares(steps);
+      const positionValueFen = toFen(sumBuyAmount(steps));
+      const accountEquityFen = toFen(snapshot.totalCapital || tradeSaved.totalCapital || 0);
+      const plannedLossAmountFen = toFen(maxAbsStopAmount(steps));
+      const plannedProfitAmountFen = toFen(snapshot.targetProfit || tradeSaved.targetProfit || 0);
+      const noteText = `planSteady:${remoteTradeKey}`;
+
+      const payload = {
+        clientId,
+        recordMode: 'pre_trade',
+        dataSourceType: 'calculator_new',
+        symbol: code,
+        market,
+        direction: 'LONG',
+        accountEquityFen,
+        entryPrice,
+        stopPrice,
+        targetPrice,
+        positionSize,
+        positionValueFen,
+        plannedLossAmountFen,
+        plannedProfitAmountFen,
+        sourcePlanType: 'calculator',
+        followPlanFlag: 1,
+        executionStatus: 'planned',
+        resultType: 'open',
+        noteText
+      };
+
+      wx.setStorageSync(remoteIngKey, Date.now());
+
+      wx.request({
+        url: `${apiBase}/api/trade-record/create`,
+        method: 'POST',
+        data: payload,
+        header: {
+          'content-type': 'application/json'
+        },
+        success: (res) => {
+          const ok = !!(res && res.statusCode >= 200 && res.statusCode < 300 && res.data && res.data.ok);
+          if (!ok) {
+            console.error('[planSteady] remote trade create failed', {
+              statusCode: res && res.statusCode,
+              data: res && res.data
+            });
+            return;
+          }
+
+          wx.setStorageSync(remoteDoneKey, {
+            ok: true,
+            tradeId: res.data && res.data.trade_id,
+            deduped: !!(res.data && res.data.deduped),
+            at: Date.now(),
+            remoteTradeKey
+          });
+
+          console.log('[planSteady] remote trade created', {
+            remoteTradeKey,
+            tradeId: res.data && res.data.trade_id,
+            deduped: !!(res.data && res.data.deduped),
+            payload
+          });
+        },
+        fail: (err) => {
+          console.error('[planSteady] remote trade request fail', err);
+        },
+        complete: () => {
+          try { wx.removeStorageSync(remoteIngKey); } catch (e) {}
+        }
+      });
+    } catch (err) {
+      console.error('[planSteady] createRemoteTradeRecord error', err);
+    }
+  },
+  // ====== [MOD:PLAN_STEADY_REMOTE_CREATE] END ======
+
   calcSteadyPlan(T, P1) {
-    const useRatio = 0.8; // 80% 资金参与本轮交易
+    const useRatio = 0.8;
     const w1 = 0.4;
     const w2 = 0.1;
     const w3 = 0.3;
     const w4 = 0.2;
 
-    // 风险金额比例
     const r1 = 0.02;
     const r2 = 0.0154;
     const r3 = 0.01804;
@@ -88,22 +381,18 @@ Page({
       return den > 0 ? (num / den) : fallback;
     };
 
-    // 理论可用资金 & 总股数
     const available = T * useRatio;
     const totalShares = available / P1;
 
-    // 4 次建仓股数（保持原逻辑：向下取整到 100 股）
     const N1 = roundLotDown(totalShares * w1);
     const N2 = roundLotDown(totalShares * w2);
     const N3 = roundLotDown(totalShares * w3);
     const N4 = roundLotDown(totalShares * w4);
 
-    // 4 次建仓价格
     const P2 = P1 * 1.03;
     const P3 = P2 * 1.03;
     const P4 = P3 * 1.06;
 
-    // 4 次建仓金额
     const M1 = N1 * P1;
     const M2 = N2 * P2;
     const M3 = N3 * P3;
@@ -113,29 +402,24 @@ Page({
     const sumShares123 = N1 + N2 + N3;
     const sumShares1234 = N1 + N2 + N3 + N4;
 
-    // 风险金额
     const L1 = -T * r1;
     const L2 = -T * r2;
     const L3 = -T * r3;
     const L4 = T * r4;
 
-    // 4 个止损价格（分母为 0 时兜底，避免 NaN / Infinity）
     const S1 = safeDiv(L1 + N1 * P1, N1, P1);
     const S2 = safeDiv(L2 + N1 * P1 + N2 * P2, sumShares12, P2);
     const S3 = safeDiv(L3 + N1 * P1 + N2 * P2 + N3 * P3, sumShares123, P3);
     const S4 = safeDiv(L4 + N1 * P1 + N2 * P2 + N3 * P3 + N4 * P4, sumShares1234, P4);
 
-    // 对应的止损金额（用来展示）
     const sl1Amount = (S1 - P1) * N1;
     const sl2Amount = (S2 - P1) * N1 + (S2 - P2) * N2;
     const sl3Amount = (S3 - P1) * N1 + (S3 - P2) * N2 + (S3 - P3) * N3;
     const sl4Amount = (S4 - P1) * N1 + (S4 - P2) * N2 + (S4 - P3) * N3 + (S4 - P4) * N4;
 
-    // 目标价 & 目标利润（保持原比例）
     const targetPrice = P1 * 1.2525;
     const targetProfit = T * 0.21305536;
 
-    // 原始 4 步
     const rawSteps = [
       {
         originalIndex: 1,
@@ -171,7 +455,6 @@ Page({
       }
     ];
 
-    // 过滤掉 0 股步骤，并重新编号
     const steps = rawSteps
       .filter(item => item.buyShares >= LOT_SIZE && item.buyAmount > 0)
       .map((item, idx) => ({
@@ -192,7 +475,6 @@ Page({
     };
   },
 
-  // 跳到「进阶控局者服务」（收费方案介绍）
   goPayIntro() {
     const { totalCapital, firstPrice, code, membershipType } = this.data;
 
@@ -215,7 +497,6 @@ Page({
     });
   },
 
-  // 返回首页
   goHome() {
     wx.reLaunch({
       url: '/pages/index/index'
