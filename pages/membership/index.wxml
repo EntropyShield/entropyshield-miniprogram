@@ -8,7 +8,7 @@
     </view>
 
     <view class="row">
-      <text class="label">剩余完整方案</text>
+      <text class="label">剩余方案次数</text>
       <text class="value">{{freeCalcTimes}}</text>
     </view>
 

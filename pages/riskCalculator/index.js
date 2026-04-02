@@ -209,7 +209,12 @@ Page({
     if (options.price) nextData.price = this.sanitizeNumberInput(options.price, 4);
     if (options.code) nextData.code = this.sanitizeCodeInput(options.code);
 
-    if (!options.balance && !options.price && !options.code) {
+    // 只有显式要求恢复草稿时，才回填旧输入
+    const shouldRestoreDraft =
+      String(options.restoreDraft || '') === '1' ||
+      String(options.useLatestDraft || '') === '1';
+
+    if (shouldRestoreDraft && !options.balance && !options.price && !options.code) {
       try {
         const latestDraft = mainchainStore.getLatestRiskCalcDraft();
         if (latestDraft) {
@@ -225,6 +230,11 @@ Page({
       } catch (e) {
         console.log('[riskCalculator] hydrate latest draft fail', e);
       }
+    } else if (!options.balance && !options.price && !options.code) {
+      nextData.balance = '';
+      nextData.price = '';
+      nextData.code = '';
+      nextData.draftId = '';
     }
 
     this.setData(nextData);
@@ -261,6 +271,28 @@ Page({
       source,
       sourceLabel: map[source] || source
     };
+  },
+
+  normalizeMembershipDisplayName(rights = {}) {
+    const rawName = String(rights.membershipName || rights.membership_name || '').trim();
+    const rawPlan = String(rights.membershipPlan || rights.membership_plan || '').trim().toLowerCase();
+
+    if (rawPlan === 'times3') return '3次方案';
+    if (rawPlan === 'month') return '月会员';
+    if (rawPlan === 'quarter') return '季度会员';
+    if (rawPlan === 'year') return '年度会员';
+
+    if (rawName.includes('3次')) return '3次方案';
+    if (rawName.includes('月会员') || rawName.includes('月卡')) return '月会员';
+    if (rawName.includes('季度会员') || rawName.includes('季卡')) return '季度会员';
+    if (rawName.includes('年度会员') || rawName.includes('年卡')) return '年度会员';
+
+    if (rawName.toLowerCase() === 'times3') return '3次方案';
+    if (rawName.toLowerCase() === 'month') return '月会员';
+    if (rawName.toLowerCase() === 'quarter') return '季度会员';
+    if (rawName.toLowerCase() === 'year') return '年度会员';
+
+    return rawName;
   },
 
   sanitizeNumberInput(value, maxDecimals = 4) {
@@ -314,7 +346,7 @@ Page({
 
   buildRiskEntryDraft(planType) {
     const { balance, price, code, source, entryVersion, draftId } = this.data;
-  
+
     if (riskEngine && typeof riskEngine.buildRiskEntryDraft === 'function') {
       return riskEngine.buildRiskEntryDraft({
         draftId: draftId || '',
@@ -327,7 +359,7 @@ Page({
         code: this.sanitizeCodeInput(code)
       });
     }
-  
+
     return {
       draftId: draftId || `rcd_${Date.now()}`,
       createdAt: Date.now(),
@@ -361,18 +393,18 @@ Page({
     const rights = UR.getUserRights();
 
     const freeCalcTimes = Number(rights.freeCalcTimes || 0);
-    const rawName = rights.membershipName || '';
+    const normalizedName = this.normalizeMembershipDisplayName(rights);
     const expireAt = Number(rights.membershipExpireAt || 0);
     const expired = (expireAt && Date.now() > expireAt);
 
     const remainingDays = UR.getRemainingDays(rights);
     const unlimitedActive = UR.isUnlimitedMember(rights);
 
-    let membershipName = rawName;
-    if (rawName && expired) {
-      membershipName = rawName + '（已到期）';
-    } else if (rawName && unlimitedActive && remainingDays) {
-      membershipName = `${rawName}（剩余${remainingDays}天 · 无限）`;
+    let membershipName = normalizedName;
+    if (normalizedName && expired) {
+      membershipName = normalizedName + '（已到期）';
+    } else if (normalizedName && unlimitedActive && remainingDays) {
+      membershipName = `${normalizedName}（剩余${remainingDays}天 · 无限）`;
     }
 
     const advancedEnabled = UR.isAdvancedAllowed(rights);
@@ -452,6 +484,7 @@ Page({
       try { wx.removeStorageSync('rc_profile_sync_ing'); } catch (e2) {}
     }
   },
+
   getAdvancedAccessInfo() {
     const rights = UR.getUserRights();
 
@@ -460,7 +493,11 @@ Page({
     const notExpired = !expireAt || Date.now() < expireAt;
 
     const advancedEnabled = UR.isAdvancedAllowed(rights);
-    const codeAllow = (productCode === 'VIP_QUARTER' || productCode === 'VIP_YEAR');
+    const codeAllow =
+      productCode === 'VIP_QUARTER' ||
+      productCode === 'VIP_YEAR' ||
+      productCode === 'quarter' ||
+      productCode === 'year';
 
     const ok = (advancedEnabled || codeAllow) && notExpired;
 
@@ -475,8 +512,8 @@ Page({
     const { balance, price, code } = this.data;
 
     wx.showModal({
-      title: '需要季卡/年卡',
-      content: '加强版仅对「季卡/年卡」开放；9.9次卡、14天体验、月卡仅支持稳健版。',
+      title: '需要季度会员 / 年度会员',
+      content: '加强版仅对「季度会员 / 年度会员」开放；3次方案 / 月会员仅支持稳健版。',
       confirmText: '去开通',
       cancelText: '返回',
       success: (r) => {
@@ -645,21 +682,20 @@ Page({
             try {
               const p = r && r.data && (r.data.profile || r.data.user || r.data.data);
               const lv = String((p && p.membership_level) || '').toUpperCase();
-              const allow = (lv === 'VIP_MONTH' || lv === 'VIP_QUARTER' || lv === 'VIP_YEAR' || lv === 'LIFETIME');
+              const allow = (lv === 'VIP_QUARTER' || lv === 'VIP_YEAR' || lv === 'LIFETIME');
 
               if (allow) {
                 try {
                   const ur0 = wx.getStorageSync('userRights');
                   const obj = (ur0 && typeof ur0 === 'object') ? ur0 : {};
                   const NAME = {
-                    VIP_MONTH: '月卡',
-                    VIP_QUARTER: '季卡',
-                    VIP_YEAR: '年卡',
+                    VIP_QUARTER: '季度会员',
+                    VIP_YEAR: '年度会员',
                     LIFETIME: '终身会员'
                   };
                   const next = Object.assign({}, obj, {
                     membershipLevel: lv,
-                    membershipPlan: lv,
+                    membershipPlan: lv === 'VIP_QUARTER' ? 'quarter' : (lv === 'VIP_YEAR' ? 'year' : lv),
                     membershipName: NAME[lv] || obj.membershipName,
                     membershipExpireAt: (lv === 'LIFETIME') ? null : ((p && p.membership_expire_at) || null),
                     advancedEnabled: true
@@ -714,7 +750,7 @@ Page({
 
     if (unlimitedActive) {
       const days = UR.getRemainingDays(rights);
-      const name = rights.membershipName || '会员';
+      const name = this.normalizeMembershipDisplayName(rights) || '会员';
       const label = `${name}${days ? `（剩余${days}天）` : ''}·无限`;
 
       funnel.log('CALC_MEMBER_UNLIMITED', {

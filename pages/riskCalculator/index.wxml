@@ -8,25 +8,25 @@
     <text class="global-error-text">{{globalError}}</text>
   </view>
 
-    <view class="rights-banner">
+  <view class="rights-banner">
     <view class="rights-inline-flow" wx:if="{{freeCalcTimes > 0 && membershipName}}">
       <text class="rights-inline-label">当前权益</text>
-      <text class="rights-inline-value">{{membershipName}} · 剩余完整方案 {{freeCalcTimes}} 次</text>
+      <text class="rights-inline-value">{{membershipName}} · 剩余方案次数 {{freeCalcTimes}} 次</text>
     </view>
 
     <view class="rights-inline-flow" wx:elif="{{freeCalcTimes > 0}}">
       <text class="rights-inline-label">当前权益</text>
-      <text class="rights-inline-value">剩余完整方案 {{freeCalcTimes}} 次</text>
+      <text class="rights-inline-value">剩余方案次数 {{freeCalcTimes}} 次</text>
     </view>
 
     <view class="rights-inline-flow" wx:elif="{{membershipName}}">
       <text class="rights-inline-label">当前权益</text>
-      <text class="rights-inline-value">{{membershipName}} · 暂无完整方案次数</text>
+      <text class="rights-inline-value">{{membershipName}} · 暂无方案次数</text>
     </view>
 
     <view class="rights-inline-flow" wx:else>
       <text class="rights-inline-label">当前权益</text>
-      <text class="rights-inline-value">暂无完整方案次数，可先参加 7 天风控训练营</text>
+      <text class="rights-inline-value">暂无方案次数，可先参加 7 天风控训练营</text>
     </view>
   </view>
 
