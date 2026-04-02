@@ -19,9 +19,17 @@ function isAdvancedAllowed(userRights) {
   const plan = String(userRights.membershipPlan || '').toLowerCase();
   if (plan === 'quarter' || plan === 'year') return true;
 
-  // 兼容显示名：包含“季卡/年卡”
+  // 兼容显示名：包含“季度/年度/季卡/年卡”
   const name = String(userRights.membershipName || '');
-  if (name.includes('季卡') || name.includes('年卡')) return true;
+  const nameLower = name.trim().toLowerCase();
+  if (
+    name.includes('季度') ||
+    name.includes('年度') ||
+    name.includes('季卡') ||
+    name.includes('年卡') ||
+    nameLower === 'quarter' ||
+    nameLower === 'year'
+  ) return true;
 
   return false;
 }
@@ -55,24 +63,24 @@ Page({
       return;
     }
 
-        // ===== 加强版硬门禁：只有季卡/年卡允许进入 =====
-        const debugAllow = String(options.__debugAllow || '') === '1';
+    // ===== 加强版硬门禁：只有季度会员 / 年度会员允许进入 =====
+    const debugAllow = String(options.__debugAllow || '') === '1';
 
-        const rights = getUserRights();
-        const allowed = debugAllow ? true : isAdvancedAllowed(rights);
-    
- if (!allowed) {
-  funnel.log('PLAN_ADVANCED_BLOCKED', {
-    membershipPlan: rights.membershipPlan || '',
-    membershipName: rights.membershipName || '',
-    freeCalcTimes: Number(rights.freeCalcTimes || 0),
-    expireAt: Number(rights.membershipExpireAt || 0),
-    debugAllow
-  });
+    const rights = getUserRights();
+    const allowed = debugAllow ? true : isAdvancedAllowed(rights);
+
+    if (!allowed) {
+      funnel.log('PLAN_ADVANCED_BLOCKED', {
+        membershipPlan: rights.membershipPlan || '',
+        membershipName: rights.membershipName || '',
+        freeCalcTimes: Number(rights.freeCalcTimes || 0),
+        expireAt: Number(rights.membershipExpireAt || 0),
+        debugAllow
+      });
 
       wx.showModal({
-        title: '需要季卡/年卡',
-        content: '加强版仅对「季卡/年卡」开放；9.9 次卡 / 14天体验 / 月卡仅支持稳健版。',
+        title: '需要季度会员 / 年度会员',
+        content: '加强版仅对「季度会员 / 年度会员」开放；3次方案 / 月会员仅支持稳健版。',
         confirmText: '去开通',
         cancelText: '返回',
         success: (r) => {
@@ -258,6 +266,32 @@ Page({
       delta: 2
     });
   },
+
+  // ====== [MOD:PLANADVANCED_MAINCHAIN_ENTRY_20260402] START ======
+  openTradeRecordEntry() {
+    wx.navigateTo({
+      url: '/pages/tradeRecord/index?from=planAdvanced&focus=latest'
+    });
+  },
+
+  openRiskReportEntry() {
+    wx.navigateTo({
+      url: '/pages/riskReport/index?from=planAdvanced&focus=latest'
+    });
+  },
+
+  openLongArchiveEntry() {
+    wx.navigateTo({
+      url: '/pages/longArchive/index?from=planAdvanced&focus=latest'
+    });
+  },
+
+  openMainchainOverviewEntry() {
+    wx.navigateTo({
+      url: '/pages/mainchainOverview/index?from=planAdvanced&focus=latest'
+    });
+  },
+  // ====== [MOD:PLANADVANCED_MAINCHAIN_ENTRY_20260402] END ======
 
   goHome() {
     wx.reLaunch({

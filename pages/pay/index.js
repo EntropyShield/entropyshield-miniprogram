@@ -4,35 +4,35 @@ const { API_BASE } = require('../../config');
 const PLAN_LIST = [
   {
     key: 'times3',
-    title: '9.9元 / 3次',
+    title: '3次方案',
     amountFen: 990,
     amountText: '9.9',
     rights: '稳健版',
-    desc: '适合先体验风控计算器'
+    desc: '9.9元 / 3次'
   },
   {
     key: 'month',
-    title: '月卡 999',
+    title: '月会员',
     amountFen: 99900,
     amountText: '999',
     rights: '稳健版',
-    desc: '适合短周期连续使用'
+    desc: '999元 / 月'
   },
   {
     key: 'quarter',
-    title: '季卡 2999',
+    title: '季度会员',
     amountFen: 299900,
     amountText: '2999',
     rights: '稳健版 + 加强版',
-    desc: '适合持续训练与复盘'
+    desc: '2999元 / 季度'
   },
   {
     key: 'year',
-    title: '年卡 9999',
+    title: '年度会员',
     amountFen: 999900,
     amountText: '9999',
     rights: '稳健版 + 加强版',
-    desc: '适合长期使用'
+    desc: '9999元 / 年'
   }
 ];
 
@@ -122,10 +122,10 @@ Page({
 
     if (type === 'advanced') {
       selectedPlanKey = 'quarter';
-      topNotice = '加强版仅支持季卡 / 年卡';
+      topNotice = '加强版仅支持：季度会员 / 年度会员';
     } else if (type === 'steady') {
       selectedPlanKey = 'times3';
-      topNotice = '稳健版支持 9.9/3次、月卡、季卡、年卡';
+      topNotice = '稳健版支持：3次方案 / 月会员 / 季度会员 / 年度会员';
     }
 
     this.setData({
@@ -148,7 +148,7 @@ Page({
     if (!key) return;
 
     if (this.data.type === 'advanced' && (key === 'times3' || key === 'month')) {
-      wx.showToast({ title: '加强版仅支持季卡 / 年卡', icon: 'none' });
+      wx.showToast({ title: '加强版仅支持季度会员 / 年度会员', icon: 'none' });
       return;
     }
 
@@ -173,7 +173,7 @@ Page({
     }
 
     if (this.data.type === 'advanced' && (plan.key === 'times3' || plan.key === 'month')) {
-      wx.showToast({ title: '加强版仅支持季卡 / 年卡', icon: 'none' });
+      wx.showToast({ title: '加强版仅支持季度会员 / 年度会员', icon: 'none' });
       return;
     }
 
