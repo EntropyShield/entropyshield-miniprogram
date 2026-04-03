@@ -158,3 +158,53 @@
   font-weight: 500;
   color: #c0ffc0;
 }
+
+/* ====== [MOD:PLANSTEADY_MAINCHAIN_ENTRY_20260402] START ====== */
+.result-entry-card {
+  margin: 24rpx 24rpx 20rpx;
+  padding: 24rpx;
+  border: 1rpx solid rgba(42, 255, 42, 0.35);
+  border-radius: 24rpx;
+  background: linear-gradient(180deg, rgba(7, 20, 18, 0.96), rgba(10, 16, 28, 0.96));
+  box-sizing: border-box;
+}
+
+.result-entry-title {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #E8FFF0;
+  line-height: 1.4;
+}
+
+.result-entry-desc {
+  margin-top: 10rpx;
+  font-size: 24rpx;
+  color: rgba(232, 255, 240, 0.68);
+  line-height: 1.6;
+}
+
+.result-entry-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20rpx;
+  margin-top: 22rpx;
+}
+
+.result-entry-btn {
+  height: 84rpx;
+  line-height: 84rpx;
+  text-align: center;
+  border-radius: 18rpx;
+  border: 1rpx solid rgba(42, 255, 42, 0.35);
+  background: rgba(10, 18, 16, 0.92);
+  color: #D8FFE3;
+  font-size: 28rpx;
+  font-weight: 600;
+}
+
+.result-entry-btn--primary {
+  color: #08120C;
+  background: linear-gradient(180deg, #39FF5A 0%, #17D83A 100%);
+  border-color: rgba(57, 255, 90, 0.9);
+}
+/* ====== [MOD:PLANSTEADY_MAINCHAIN_ENTRY_20260402] END ====== */

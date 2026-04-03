@@ -497,6 +497,32 @@ Page({
     });
   },
 
+// ====== [MOD:PLANSTEADY_MAINCHAIN_ENTRY_20260402] START ======
+openTradeRecordEntry() {
+  wx.navigateTo({
+    url: '/pages/tradeRecord/index?from=planSteady&focus=latest'
+  });
+},
+
+openRiskReportEntry() {
+  wx.navigateTo({
+    url: '/pages/riskReport/index?from=planSteady&focus=latest'
+  });
+},
+
+openLongArchiveEntry() {
+  wx.navigateTo({
+    url: '/pages/longArchive/index?from=planSteady&focus=latest'
+  });
+},
+
+openMainchainOverviewEntry() {
+  wx.navigateTo({
+    url: '/pages/mainchainOverview/index?from=planSteady&focus=latest'
+  });
+},
+// ====== [MOD:PLANSTEADY_MAINCHAIN_ENTRY_20260402] END ======
+
   goHome() {
     wx.reLaunch({
       url: '/pages/index/index'

@@ -81,9 +81,24 @@
 
   <!-- 底部按钮区域 -->
   <view class="ps-bottom">
-    <view class="ps-bottom-btn ps-bottom-btn-secondary" bindtap="goPayIntro">
+    <view class="ps-bottom-btn" bindtap="goPlanAdvanced">
       <text>想要更高阶服务 · 查看进阶控局者服务</text>
     </view>
+
+    <!-- ====== [MOD:PLANSTEADY_MAINCHAIN_ENTRY_20260402] START ====== -->
+    <view class="result-entry-card">
+      <view class="result-entry-title">查看业务链</view>
+      <view class="result-entry-desc">从当前方案直达交易记录、风控报告、长期档案与主链总览</view>
+
+      <view class="result-entry-grid">
+        <view class="result-entry-btn" bindtap="openTradeRecordEntry">交易记录</view>
+        <view class="result-entry-btn" bindtap="openRiskReportEntry">风控报告</view>
+        <view class="result-entry-btn" bindtap="openLongArchiveEntry">长期档案</view>
+        <view class="result-entry-btn result-entry-btn--primary" bindtap="openMainchainOverviewEntry">主链总览</view>
+      </view>
+    </view>
+    <!-- ====== [MOD:PLANSTEADY_MAINCHAIN_ENTRY_20260402] END ====== -->
+
     <view class="ps-bottom-btn" bindtap="goHome">
       <text>返回首页</text>
     </view>

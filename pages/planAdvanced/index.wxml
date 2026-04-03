@@ -3,28 +3,30 @@
   <!-- 顶部总览卡片 -->
   <view class="card pa-summary">
     <view class="pa-summary-header">
-      <text class="pa-tag">加强版 · 高阶风控方案</text>
+      <text class="pa-tag">加强版 · 风控方案</text>
     </view>
 
-    <view class="pa-summary-row">
-      <text class="pa-label">标的代码</text>
-      <text class="pa-value">{{code || '—'}}</text>
-    </view>
+    <!-- 账户 & 标的基础信息 -->
     <view class="pa-summary-row">
       <text class="pa-label">账户资金</text>
       <text class="pa-value">{{totalCapital}} 元</text>
     </view>
     <view class="pa-summary-row">
-      <text class="pa-label">首次买入价</text>
+      <text class="pa-label">标的代码</text>
+      <text class="pa-value">{{code || '—'}}</text>
+    </view>
+    <view class="pa-summary-row">
+      <text class="pa-label">建仓价格</text>
       <text class="pa-value">{{firstPrice}} 元</text>
     </view>
     <view class="pa-summary-row">
       <text class="pa-label">会员类型</text>
-      <text class="pa-value">{{membershipType || '高阶策略 · 演示版'}}</text>
+      <text class="pa-value">{{membershipType || '加强策略 · 演示版'}}</text>
     </view>
 
     <view class="pa-summary-split"></view>
 
+    <!-- 这一笔交易的“结果感受” -->
     <view class="pa-summary-row">
       <text class="pa-label">目标收益价格</text>
       <text class="pa-value pa-value-strong">{{targetPrice}} 元</text>
@@ -35,9 +37,9 @@
     </view>
   </view>
 
-  <!-- 高阶分批建仓步骤与止损明细 -->
+  <!-- 分批建仓步骤与止损明细 -->
   <view class="card pa-steps">
-    <view class="pa-section-title">高阶分批建仓步骤与止损明细</view>
+    <view class="pa-section-title">分批建仓步骤与止损明细</view>
 
     <block wx:for="{{steps}}" wx:key="label">
       <view class="pa-step-block">
@@ -48,7 +50,7 @@
 
         <view class="pa-step-grid">
           <view class="pa-step-item">
-            <text class="pa-label">买入价</text>
+            <text class="pa-label">买入价格</text>
             <text class="pa-value">{{item.buyPrice}} 元</text>
           </view>
           <view class="pa-step-item">
@@ -74,22 +76,31 @@
 
   <!-- 底部提示 -->
   <view class="pa-tip">
-    * 本页为“加强版”演示方案，仅基于固定参数推演高阶风控结构，不构成任何买卖建议。
+    * 本页为“加强版”演示方案，仅基于固定参数推演风控结构，不构成任何买卖建议。
   </view>
 
   <!-- 底部按钮区域 -->
   <view class="pa-bottom">
-    <view class="pa-btn pa-btn-outline" bindtap="goPayIntro">
-      想要更高阶服务 · 查看进阶控局者服务
+    <view class="pa-bottom-btn" bindtap="goPayIntro">
+      <text>想要更高阶服务 · 查看专属控局服务</text>
     </view>
 
-    <view class="pa-bottom-row">
-      <view class="pa-btn pa-btn-secondary" bindtap="goBackCalc">
-        返回风险计算器
+    <!-- ====== [MOD:PLANADVANCED_MAINCHAIN_ENTRY_20260402] START ====== -->
+    <view class="result-entry-card">
+      <view class="result-entry-title">查看业务链</view>
+      <view class="result-entry-desc">从当前方案直达交易记录、风控报告、长期档案与主链总览</view>
+
+      <view class="result-entry-grid">
+        <view class="result-entry-btn" bindtap="openTradeRecordEntry">交易记录</view>
+        <view class="result-entry-btn" bindtap="openRiskReportEntry">风控报告</view>
+        <view class="result-entry-btn" bindtap="openLongArchiveEntry">长期档案</view>
+        <view class="result-entry-btn result-entry-btn--primary" bindtap="openMainchainOverviewEntry">主链总览</view>
       </view>
-      <view class="pa-btn pa-btn-primary" bindtap="goHome">
-        返回首页
-      </view>
+    </view>
+    <!-- ====== [MOD:PLANADVANCED_MAINCHAIN_ENTRY_20260402] END ====== -->
+
+    <view class="pa-bottom-btn" bindtap="goHome">
+      <text>返回首页</text>
     </view>
   </view>
 </view>
