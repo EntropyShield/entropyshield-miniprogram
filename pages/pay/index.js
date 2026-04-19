@@ -4,11 +4,11 @@ const { API_BASE } = require('../../config');
 const PLAN_LIST = [
   {
     key: 'times3',
-    title: '3次方案',
+    title: '9.9体验',
     amountFen: 990,
     amountText: '9.9',
     rights: '稳健版',
-    desc: '9.9元 / 3次'
+    desc: '9.9元 / 3天体验'
   },
   {
     key: 'month',
@@ -53,17 +53,46 @@ function getApiBase() {
   return String(base || '').replace(/\/$/, '');
 }
 
-function getClientId() {
+function readCachedClientId() {
   try {
     const app = typeof getApp === 'function' ? getApp() : null;
-    const cid =
-      (app && app.globalData && app.globalData.clientId) ||
+    const gd = app && app.globalData ? app.globalData : null;
+
+    const value =
+      (gd && (gd.clientId || gd.openid)) ||
       wx.getStorageSync('clientId') ||
+      wx.getStorageSync('openid') ||
       '';
-    return String(cid || '').trim();
+
+    return String(value || '').trim();
   } catch (e) {
     return '';
   }
+}
+
+function isTempClientId(value) {
+  return /^ST-/i.test(String(value || '').trim());
+}
+
+function setClientIdEverywhere(clientId) {
+  const val = String(clientId || '').trim();
+  if (!val) return;
+
+  try {
+    wx.setStorageSync('clientId', val);
+  } catch (e) {}
+
+  try {
+    wx.setStorageSync('openid', val);
+  } catch (e) {}
+
+  try {
+    const app = typeof getApp === 'function' ? getApp() : null;
+    if (app && app.globalData) {
+      app.globalData.clientId = val;
+      app.globalData.openid = val;
+    }
+  } catch (e) {}
 }
 
 function requestJson(method, url, data) {
@@ -78,6 +107,50 @@ function requestJson(method, url, data) {
       fail: (err) => reject(err)
     });
   });
+}
+
+function loginCode() {
+  return new Promise((resolve, reject) => {
+    wx.login({
+      success(res) {
+        if (res && res.code) {
+          resolve(res.code);
+          return;
+        }
+        reject(new Error('wx.login 未返回 code'));
+      },
+      fail(err) {
+        reject(err);
+      }
+    });
+  });
+}
+
+async function ensureRealClientId(base) {
+  const cached = readCachedClientId();
+  console.log('[pay] cached clientId =', cached);
+
+  if (cached && !isTempClientId(cached)) {
+    return cached;
+  }
+
+  const code = await loginCode();
+  const res = await requestJson('POST', `${base}/api/wx/login`, { code });
+  const data = res && res.data ? res.data : {};
+
+  console.log('[pay] /api/wx/login response =', data);
+
+  if (!data || !data.ok) {
+    throw new Error(data.message || data.error || '登录态获取失败');
+  }
+
+  const clientId = String(data.clientId || data.openid || '').trim();
+  if (!clientId) {
+    throw new Error('后端未返回真实用户身份');
+  }
+
+  setClientIdEverywhere(clientId);
+  return clientId;
 }
 
 function resolvePayArgs(payload = {}) {
@@ -100,6 +173,31 @@ function buildOrderTitle(plan, options = {}) {
   if (type === 'advanced') return `风控计算器-${plan.title}-加强版`;
   if (type === 'steady') return `风控计算器-${plan.title}-稳健版`;
   return `风控计算器-${plan.title}`;
+}
+
+function buildPayPayload(plan, pageData, clientId) {
+  const title = buildOrderTitle(plan, pageData);
+  return {
+    clientId,
+    openid: clientId,
+    planKey: plan.key,
+    amountFen: plan.amountFen,
+    totalFee: plan.amountFen,
+    priceFen: plan.amountFen,
+    title,
+    body: title,
+    description: title,
+    from: pageData.from || '',
+    type: pageData.type || '',
+    courseId: pageData.courseId || '',
+    source: 'pages/pay/index.js'
+  };
+}
+
+function getErrMsg(err) {
+  return String(
+    (err && (err.errMsg || err.message || err.error)) || '支付失败'
+  ).trim();
 }
 
 Page({
@@ -125,11 +223,11 @@ Page({
       topNotice = '加强版仅支持：季度会员 / 年度会员';
     } else if (type === 'steady') {
       selectedPlanKey = 'times3';
-      topNotice = '稳健版支持：3次方案 / 月会员 / 季度会员 / 年度会员';
+      topNotice = '稳健版支持：9.9体验 / 月会员 / 季度会员 / 年度会员';
     }
 
     this.setData({
-      clientId: getClientId(),
+      clientId: readCachedClientId(),
       from: opts.from || '',
       type,
       courseId: opts.courseId || '',
@@ -139,7 +237,7 @@ Page({
   },
 
   onShow() {
-    this.setData({ clientId: getClientId() });
+    this.setData({ clientId: readCachedClientId() });
   },
 
   onSelectPlan(e) {
@@ -159,16 +257,10 @@ Page({
     if (this.data.paying) return;
 
     const base = getApiBase();
-    const clientId = this.data.clientId || getClientId();
     const plan = getPlanByKey(this.data.selectedPlanKey);
 
     if (!base) {
       wx.showToast({ title: 'API_BASE 未配置', icon: 'none' });
-      return;
-    }
-
-    if (!clientId) {
-      wx.showToast({ title: '未获取到用户身份', icon: 'none' });
       return;
     }
 
@@ -180,23 +272,40 @@ Page({
     this.setData({ paying: true });
 
     try {
-      const payload = {
-        clientId,
-        planKey: plan.key,
-        amountFen: plan.amountFen,
-        title: buildOrderTitle(plan, this.data),
-        from: this.data.from || '',
-        type: this.data.type || '',
-        courseId: this.data.courseId || ''
-      };
+      const clientId = await ensureRealClientId(base);
+      console.log('[pay] final clientId =', clientId);
+
+      if (!clientId || isTempClientId(clientId)) {
+        throw new Error('未获取到真实用户身份');
+      }
+
+      if (clientId !== this.data.clientId) {
+        this.setData({ clientId });
+      }
+
+      const payload = buildPayPayload(plan, this.data, clientId);
+      console.log('[pay] /api/pay/jsapi payload =', payload);
 
       const res = await requestJson('POST', `${base}/api/pay/jsapi`, payload);
       const data = res && res.data ? res.data : {};
+
+      console.log('[pay] /api/pay/jsapi response =', data);
+
       if (!data || !data.ok) {
         throw new Error(data.message || data.error || '支付下单失败');
       }
 
+      if (data.alreadyPaid) {
+        wx.showToast({
+          title: data.message || '已开通，无需重复支付',
+          icon: 'none'
+        });
+        return;
+      }
+
       const payArgs = resolvePayArgs(data.payargs || data.payArgs || data.data || data);
+      console.log('[pay] requestPayment params =', payArgs);
+
       if (!payArgs.timeStamp || !payArgs.nonceStr || !payArgs.package || !payArgs.paySign) {
         throw new Error('支付参数不完整');
       }
@@ -208,8 +317,14 @@ Page({
           package: payArgs.package,
           signType: payArgs.signType,
           paySign: payArgs.paySign,
-          success: resolve,
-          fail: reject
+          success: (res2) => {
+            console.log('[pay] requestPayment success =', res2);
+            resolve(res2);
+          },
+          fail: (err) => {
+            console.log('[pay] requestPayment fail =', err);
+            reject(err);
+          }
         });
       });
 
@@ -220,11 +335,29 @@ Page({
           `&amountFen=${encodeURIComponent(String(plan.amountFen))}`
       });
     } catch (err) {
-      const msg = (err && (err.errMsg || err.message)) ? (err.errMsg || err.message) : '支付失败';
-      wx.showToast({ title: msg, icon: 'none' });
-      wx.redirectTo({
-        url: '/pages/payFail/index?planKey=' + encodeURIComponent(plan.key)
+      const msg = getErrMsg(err);
+      console.error('[pay] onPayTap error =', err);
+
+      try {
+        wx.setStorageSync('pay_debug_last_error', JSON.stringify({
+          time: new Date().toISOString(),
+          planKey: plan.key,
+          message: msg,
+          err: err || null
+        }));
+      } catch (e) {}
+
+      wx.hideLoading && wx.hideLoading();
+
+      wx.showModal({
+        title: '支付调试信息',
+        content:
+          '错误信息：' + msg +
+          '\n\n请不要返回失败页，直接把这段文字截图发我。',
+        showCancel: false
       });
+
+      return;
     } finally {
       this.setData({ paying: false });
     }

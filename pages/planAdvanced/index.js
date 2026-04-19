@@ -1,5 +1,4 @@
-// pages/planAdvanced/index.js
-const funnel = require('../../utils/funnel.js');
+﻿const funnel = require('../../utils/funnel.js');
 
 function getUserRights() {
   return wx.getStorageSync('userRights') || {};
@@ -8,18 +7,14 @@ function getUserRights() {
 function isAdvancedAllowed(userRights) {
   if (!userRights) return false;
 
-  // 到期则不允许
   const expireAt = Number(userRights.membershipExpireAt || 0);
   if (expireAt && Date.now() > expireAt) return false;
 
-  // 后端显式开关（最可靠）
   if (userRights.advancedEnabled === true) return true;
 
-  // 兼容字段：membershipPlan = quarter/year
   const plan = String(userRights.membershipPlan || '').toLowerCase();
   if (plan === 'quarter' || plan === 'year') return true;
 
-  // 兼容显示名：包含“季度/年度/季卡/年卡”
   const name = String(userRights.membershipName || '');
   const nameLower = name.trim().toLowerCase();
   if (
@@ -37,7 +32,7 @@ function isAdvancedAllowed(userRights) {
 Page({
   data: {
     code: '',
-    membershipType: '高阶策略 · 演示版',
+    membershipType: '高阶策略·演示版',
 
     totalCapital: '',
     firstPrice: '',
@@ -53,7 +48,7 @@ Page({
     const code = options.code ? decodeURIComponent(options.code) : '';
     const membershipType = options.membershipType
       ? decodeURIComponent(options.membershipType)
-      : '高阶策略 · 演示版';
+      : '高阶策略·演示版';
 
     if (!totalCapital || !firstPrice || isNaN(totalCapital) || isNaN(firstPrice)) {
       wx.showToast({
@@ -63,9 +58,7 @@ Page({
       return;
     }
 
-    // ===== 加强版硬门禁：只有季度会员 / 年度会员允许进入 =====
     const debugAllow = String(options.__debugAllow || '') === '1';
-
     const rights = getUserRights();
     const allowed = debugAllow ? true : isAdvancedAllowed(rights);
 
@@ -80,7 +73,7 @@ Page({
 
       wx.showModal({
         title: '需要季度会员 / 年度会员',
-        content: '加强版仅对「季度会员 / 年度会员」开放；3次方案 / 月会员仅支持稳健版。',
+        content: '加强版仅对「季度会员 / 年度会员」开放；9.9体验 / 月会员仅支持稳健版。',
         confirmText: '去开通',
         cancelText: '返回',
         success: (r) => {
@@ -100,7 +93,6 @@ Page({
       });
       return;
     }
-    // ===== 门禁结束 =====
 
     const result = this.calcAdvancedPlan(totalCapital, firstPrice);
 
@@ -128,14 +120,6 @@ Page({
     });
   },
 
-  /**
-   * 加强版完整计算公式
-   *
-   * 保持原公式不变，只修 3 个问题：
-   * 1）某一步不足 100 股时，不再展示 0 股
-   * 2）qty1 = 0 时，避免 Infinity / NaN
-   * 3）过滤无效步骤后，重新编号展示
-   */
   calcAdvancedPlan(T, P1) {
     const useRatio = 0.8;
     const riskRatio = 0.02;
@@ -267,7 +251,6 @@ Page({
     });
   },
 
-  // ====== [MOD:PLANADVANCED_MAINCHAIN_ENTRY_20260402] START ======
   openTradeRecordEntry() {
     wx.navigateTo({
       url: '/pages/tradeRecord/index?from=planAdvanced&focus=latest'
@@ -291,7 +274,6 @@ Page({
       url: '/pages/mainchainOverview/index?from=planAdvanced&focus=latest'
     });
   },
-  // ====== [MOD:PLANADVANCED_MAINCHAIN_ENTRY_20260402] END ======
 
   goHome() {
     wx.reLaunch({

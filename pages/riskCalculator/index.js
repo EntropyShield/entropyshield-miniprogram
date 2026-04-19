@@ -4,11 +4,7 @@ const UR = require('../../utils/userRights.js');
 const riskEngine = require('../../utils/riskEngine.js');
 const mainchainStore = require('../../utils/mainchainStore.js');
 
-/* ====== RC_V41_CLICK_DEDUPE (v4.1.2 / 2026-03-05) ======
-目标：同一 clientId + 同一输入 + 同一按钮(稳健/加强) 只扣 1 次；第二次点击直接“复用跳转”，不再触发扣次
-实现：sig = hash(picked inputs + __btn)，storage 写 rc_v41_consumed_{cid}_{sig}
-====================================================== */
-
+/* ====== RC_V41_CLICK_DEDUPE (v4.1.2 / 2026-03-05) ====== */
 const __RCV41_PREFIX = 'rc_v41';
 
 function rcV41GetClientId() {
@@ -170,7 +166,6 @@ function rcV41OnClickGate(pageThis, btn) {
 
   return { blocked: false, sig };
 }
-/* ====== RC_V41_CLICK_DEDUPE END ====== */
 
 Page({
   data: {
@@ -209,7 +204,6 @@ Page({
     if (options.price) nextData.price = this.sanitizeNumberInput(options.price, 4);
     if (options.code) nextData.code = this.sanitizeCodeInput(options.code);
 
-    // 只有显式要求恢复草稿时，才回填旧输入
     const shouldRestoreDraft =
       String(options.restoreDraft || '') === '1' ||
       String(options.useLatestDraft || '') === '1';
@@ -271,28 +265,6 @@ Page({
       source,
       sourceLabel: map[source] || source
     };
-  },
-
-  normalizeMembershipDisplayName(rights = {}) {
-    const rawName = String(rights.membershipName || rights.membership_name || '').trim();
-    const rawPlan = String(rights.membershipPlan || rights.membership_plan || '').trim().toLowerCase();
-
-    if (rawPlan === 'times3') return '3次方案';
-    if (rawPlan === 'month') return '月会员';
-    if (rawPlan === 'quarter') return '季度会员';
-    if (rawPlan === 'year') return '年度会员';
-
-    if (rawName.includes('3次')) return '3次方案';
-    if (rawName.includes('月会员') || rawName.includes('月卡')) return '月会员';
-    if (rawName.includes('季度会员') || rawName.includes('季卡')) return '季度会员';
-    if (rawName.includes('年度会员') || rawName.includes('年卡')) return '年度会员';
-
-    if (rawName.toLowerCase() === 'times3') return '3次方案';
-    if (rawName.toLowerCase() === 'month') return '月会员';
-    if (rawName.toLowerCase() === 'quarter') return '季度会员';
-    if (rawName.toLowerCase() === 'year') return '年度会员';
-
-    return rawName;
   },
 
   sanitizeNumberInput(value, maxDecimals = 4) {
@@ -391,27 +363,15 @@ Page({
 
   refreshFreeTimes() {
     const rights = UR.getUserRights();
-
-    const freeCalcTimes = Number(rights.freeCalcTimes || 0);
-    const normalizedName = this.normalizeMembershipDisplayName(rights);
-    const expireAt = Number(rights.membershipExpireAt || 0);
-    const expired = (expireAt && Date.now() > expireAt);
-
-    const remainingDays = UR.getRemainingDays(rights);
+    const freeCalcTimes = Number(rights.freeCalcTimes || 0) || 0;
+    const labelMeta = UR.getMembershipLabel();
     const unlimitedActive = UR.isUnlimitedMember(rights);
-
-    let membershipName = normalizedName;
-    if (normalizedName && expired) {
-      membershipName = normalizedName + '（已到期）';
-    } else if (normalizedName && unlimitedActive && remainingDays) {
-      membershipName = `${normalizedName}（剩余${remainingDays}天 · 无限）`;
-    }
-
-    const advancedEnabled = UR.isAdvancedAllowed(rights);
+    const remainingDays = UR.getRemainingDays(rights);
+    const advancedEnabled = UR.canUseAdvancedByMembership(rights);
 
     this.setData({
       freeCalcTimes,
-      membershipName,
+      membershipName: labelMeta.label || '',
       advancedEnabled,
       remainingDays,
       unlimitedActive
@@ -448,25 +408,94 @@ Page({
           const d = res && res.data;
           if (!d || !d.ok) return;
 
-          const total = Number(
-            (d.total_reward_times ?? (d.profile && d.profile.total_reward_times) ?? 0)
+          const p = d.profile || d.user || d.data || {};
+          const currentRights = UR.getUserRights();
+          const currentFree = Number(currentRights.freeCalcTimes || 0) || 0;
+
+          const serverFreeRaw =
+            p.free_calc_times ??
+            p.freeCalcTimes ??
+            null;
+
+          const totalRewardTimes = Number(
+            d.total_reward_times ??
+            d.totalRewardTimes ??
+            p.total_reward_times ??
+            p.totalRewardTimes ??
+            0
           ) || 0;
 
-          const rights = wx.getStorageSync('userRights') || {};
-          const currentFree = Number(rights.freeCalcTimes || 0) || 0;
           let lastSynced = Number(wx.getStorageSync('fission_total_reward_times_synced') || 0) || 0;
-
           if (lastSynced === 0 && currentFree > 0) {
-            wx.setStorageSync('fission_total_reward_times_synced', total);
-            lastSynced = total;
+            wx.setStorageSync('fission_total_reward_times_synced', totalRewardTimes);
+            lastSynced = totalRewardTimes;
           }
 
-          const delta = total - lastSynced;
-          if (delta > 0) {
-            rights.freeCalcTimes = currentFree + delta;
-            if (!rights.membershipName) rights.membershipName = 'FREE';
-            wx.setStorageSync('userRights', rights);
-            wx.setStorageSync('fission_total_reward_times_synced', total);
+          const patch = {};
+
+          const serverFree = Number(serverFreeRaw);
+          if (Number.isFinite(serverFree) && serverFree >= 0) {
+            patch.freeCalcTimes = Math.max(currentFree, serverFree);
+          } else {
+            const delta = totalRewardTimes - lastSynced;
+            if (delta > 0) {
+              patch.freeCalcTimes = currentFree + delta;
+              wx.setStorageSync('fission_total_reward_times_synced', totalRewardTimes);
+            }
+          }
+
+          const membershipName = p.membership_name || p.membershipName || '';
+          if (membershipName) patch.membershipName = membershipName;
+
+          const membershipExpireAt =
+            p.membership_expire_at == null
+              ? (p.membershipExpireAt == null ? null : p.membershipExpireAt)
+              : p.membership_expire_at;
+          if (membershipExpireAt != null && membershipExpireAt !== '') {
+            patch.membershipExpireAt = membershipExpireAt;
+          }
+
+          const lvRaw = String(p.membership_level || p.membershipLevel || '').toUpperCase();
+          if (lvRaw) {
+            patch.membershipLevel = lvRaw;
+
+            if (lvRaw === 'VIP_MONTH' || lvRaw === 'MONTH') {
+              patch.membershipPlan = 'month';
+              patch.productCode = 'VIP_MONTH';
+              patch.membershipProductCode = 'VIP_MONTH';
+              patch.advancedEnabled = false;
+              if (!patch.membershipName) patch.membershipName = '控局者·月卡';
+            } else if (lvRaw === 'VIP_QUARTER' || lvRaw === 'QUARTER') {
+              patch.membershipPlan = 'quarter';
+              patch.productCode = 'VIP_QUARTER';
+              patch.membershipProductCode = 'VIP_QUARTER';
+              patch.advancedEnabled = true;
+              if (!patch.membershipName) patch.membershipName = '控局者·季卡';
+            } else if (lvRaw === 'VIP_YEAR' || lvRaw === 'YEAR') {
+              patch.membershipPlan = 'year';
+              patch.productCode = 'VIP_YEAR';
+              patch.membershipProductCode = 'VIP_YEAR';
+              patch.advancedEnabled = true;
+              if (!patch.membershipName) patch.membershipName = '控局者·年卡';
+            } else if (lvRaw === 'LIFETIME') {
+              patch.membershipPlan = 'year';
+              patch.productCode = 'LIFETIME';
+              patch.membershipProductCode = 'LIFETIME';
+              patch.advancedEnabled = true;
+              patch.membershipExpireAt = 0;
+              if (!patch.membershipName) patch.membershipName = '终身会员';
+            }
+          }
+
+          if (!lvRaw && membershipName && (membershipName.includes('体验') || membershipName.includes('3天') || membershipName.includes('9.9'))) {
+            patch.membershipPlan = 'trial3';
+            patch.productCode = 'VIP_ONCE3';
+            patch.membershipProductCode = 'VIP_ONCE3';
+            patch.advancedEnabled = false;
+          }
+
+          if (Object.keys(patch).length > 0) {
+            UR.mergeUserRights(patch);
           }
 
           wx.setStorageSync('rc_profile_sync_ok_at', Date.now());
@@ -487,23 +516,17 @@ Page({
 
   getAdvancedAccessInfo() {
     const rights = UR.getUserRights();
-
+    const ok = UR.canUseAdvancedByMembership(rights);
     const productCode = UR.normalizeProductCode(rights);
-    const expireAt = Number(rights.membershipExpireAt || 0);
-    const notExpired = !expireAt || Date.now() < expireAt;
-
-    const advancedEnabled = UR.isAdvancedAllowed(rights);
-    const codeAllow =
-      productCode === 'VIP_QUARTER' ||
-      productCode === 'VIP_YEAR' ||
-      productCode === 'quarter' ||
-      productCode === 'year';
-
-    const ok = (advancedEnabled || codeAllow) && notExpired;
+    const expireAt = Number(rights.membershipExpireAt || 0) || 0;
+    const advancedEnabled = !!rights.advancedEnabled;
 
     let reason = '';
-    if (!notExpired) reason = 'EXPIRED';
-    else if (!(advancedEnabled || codeAllow)) reason = 'NOT_ALLOWED';
+    if (!UR.hasActiveMembership(rights)) {
+      reason = 'NO_ACTIVE_MEMBER';
+    } else if (!ok) {
+      reason = 'NOT_ALLOWED';
+    }
 
     return { ok, reason, productCode, expireAt, advancedEnabled };
   },
@@ -513,7 +536,7 @@ Page({
 
     wx.showModal({
       title: '需要季度会员 / 年度会员',
-      content: '加强版仅对「季度会员 / 年度会员」开放；3次方案 / 月会员仅支持稳健版。',
+      content: '加强版仅对「季度会员 / 年度会员」开放；9.9体验 / 月会员仅支持稳健版。',
       confirmText: '去开通',
       cancelText: '返回',
       success: (r) => {
@@ -670,7 +693,22 @@ Page({
     });
 
     try {
-      const base = String(wx.getStorageSync('API_BASE') || wx.getStorageSync('apiBaseUrl') || '').replace(/\/$/, '');
+      const localRights = UR.getUserRights();
+      if (UR.canUseAdvancedByMembership(localRights)) {
+        this.refreshFreeTimes();
+        this.handleGeneratePlan('advanced', { skipValidate: true });
+        return;
+      }
+    } catch (e) {
+      console.warn('[riskCalculator] local advanced check fail', e);
+    }
+
+    try {
+      const base = String(
+        wx.getStorageSync('API_BASE') ||
+        wx.getStorageSync('apiBaseUrl') ||
+        ''
+      ).replace(/\/$/, '');
       const cid = String(wx.getStorageSync('clientId') || '').trim();
 
       if (base && cid) {
@@ -680,44 +718,101 @@ Page({
           timeout: 10000,
           success: (r) => {
             try {
-              const p = r && r.data && (r.data.profile || r.data.user || r.data.data);
-              const lv = String((p && p.membership_level) || '').toUpperCase();
-              const allow = (lv === 'VIP_QUARTER' || lv === 'VIP_YEAR' || lv === 'LIFETIME');
+              const d = r && r.data;
+              const p = d && (d.profile || d.user || d.data || {});
+              const lv = String((p && (p.membership_level || p.membershipLevel)) || '').toUpperCase();
 
-              if (allow) {
-                try {
-                  const ur0 = wx.getStorageSync('userRights');
-                  const obj = (ur0 && typeof ur0 === 'object') ? ur0 : {};
-                  const NAME = {
-                    VIP_QUARTER: '季度会员',
-                    VIP_YEAR: '年度会员',
-                    LIFETIME: '终身会员'
-                  };
-                  const next = Object.assign({}, obj, {
-                    membershipLevel: lv,
-                    membershipPlan: lv === 'VIP_QUARTER' ? 'quarter' : (lv === 'VIP_YEAR' ? 'year' : lv),
-                    membershipName: NAME[lv] || obj.membershipName,
-                    membershipExpireAt: (lv === 'LIFETIME') ? null : ((p && p.membership_expire_at) || null),
-                    advancedEnabled: true
-                  });
-                  wx.setStorageSync('userRights', next);
-                } catch (e) {}
+              const patch = {};
 
+              const freeRaw =
+                p.free_calc_times ??
+                p.freeCalcTimes ??
+                null;
+              const freeNum = Number(freeRaw);
+              if (Number.isFinite(freeNum) && freeNum >= 0) {
+                patch.freeCalcTimes = freeNum;
+              }
+
+              const expireRaw =
+                p.membership_expire_at == null
+                  ? (p.membershipExpireAt == null ? null : p.membershipExpireAt)
+                  : p.membership_expire_at;
+              if (expireRaw != null && expireRaw !== '') {
+                patch.membershipExpireAt = expireRaw;
+              }
+
+              if (lv === 'VIP_MONTH' || lv === 'MONTH') {
+                patch.membershipLevel = lv;
+                patch.membershipPlan = 'month';
+                patch.membershipName = '控局者·月卡';
+                patch.productCode = 'VIP_MONTH';
+                patch.membershipProductCode = 'VIP_MONTH';
+                patch.advancedEnabled = false;
+              } else if (lv === 'VIP_QUARTER' || lv === 'QUARTER') {
+                patch.membershipLevel = lv;
+                patch.membershipPlan = 'quarter';
+                patch.membershipName = '控局者·季卡';
+                patch.productCode = 'VIP_QUARTER';
+                patch.membershipProductCode = 'VIP_QUARTER';
+                patch.advancedEnabled = true;
+              } else if (lv === 'VIP_YEAR' || lv === 'YEAR') {
+                patch.membershipLevel = lv;
+                patch.membershipPlan = 'year';
+                patch.membershipName = '控局者·年卡';
+                patch.productCode = 'VIP_YEAR';
+                patch.membershipProductCode = 'VIP_YEAR';
+                patch.advancedEnabled = true;
+              } else if (lv === 'LIFETIME') {
+                patch.membershipLevel = lv;
+                patch.membershipPlan = 'year';
+                patch.membershipName = '终身会员';
+                patch.productCode = 'LIFETIME';
+                patch.membershipProductCode = 'LIFETIME';
+                patch.advancedEnabled = true;
+                patch.membershipExpireAt = 0;
+              }
+
+              if (!lv && p.membershipName && (String(p.membershipName).includes('体验') || String(p.membershipName).includes('3天') || String(p.membershipName).includes('9.9'))) {
+                patch.membershipPlan = 'trial3';
+                patch.productCode = 'VIP_ONCE3';
+                patch.membershipProductCode = 'VIP_ONCE3';
+                patch.advancedEnabled = false;
+              }
+
+              if (Object.keys(patch).length > 0) {
+                UR.mergeUserRights(patch);
+              }
+
+              const latestRights = UR.getUserRights();
+              if (UR.canUseAdvancedByMembership(latestRights)) {
+                this.refreshFreeTimes();
                 this.handleGeneratePlan('advanced', { skipValidate: true });
               } else {
                 this.promptAdvancedBlocked();
               }
             } catch (e) {
+              console.warn('[riskCalculator] remote advanced check parse fail', e);
               this.promptAdvancedBlocked();
             }
           },
-          fail: () => this.promptAdvancedBlocked()
+          fail: (err) => {
+            console.warn('[riskCalculator] remote advanced check fail', err);
+            this.promptAdvancedBlocked();
+          }
         });
         return;
       }
-    } catch (e) {}
+    } catch (e) {
+      console.warn('[riskCalculator] remote advanced check error', e);
+    }
 
-    this.handleGeneratePlan('advanced', { skipValidate: true });
+    this.promptAdvancedBlocked();
+  },
+
+  buildMembershipAccessLabel() {
+    const meta = UR.getMembershipLabel();
+    if (meta && meta.label) return meta.label;
+    return '会员有效'
   },
 
   handleGeneratePlan(planType, options = {}) {
@@ -726,8 +821,14 @@ Page({
       return;
     }
 
-    const { balance, price, code, freeCalcTimes } = this.data;
+    const { balance, price, code } = this.data;
     const draft = this.saveRiskEntryDraft(planType);
+    const rights = UR.getUserRights();
+    const currentFree = Number(rights.freeCalcTimes || 0) || 0;
+
+    const hasSteadyMembership = UR.canUseSteadyByMembership(rights);
+    const hasAdvancedMembership = UR.canUseAdvancedByMembership(rights);
+    const hasRewardTimes = UR.hasRewardTimes(rights);
 
     if (planType === 'advanced') {
       const adv = this.getAdvancedAccessInfo();
@@ -744,18 +845,12 @@ Page({
       }
     }
 
-    const rights = UR.getUserRights();
-    const pc = UR.normalizeProductCode(rights);
-    const unlimitedActive = UR.isUnlimitedMember(rights);
+    if (planType === 'steady' && hasSteadyMembership) {
+      const label = this.buildMembershipAccessLabel();
 
-    if (unlimitedActive) {
-      const days = UR.getRemainingDays(rights);
-      const name = this.normalizeMembershipDisplayName(rights) || '会员';
-      const label = `${name}${days ? `（剩余${days}天）` : ''}·无限`;
-
-      funnel.log('CALC_MEMBER_UNLIMITED', {
+      funnel.log('CALC_MEMBER_STEADY', {
         planType,
-        productCode: pc,
+        productCode: UR.normalizeProductCode(rights),
         expireAt: rights.membershipExpireAt || 0,
         source: this.data.source || 'index'
       });
@@ -772,9 +867,31 @@ Page({
       return;
     }
 
-    if (freeCalcTimes > 0) {
-      const left = freeCalcTimes - 1;
-      const label = '按次使用';
+    if (planType === 'advanced' && hasAdvancedMembership) {
+      const label = this.buildMembershipAccessLabel();
+
+      funnel.log('CALC_MEMBER_ADVANCED', {
+        planType,
+        productCode: UR.normalizeProductCode(rights),
+        expireAt: rights.membershipExpireAt || 0,
+        source: this.data.source || 'index'
+      });
+
+      this.gotoPlanResult(planType, {
+        balance,
+        price,
+        code,
+        membershipType: label,
+        source: this.data.source || 'index',
+        draftId: draft.draftId,
+        entryVersion: this.data.entryVersion
+      });
+      return;
+    }
+
+    if (planType === 'steady' && hasRewardTimes && currentFree > 0) {
+      const left = currentFree - 1;
+      const label = '任务奖励使用';
 
       this.gotoPlanResult(
         planType,
@@ -790,7 +907,7 @@ Page({
         {
           onSuccess: () => {
             UR.mergeUserRights({ freeCalcTimes: left });
-            this.setData({ freeCalcTimes: left });
+            this.refreshFreeTimes();
 
             funnel.log('CALC_TIMES_DEDUCT', {
               planType,
@@ -817,6 +934,11 @@ Page({
           }
         }
       );
+      return;
+    }
+
+    if (planType === 'advanced') {
+      this.promptAdvancedBlocked();
       return;
     }
 

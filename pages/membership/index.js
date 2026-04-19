@@ -1,4 +1,4 @@
-Page({
+﻿Page({
   data: {
     membershipName: '未开通会员',
     freeCalcTimes: 0,
@@ -10,40 +10,66 @@ Page({
     this.syncFromStorage();
   },
 
+  toTsMs(v) {
+    if (v === null || typeof v === 'undefined' || v === '') return 0;
+
+    if (typeof v === 'number') {
+      if (!Number.isFinite(v)) return 0;
+      if (v > 1e12) return Math.floor(v);
+      if (v > 1e9) return Math.floor(v * 1000);
+      return Math.floor(v);
+    }
+
+    const s = String(v).trim();
+    if (!s) return 0;
+
+    if (/^\d+$/.test(s)) {
+      const n = Number(s);
+      if (!Number.isFinite(n)) return 0;
+      if (n > 1e12) return Math.floor(n);
+      if (n > 1e9) return Math.floor(n * 1000);
+      return Math.floor(n);
+    }
+
+    const t = Date.parse(s.replace(' ', 'T'));
+    return Number.isFinite(t) ? Math.floor(t) : 0;
+  },
+
   normalizeMembershipName(rights = {}) {
     const rawName = String(rights.membershipName || rights.membership_name || '').trim();
     const rawPlan = String(rights.membershipPlan || rights.membership_plan || '').trim().toLowerCase();
     const freeCalcTimes = Number(rights.freeCalcTimes || 0) || 0;
-    const expireAt = Number(
+    const expireAt = this.toTsMs(
       rights.membershipExpireAt ||
       rights.membership_expire_at ||
       0
     );
 
-    if (rawPlan === 'times3') return '3次方案';
-    if (rawPlan === 'month') return '月会员';
-    if (rawPlan === 'quarter') return '季度会员';
-    if (rawPlan === 'year') return '年度会员';
+    if (
+      rawPlan === 'trial3' ||
+      rawPlan === 'times3' ||
+      rawName.includes('体验') ||
+      rawName.includes('3天') ||
+      rawName.includes('9.9')
+    ) return '9.9体验·3天';
 
-    if (rawName.includes('3次')) return '3次方案';
-    if (rawName.includes('月会员') || rawName.includes('月卡')) return '月会员';
-    if (rawName.includes('季度会员') || rawName.includes('季卡')) return '季度会员';
-    if (rawName.includes('年度会员') || rawName.includes('年卡')) return '年度会员';
+    if (rawPlan === 'month') return '控局者·月卡';
+    if (rawPlan === 'quarter') return '控局者·季卡';
+    if (rawPlan === 'year') return '控局者·年卡';
 
-    if (rawName.toLowerCase() === 'times3') return '3次方案';
-    if (rawName.toLowerCase() === 'month') return '月会员';
-    if (rawName.toLowerCase() === 'quarter') return '季度会员';
-    if (rawName.toLowerCase() === 'year') return '年度会员';
+    if (rawName.includes('月卡') || rawName.includes('月会员')) return '控局者·月卡';
+    if (rawName.includes('季卡') || rawName.includes('季度')) return '控局者·季卡';
+    if (rawName.includes('年卡') || rawName.includes('年度')) return '控局者·年卡';
+    if (rawName.includes('终身')) return '终身会员';
 
-    // 没有时效会员，但还有可用方案次数
-    if (!rawName && !expireAt && freeCalcTimes > 0) return '方案次数用户';
+    if (!rawName && !expireAt && freeCalcTimes > 0) return '任务奖励用户';
 
     return rawName || '未开通会员';
   },
 
   syncFromStorage() {
     const rights = wx.getStorageSync('userRights') || {};
-    const expireAt = Number(
+    const expireAt = this.toTsMs(
       rights.membershipExpireAt ||
       rights.membership_expire_at ||
       0
