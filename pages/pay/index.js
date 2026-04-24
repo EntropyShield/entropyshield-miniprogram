@@ -1,10 +1,10 @@
-﻿// pages/pay/index.js
+// pages/pay/index.js
 const { API_BASE } = require('../../config');
 
 const PLAN_LIST = [
   {
     key: 'times3',
-    title: '9.9体验',
+    title: '3天体验',
     amountFen: 990,
     amountText: '9.9',
     rights: '稳健版',
@@ -209,7 +209,12 @@ Page({
     courseId: '',
     selectedPlanKey: 'times3',
     plans: PLAN_LIST,
-    topNotice: '请选择你的开通方式'
+    topNotice: '请选择你的开通方式',
+    upgradeMode: false,
+    upgradeTargetPlanKey: '',
+    upgradeTitle: '',
+    upgradeContent: '',
+    upgradeButtonText: ''
   },
 
   onLoad(options) {
@@ -223,7 +228,7 @@ Page({
       topNotice = '加强版仅支持：季度会员 / 年度会员';
     } else if (type === 'steady') {
       selectedPlanKey = 'times3';
-      topNotice = '稳健版支持：9.9体验 / 月会员 / 季度会员 / 年度会员';
+      topNotice = '稳健版支持：3天体验 / 月会员 / 季度会员 / 年度会员';
     }
 
     this.setData({
@@ -250,11 +255,65 @@ Page({
       return;
     }
 
-    this.setData({ selectedPlanKey: key });
+    this.setData({
+      selectedPlanKey: key,
+      upgradeMode: false,
+      upgradeTargetPlanKey: '',
+      upgradeTitle: '',
+      upgradeContent: '',
+      upgradeButtonText: ''
+    });
+  },
+
+  enterUpgradeFlow(nextPlanKey) {
+    const isAdvanced = this.data.type === 'advanced';
+    this.setData({
+      paying: false,
+      selectedPlanKey: nextPlanKey,
+      upgradeMode: true,
+      upgradeTargetPlanKey: nextPlanKey,
+      upgradeTitle: '3天体验次数已用完',
+      upgradeContent: isAdvanced
+        ? '当前账号已完成 3 次 9.9元/3天体验购买。继续使用加强版，请直接开通季度会员或年度会员。'
+        : '当前账号已完成 3 次 9.9元/3天体验购买。继续使用稳健版，建议直接开通月会员。',
+      upgradeButtonText: isAdvanced ? '去开通季度会员' : '去开通月会员',
+      topNotice: isAdvanced
+        ? '已切换为季度会员升级方案'
+        : '已切换为月会员升级方案'
+    });
+  },
+
+  clearUpgradeFlow() {
+    this.setData({
+      upgradeMode: false,
+      upgradeTargetPlanKey: '',
+      upgradeTitle: '',
+      upgradeContent: '',
+      upgradeButtonText: '',
+      topNotice: this.data.type === 'advanced'
+        ? '加强版仅支持：季度会员 / 年度会员'
+        : '稳健版支持：3天体验 / 月会员 / 季度会员 / 年度会员'
+    });
+  },
+
+  onUpgradeConfirm() {
+    if (this.data.paying) return;
+    const nextPlanKey = this.data.upgradeTargetPlanKey || this.data.selectedPlanKey || (this.data.type === 'advanced' ? 'quarter' : 'month');
+    this.setData({
+      selectedPlanKey: nextPlanKey,
+      upgradeMode: false
+    }, () => {
+      this.onPayTap();
+    });
   },
 
   async onPayTap() {
     if (this.data.paying) return;
+
+    if (this.data.upgradeMode) {
+      this.onUpgradeConfirm();
+      return;
+    }
 
     const base = getApiBase();
     const plan = getPlanByKey(this.data.selectedPlanKey);
@@ -292,10 +351,24 @@ Page({
       console.log('[pay] /api/pay/jsapi response =', data);
 
       if (!data || !data.ok) {
-        throw new Error(data.message || data.error || '支付下单失败');
+        const rawMsg = String(data.message || data.error || '支付下单失败');
+        const isTrialLimit =
+          String(data.error || '') === 'trial_purchase_limit_reached' ||
+          /最多购买3次9\.9元\/3天体验/.test(rawMsg) ||
+          /times3 purchase limit reached/i.test(rawMsg);
+
+        if (isTrialLimit) {
+          const nextPlanKey = this.data.type === 'advanced' ? 'quarter' : 'month';
+          this.enterUpgradeFlow(nextPlanKey);
+          return;
+        }
+
+        throw new Error(rawMsg);
       }
 
       if (data.alreadyPaid) {
+        this.clearUpgradeFlow();
+        this.setData({ paying: false });
         wx.showToast({
           title: data.message || '已开通，无需重复支付',
           icon: 'none'
@@ -303,6 +376,7 @@ Page({
         return;
       }
 
+      this.clearUpgradeFlow();
       const payArgs = resolvePayArgs(data.payargs || data.payArgs || data.data || data);
       console.log('[pay] requestPayment params =', payArgs);
 
@@ -310,7 +384,7 @@ Page({
         throw new Error('支付参数不完整');
       }
 
-      await new Promise((resolve, reject) => {
+      const payResult = await new Promise((resolve, reject) => {
         wx.requestPayment({
           timeStamp: payArgs.timeStamp,
           nonceStr: payArgs.nonceStr,
@@ -323,10 +397,27 @@ Page({
           },
           fail: (err) => {
             console.log('[pay] requestPayment fail =', err);
+            const msg = getErrMsg(err);
+
+            if (/requestPayment:fail cancel/i.test(msg)) {
+              resolve({ cancelled: true, errMsg: msg });
+              return;
+            }
+
             reject(err);
           }
         });
       });
+
+      if (payResult && payResult.cancelled) {
+        this.setData({ paying: false });
+        wx.showToast({
+          title: '已取消支付',
+          icon: 'none',
+          duration: 1500
+        });
+        return;
+      }
 
       wx.redirectTo({
         url:
@@ -335,8 +426,21 @@ Page({
           `&amountFen=${encodeURIComponent(String(plan.amountFen))}`
       });
     } catch (err) {
+      this.setData({ paying: false });
+
       const msg = getErrMsg(err);
       console.error('[pay] onPayTap error =', err);
+
+      wx.hideLoading && wx.hideLoading();
+
+      if (/requestPayment:fail cancel/i.test(msg)) {
+        wx.showToast({
+          title: '已取消支付',
+          icon: 'none',
+          duration: 1500
+        });
+        return;
+      }
 
       try {
         wx.setStorageSync('pay_debug_last_error', JSON.stringify({
@@ -347,28 +451,12 @@ Page({
         }));
       } catch (e) {}
 
-      wx.hideLoading && wx.hideLoading();
-
       wx.showModal({
-        title: '支付调试信息',
-        content:
-          '错误信息：' + msg +
-          '\n\n请不要返回失败页，直接把这段文字截图发我。',
+        title: '支付失败',
+        content: msg || '支付过程中出现异常，请重试',
         showCancel: false
       });
-
-      return;
-    } finally {
-      this.setData({ paying: false });
     }
-  },
-
-  goBack() {
-    wx.navigateBack({
-      delta: 1,
-      fail() {
-        wx.switchTab({ url: '/pages/index/index' });
-      }
-    });
   }
 });
+
