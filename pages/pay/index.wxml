@@ -24,6 +24,11 @@
   <view class="card">
     <view class="section-title">当前选择</view>
 
+    <view wx:if="{{upgradeMode}}" style="margin: 24rpx 0 0 0; padding: 24rpx; border: 1px solid #19ff4a; border-radius: 20rpx; background: rgba(25,255,74,0.06);">
+      <view style="font-size: 30rpx; font-weight: 600; color: #19ff4a;">{{upgradeTitle}}</view>
+      <view style="margin-top: 12rpx; font-size: 24rpx; line-height: 1.7; color: #d8d8d8;">{{upgradeContent}}</view>
+    </view>
+
     <block wx:for="{{plans}}" wx:key="key">
       <view wx:if="{{selectedPlanKey === item.key}}" class="summary-row">
         <text class="summary-label">方案</text>
@@ -39,10 +44,15 @@
       </view>
     </block>
 
-    <button class="btn-primary" loading="{{paying}}" bindtap="onPayTap">
+    <button wx:if="{{!upgradeMode}}" class="btn-primary" loading="{{paying}}" bindtap="onPayTap">
       {{paying ? '支付处理中...' : '立即购买'}}
+    </button>
+
+    <button wx:else class="btn-primary" loading="{{paying}}" bindtap="onPayTap">
+      {{paying ? '支付处理中...' : upgradeButtonText}}
     </button>
 
     <button class="btn-ghost" bindtap="goBack">返回</button>
   </view>
 </view>
+
