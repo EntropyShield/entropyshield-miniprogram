@@ -663,6 +663,101 @@ Page({
     this.promptAdvancedBlocked();
   },
 
+  getLocalSteadyAccessInfo() {
+    const rights = UR.getUserRights();
+    const effectiveRights = rights.effectiveRights || wx.getStorageSync('effectiveRights') || {};
+    const membership = effectiveRights.membership || {};
+    const calculator = effectiveRights.calculator || {};
+
+    const now = Date.now();
+
+    const localExpireAt = Number(rights.membershipExpireAt || rights.trialExpireAt || 0) || 0;
+    const serverExpireAt = Number(membership.expireAt || 0) || 0;
+    const expireAt = Math.max(localExpireAt, serverExpireAt);
+
+    const productCode = String(
+      membership.productCode ||
+      rights.membershipProductCode ||
+      rights.productCode ||
+      ''
+    ).toUpperCase();
+
+    const plan = String(
+      membership.plan ||
+      rights.membershipPlan ||
+      rights.currentMembershipType ||
+      ''
+    ).toLowerCase();
+
+    const level = String(
+      membership.level ||
+      rights.membershipLevel ||
+      ''
+    ).toUpperCase();
+
+    const name = String(
+      membership.name ||
+      rights.membershipName ||
+      rights.currentMembershipName ||
+      ''
+    ).trim();
+
+    const activeByExpire = !!(expireAt && expireAt > now);
+    const activeByServer = membership.active === true || calculator.canUse === true;
+
+    const isTrial3 =
+      productCode === 'VIP_ONCE3' ||
+      plan === 'trial3' ||
+      plan === 'times3' ||
+      level === 'TRIAL3' ||
+      name.indexOf('3天') >= 0 ||
+      name.indexOf('体验') >= 0 ||
+      name.indexOf('9.9') >= 0;
+
+    const isMonth =
+      productCode === 'VIP_MONTH' ||
+      plan === 'month' ||
+      level === 'MONTH' ||
+      name.indexOf('月') >= 0;
+
+    const isAdvancedProduct =
+      productCode === 'VIP_QUARTER' ||
+      productCode === 'VIP_YEAR' ||
+      plan === 'quarter' ||
+      plan === 'year' ||
+      level === 'QUARTER' ||
+      level === 'YEAR' ||
+      level === 'LIFETIME';
+
+    // 稳健版规则：3天体验、月卡、季卡、年卡、终身，只要未到期都可用稳健版。
+    const ok =
+      activeByExpire &&
+      (isTrial3 || isMonth || isAdvancedProduct || activeByServer);
+
+    const remainingDays = expireAt > now
+      ? Math.ceil((expireAt - now) / 86400000)
+      : 0;
+
+    let reason = '';
+    if (!activeByExpire) reason = 'EXPIRED_OR_EMPTY';
+    else if (!ok) reason = 'NOT_ALLOWED';
+
+    return {
+      ok,
+      reason,
+      name: name || (isTrial3 ? '3天体验' : '会员'),
+      productCode,
+      plan,
+      level,
+      expireAt,
+      remainingDays,
+      activeByExpire,
+      activeByServer,
+      isTrial3,
+      isMonth,
+      isAdvancedProduct
+    };
+  },
   handleGeneratePlan(planType, options = {}) {
     if (!options.skipValidate && !this.validateForm()) return;
 
