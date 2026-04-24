@@ -1,10 +1,13 @@
 // pages/riskCalculator/index.js
 const funnel = require('../../utils/funnel.js');
 const UR = require('../../utils/userRights.js');
-const riskEngine = require('../../utils/riskEngine.js');
-const mainchainStore = require('../../utils/mainchainStore.js');
+const { syncEffectiveRights } = require('../../utils/rightsSync.js');
 
-/* ====== RC_V41_CLICK_DEDUPE (v4.1.2 / 2026-03-05) ====== */
+/* ====== RC_V41_CLICK_DEDUPE (v4.1.2 / 2026-03-05) ======
+目标：同一 clientId + 同一输入 + 同一按钮(稳健/加强) 只扣 1 次；第二次点击直接“复用跳转”，不再触发扣次
+实现：sig = hash(picked inputs + __btn)，storage 写 rc_v41_consumed_{cid}_{sig}
+====================================================== */
+
 const __RCV41_PREFIX = 'rc_v41';
 
 function rcV41GetClientId() {
@@ -40,7 +43,6 @@ function rcV41PickKeys(data) {
       if (allow.test(k)) picked.push(k);
     }
   }
-
   if (picked.length === 0) {
     for (const k of keys) {
       if (deny.test(k)) continue;
@@ -48,7 +50,6 @@ function rcV41PickKeys(data) {
       if (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean') picked.push(k);
     }
   }
-
   picked.sort();
   return picked;
 }
@@ -60,15 +61,11 @@ function rcV41BuildSig(data) {
   return rcV41Hash32(parts.join('&'));
 }
 
-function rcV41ConsumedKey(cid, sig) {
-  return `${__RCV41_PREFIX}_consumed_${cid}_${sig}`;
-}
-
+function rcV41ConsumedKey(cid, sig) { return `${__RCV41_PREFIX}_consumed_${cid}_${sig}`; }
 function rcV41IsConsumed(sig) {
   const cid = rcV41GetClientId();
   return !!wx.getStorageSync(rcV41ConsumedKey(cid, sig));
 }
-
 function rcV41MarkConsumed(sig) {
   const cid = rcV41GetClientId();
   wx.setStorageSync(rcV41ConsumedKey(cid, sig), Date.now());
@@ -116,38 +113,24 @@ function rcV41ReuseNavigate(pageThis, btn, sig) {
   const balance = rcV41PickNumber(data, [/balance/i, /amount/i, /money/i, /fund/i]);
   const price = rcV41PickNumber(data, [/buyprice/i, /first/i, /price/i]);
   const code = rcV41PickString(data, [/code/i, /symbol/i, /ticker/i, /name/i]);
-  const source = rcV41PickString(data, [/source/i]) || 'riskCalculator';
-  const entryVersion = rcV41PickString(data, [/entryversion/i]) || 'V1.4';
 
   if (!balance || !price || !code) {
     wx.showToast({ title: '复用跳转缺少参数，继续走原流程', icon: 'none' });
     return false;
   }
 
-  const membershipType = encodeURIComponent('按次使用');
-  const base =
-    `?balance=${encodeURIComponent(balance)}` +
-    `&price=${encodeURIComponent(price)}` +
-    `&code=${encodeURIComponent(code)}` +
-    `&source=${encodeURIComponent(source)}` +
-    `&entryVersion=${encodeURIComponent(entryVersion)}` +
-    `&membershipType=${membershipType}`;
-
+  const membershipType = encodeURIComponent('任务权益 · 已扣次复用');
   const url = (btn === 'advanced')
-    ? `/pages/planAdvanced/index${base}`
-    : `/pages/planSteady/index${base}`;
+    ? `/pages/planAdvanced/index?balance=${encodeURIComponent(balance)}&price=${encodeURIComponent(price)}&code=${encodeURIComponent(code)}&membershipType=${membershipType}`
+    : `/pages/planSteady/index?balance=${encodeURIComponent(balance)}&price=${encodeURIComponent(price)}&code=${encodeURIComponent(code)}&membershipType=${membershipType}`;
 
-  try {
-    console.log('[riskCalculator][v4.1] reuse navigate sig=', sig, 'url=', url);
-  } catch (e) {}
-
+  try { console.log('[riskCalculator][v4.1] reuse navigate sig=', sig, 'url=', url); } catch (e) {}
   wx.navigateTo({ url });
   return true;
 }
 
 function rcV41OnClickGate(pageThis, btn) {
   const sig = rcV41BuildSig(Object.assign({}, pageThis.data || {}, { __btn: btn }));
-
   if (rcV41IsConsumed(sig)) {
     const ok = rcV41ReuseNavigate(pageThis, btn, sig);
     if (ok) return { blocked: true, sig };
@@ -158,13 +141,66 @@ function rcV41OnClickGate(pageThis, btn) {
     const after = rcV41GetTimes();
     if (before !== null && after !== null && after < before) {
       rcV41MarkConsumed(sig);
-      try {
-        console.log('[riskCalculator][v4.1] marked consumed sig=', sig, 'before=', before, 'after=', after);
-      } catch (e) {}
+      try { console.log('[riskCalculator][v4.1] marked consumed sig=', sig, 'before=', before, 'after=', after); } catch (e) {}
     }
   }, 2500);
 
   return { blocked: false, sig };
+}
+/* ====== RC_V41_CLICK_DEDUPE END ====== */
+
+function getMembershipPatchByServerLevel(level, expireAt) {
+  const lv = String(level || '').toUpperCase();
+
+  if (lv === 'VIP_MONTH') {
+    return {
+      membershipLevel: 'MONTH',
+      membershipPlan: 'month',
+      membershipName: '月会员',
+      productCode: 'VIP_MONTH',
+      membershipProductCode: 'VIP_MONTH',
+      membershipExpireAt: expireAt || '',
+      advancedEnabled: false
+    };
+  }
+
+  if (lv === 'VIP_QUARTER') {
+    return {
+      membershipLevel: 'QUARTER',
+      membershipPlan: 'quarter',
+      membershipName: '季度会员',
+      productCode: 'VIP_QUARTER',
+      membershipProductCode: 'VIP_QUARTER',
+      membershipExpireAt: expireAt || '',
+      advancedEnabled: true
+    };
+  }
+
+  if (lv === 'VIP_YEAR') {
+    return {
+      membershipLevel: 'YEAR',
+      membershipPlan: 'year',
+      membershipName: '年度会员',
+      productCode: 'VIP_YEAR',
+      membershipProductCode: 'VIP_YEAR',
+      membershipExpireAt: expireAt || '',
+      advancedEnabled: true
+    };
+  }
+
+  if (lv === 'LIFETIME') {
+    return {
+      membershipLevel: 'LIFETIME',
+      membershipPlan: 'year',
+      membershipName: '终身会员',
+      productCode: 'VIP_YEAR',
+      membershipProductCode: 'VIP_YEAR',
+      membershipExpireAt: '',
+      advancedEnabled: true
+    };
+  }
+
+  return null;
 }
 
 Page({
@@ -178,217 +214,168 @@ Page({
     advancedEnabled: false,
     remainingDays: 0,
     unlimitedActive: false,
+    canUseCalculator: false,
+    needsPay: true,
 
     balanceError: '',
     priceError: '',
-    codeError: '',
-
-    source: 'index',
-    sourceLabel: '首页',
-    entryVersion: 'V1.4',
-    submitLoading: false,
-    submitPlanType: '',
-    globalError: '',
-    draftId: ''
+    codeError: ''
   },
 
-  onLoad(options = {}) {
-    const meta = this.getSourceMeta(options);
-
-    const nextData = {
-      source: meta.source,
-      sourceLabel: meta.sourceLabel
-    };
-
-    if (options.balance) nextData.balance = this.sanitizeNumberInput(options.balance, 2);
-    if (options.price) nextData.price = this.sanitizeNumberInput(options.price, 4);
-    if (options.code) nextData.code = this.sanitizeCodeInput(options.code);
-
-    const shouldRestoreDraft =
-      String(options.restoreDraft || '') === '1' ||
-      String(options.useLatestDraft || '') === '1';
-
-    if (shouldRestoreDraft && !options.balance && !options.price && !options.code) {
-      try {
-        const latestDraft = mainchainStore.getLatestRiskCalcDraft();
-        if (latestDraft) {
-          if (latestDraft.balance) nextData.balance = this.sanitizeNumberInput(latestDraft.balance, 2);
-          if (latestDraft.price) nextData.price = this.sanitizeNumberInput(latestDraft.price, 4);
-          if (latestDraft.code) nextData.code = this.sanitizeCodeInput(latestDraft.code);
-          if (latestDraft.source) {
-            nextData.source = latestDraft.source;
-            nextData.sourceLabel = this.getSourceMeta({ source: latestDraft.source }).sourceLabel;
-          }
-          if (latestDraft.draftId) nextData.draftId = latestDraft.draftId;
-        }
-      } catch (e) {
-        console.log('[riskCalculator] hydrate latest draft fail', e);
-      }
-    } else if (!options.balance && !options.price && !options.code) {
-      nextData.balance = '';
-      nextData.price = '';
-      nextData.code = '';
-      nextData.draftId = '';
-    }
-
-    this.setData(nextData);
+  onLoad() {
     this.refreshFreeTimes();
+    this.syncEffectiveRightsForCalculator('onLoad');
   },
 
   onShow() {
     this.refreshFreeTimes();
+    this.syncEffectiveRightsForCalculator('onShow');
     this.syncProfileFreeTimes();
   },
 
-  getSourceMeta(options = {}) {
-    const raw = String(
-      options.source ||
-      options.from ||
-      options.entrySource ||
-      options.sceneSource ||
-      'index'
-    ).trim().toLowerCase();
+  getCalculatorClientId() {
+    let clientId = '';
 
-    const source = raw || 'index';
-
-    const map = {
-      index: '首页',
-      controller: '控局者',
-      profile: '个人中心',
-      camp: '训练营',
-      report: '报告页',
-      pay: '支付页',
-      fission: '裂变任务'
-    };
-
-    return {
-      source,
-      sourceLabel: map[source] || source
-    };
-  },
-
-  sanitizeNumberInput(value, maxDecimals = 4) {
-    let s = String(value == null ? '' : value);
-
-    s = s
-      .replace(/，/g, ',')
-      .replace(/。/g, '.')
-      .replace(/[^\d.,]/g, '')
-      .replace(/,/g, '');
-
-    s = s.replace(/^\./, '');
-
-    const firstDot = s.indexOf('.');
-    if (firstDot >= 0) {
-      s = s.slice(0, firstDot + 1) + s.slice(firstDot + 1).replace(/\./g, '');
-      const parts = s.split('.');
-      const intPart = parts[0] || '';
-      const decPart = (parts[1] || '').slice(0, maxDecimals);
-      s = decPart ? `${intPart}.${decPart}` : `${intPart}.`;
-    }
-
-    return s;
-  },
-
-  sanitizeCodeInput(value) {
-    return String(value == null ? '' : value)
-      .replace(/\s+/g, ' ')
-      .trim()
-      .slice(0, 30);
-  },
-
-  acquireSubmitLock(planType) {
-    if (this.data.submitLoading) return false;
-    this.setData({
-      submitLoading: true,
-      submitPlanType: planType || '',
-      globalError: ''
-    });
-    return true;
-  },
-
-  releaseSubmitLock(delay = 250) {
-    setTimeout(() => {
-      this.setData({
-        submitLoading: false,
-        submitPlanType: ''
-      });
-    }, delay);
-  },
-
-  buildRiskEntryDraft(planType) {
-    const { balance, price, code, source, entryVersion, draftId } = this.data;
-
-    if (riskEngine && typeof riskEngine.buildRiskEntryDraft === 'function') {
-      return riskEngine.buildRiskEntryDraft({
-        draftId: draftId || '',
-        createdAt: Date.now(),
-        source,
-        entryVersion,
-        planType,
-        balance: this.sanitizeNumberInput(balance, 2),
-        price: this.sanitizeNumberInput(price, 4),
-        code: this.sanitizeCodeInput(code)
-      });
-    }
-
-    return {
-      draftId: draftId || `rcd_${Date.now()}`,
-      createdAt: Date.now(),
-      source,
-      entryVersion,
-      planType,
-      balance: this.sanitizeNumberInput(balance, 2),
-      price: this.sanitizeNumberInput(price, 4),
-      code: this.sanitizeCodeInput(code)
-    };
-  },
-
-  saveRiskEntryDraft(planType) {
     try {
-      const draft = this.buildRiskEntryDraft(planType);
-      wx.setStorageSync('riskCalcLatestDraft', draft);
+      clientId =
+        wx.getStorageSync('clientId') ||
+        wx.getStorageSync('openid') ||
+        wx.getStorageSync('openId') ||
+        '';
+    } catch (e) {}
 
-      const list = wx.getStorageSync('riskCalcDraftHistory') || [];
-      list.unshift(draft);
-      wx.setStorageSync('riskCalcDraftHistory', list.slice(0, 100));
+    if (!clientId) {
+      try {
+        const rights = wx.getStorageSync('userRights') || {};
+        const identity = rights.identity || {};
+        const effectiveRights = rights.effectiveRights || wx.getStorageSync('effectiveRights') || {};
+        const effectiveIdentity = effectiveRights.identity || {};
 
-      this.setData({ draftId: draft.draftId });
-      return draft;
-    } catch (e) {
-      console.log('[riskCalculator] saveRiskEntryDraft fail', e);
-      return { draftId: '' };
+        clientId =
+          rights.clientId ||
+          rights.openid ||
+          identity.clientId ||
+          identity.openid ||
+          effectiveIdentity.clientId ||
+          effectiveIdentity.openid ||
+          '';
+      } catch (e) {}
     }
+
+    if (!clientId) {
+      try {
+        const app = getApp && getApp();
+        const gd = (app && app.globalData) || {};
+        clientId =
+          gd.clientId ||
+          gd.openid ||
+          gd.openId ||
+          (gd.userInfo && gd.userInfo.openid) ||
+          '';
+      } catch (e) {}
+    }
+
+    return String(clientId || '').trim();
   },
 
+  syncEffectiveRightsForCalculator(scene) {
+    const clientId = this.getCalculatorClientId();
+
+    if (!clientId) {
+      try {
+        console.log('[riskCalculator] effectiveRights sync skipped: clientId empty');
+      } catch (e) {}
+      return;
+    }
+
+    syncEffectiveRights({
+      clientId,
+      scene: 'risk_calculator_' + (scene || 'refresh')
+    })
+      .then((res) => {
+        try {
+          console.log('[riskCalculator] effectiveRights sync =>', res);
+        } catch (e) {}
+
+        this.refreshFreeTimes();
+      })
+      .catch((err) => {
+        try {
+          console.log('[riskCalculator] effectiveRights sync fail =>', err);
+        } catch (e) {}
+      });
+  },
   refreshFreeTimes() {
     const rights = UR.getUserRights();
-    const freeCalcTimes = Number(rights.freeCalcTimes || 0) || 0;
-    const labelMeta = UR.getMembershipLabel();
-    const unlimitedActive = UR.isUnlimitedMember(rights);
-    const remainingDays = UR.getRemainingDays(rights);
-    const advancedEnabled = UR.canUseAdvancedByMembership(rights);
+    const effectiveRights = rights.effectiveRights || wx.getStorageSync('effectiveRights') || {};
+    const membership = effectiveRights.membership || {};
+    const task = effectiveRights.task || {};
+    const calculator = effectiveRights.calculator || {};
+
+    const freeCalcTimes = Math.max(
+      0,
+      Number(
+        task.freeCalcTimes != null
+          ? task.freeCalcTimes
+          : (task.rewardTimes != null ? task.rewardTimes : rights.freeCalcTimes)
+      ) || 0
+    );
+
+    const rawName = String(membership.name || rights.membershipName || '').trim();
+    const expireAt = Number(membership.expireAt || rights.membershipExpireAt || 0);
+    const expired = !!(expireAt && Date.now() > expireAt);
+
+    const remainingDays =
+      Number(membership.remainingDays || 0) ||
+      UR.getRemainingDays(rights);
+
+    const membershipActive =
+      membership.active === true ||
+      (!!expireAt && Date.now() < expireAt);
+
+    const unlimitedActive =
+      UR.isUnlimitedMember(rights) ||
+      (
+        membershipActive &&
+        String(membership.level || rights.membershipLevel || '').toUpperCase() !== 'FREE'
+      );
+
+    let membershipName = rawName;
+
+    if (rawName && expired) {
+      membershipName = rawName + '（已到期）';
+    } else if (rawName && membershipActive && remainingDays) {
+      membershipName = `${rawName}（剩余${remainingDays}天）`;
+    }
+
+    const advancedEnabled = UR.isAdvancedAllowed(rights);
+
+    const canUseCalculator =
+      calculator.canUse === true ||
+      rights.canUseCalculator === true ||
+      membershipActive ||
+      freeCalcTimes > 0;
+
+    const needsPay =
+      !canUseCalculator &&
+      (
+        calculator.needsPay === true ||
+        rights.needsPay === true ||
+        true
+      );
 
     this.setData({
       freeCalcTimes,
-      membershipName: labelMeta.label || '',
+      membershipName,
       advancedEnabled,
       remainingDays,
-      unlimitedActive
+      unlimitedActive,
+      canUseCalculator,
+      needsPay
     });
   },
-
-  syncProfileFreeTimes(force = false) {
+  syncProfileFreeTimes() {
     try {
-      const now = Date.now();
-      const syncingAt = Number(wx.getStorageSync('rc_profile_sync_ing') || 0) || 0;
-      const lastOkAt = Number(wx.getStorageSync('rc_profile_sync_ok_at') || 0) || 0;
-
-      if (!force) {
-        if (syncingAt && (now - syncingAt) < 15000) return;
-        if (lastOkAt && (now - lastOkAt) < 10 * 60 * 1000) return;
-      }
-
       const apiBase =
         wx.getStorageSync('API_BASE') ||
         wx.getStorageSync('apiBaseUrl') ||
@@ -397,252 +384,222 @@ Page({
       const clientId = wx.getStorageSync('clientId');
       if (!apiBase || !clientId) return;
 
-      wx.setStorageSync('rc_profile_sync_ing', now);
-
       wx.request({
-        url: String(apiBase).replace(/\/$/, '') + '/api/fission/profile',
+        url: `${String(apiBase).replace(/\/$/, '')}/api/fission/profile`,
         method: 'GET',
         data: { clientId },
-        timeout: 5000,
         success: (res) => {
           const d = res && res.data;
           if (!d || !d.ok) return;
 
-          const p = d.profile || d.user || d.data || {};
-          const currentRights = UR.getUserRights();
-          const currentFree = Number(currentRights.freeCalcTimes || 0) || 0;
+          const total = Number((d.total_reward_times ?? (d.profile && d.profile.total_reward_times) ?? 0)) || 0;
 
-          const serverFreeRaw =
-            p.free_calc_times ??
-            p.freeCalcTimes ??
-            null;
-
-          const totalRewardTimes = Number(
-            d.total_reward_times ??
-            d.totalRewardTimes ??
-            p.total_reward_times ??
-            p.totalRewardTimes ??
-            0
-          ) || 0;
-
+          const rights = UR.getUserRights();
+          const currentFree = Number((rights.freeCalcTimes != null ? rights.freeCalcTimes : rights.rewardTimes) || 0) || 0;
           let lastSynced = Number(wx.getStorageSync('fission_total_reward_times_synced') || 0) || 0;
+
           if (lastSynced === 0 && currentFree > 0) {
-            wx.setStorageSync('fission_total_reward_times_synced', totalRewardTimes);
-            lastSynced = totalRewardTimes;
+            wx.setStorageSync('fission_total_reward_times_synced', total);
+            lastSynced = total;
           }
 
-          const patch = {};
-
-          const serverFree = Number(serverFreeRaw);
-          if (Number.isFinite(serverFree) && serverFree >= 0) {
-            patch.freeCalcTimes = Math.max(currentFree, serverFree);
-          } else {
-            const delta = totalRewardTimes - lastSynced;
-            if (delta > 0) {
-              patch.freeCalcTimes = currentFree + delta;
-              wx.setStorageSync('fission_total_reward_times_synced', totalRewardTimes);
-            }
+          const delta = total - lastSynced;
+          if (delta > 0) {
+            UR.mergeUserRights({
+              freeCalcTimes: currentFree + delta
+            });
+            wx.setStorageSync('fission_total_reward_times_synced', total);
           }
 
-          const membershipName = p.membership_name || p.membershipName || '';
-          if (membershipName) patch.membershipName = membershipName;
-
-          const membershipExpireAt =
-            p.membership_expire_at == null
-              ? (p.membershipExpireAt == null ? null : p.membershipExpireAt)
-              : p.membership_expire_at;
-          if (membershipExpireAt != null && membershipExpireAt !== '') {
-            patch.membershipExpireAt = membershipExpireAt;
-          }
-
-          const lvRaw = String(p.membership_level || p.membershipLevel || '').toUpperCase();
-          if (lvRaw) {
-            patch.membershipLevel = lvRaw;
-
-            if (lvRaw === 'VIP_MONTH' || lvRaw === 'MONTH') {
-              patch.membershipPlan = 'month';
-              patch.productCode = 'VIP_MONTH';
-              patch.membershipProductCode = 'VIP_MONTH';
-              patch.advancedEnabled = false;
-              if (!patch.membershipName) patch.membershipName = '控局者·月卡';
-            } else if (lvRaw === 'VIP_QUARTER' || lvRaw === 'QUARTER') {
-              patch.membershipPlan = 'quarter';
-              patch.productCode = 'VIP_QUARTER';
-              patch.membershipProductCode = 'VIP_QUARTER';
-              patch.advancedEnabled = true;
-              if (!patch.membershipName) patch.membershipName = '控局者·季卡';
-            } else if (lvRaw === 'VIP_YEAR' || lvRaw === 'YEAR') {
-              patch.membershipPlan = 'year';
-              patch.productCode = 'VIP_YEAR';
-              patch.membershipProductCode = 'VIP_YEAR';
-              patch.advancedEnabled = true;
-              if (!patch.membershipName) patch.membershipName = '控局者·年卡';
-            } else if (lvRaw === 'LIFETIME') {
-              patch.membershipPlan = 'year';
-              patch.productCode = 'LIFETIME';
-              patch.membershipProductCode = 'LIFETIME';
-              patch.advancedEnabled = true;
-              patch.membershipExpireAt = 0;
-              if (!patch.membershipName) patch.membershipName = '终身会员';
-            }
-          }
-
-          if (!lvRaw && membershipName && (membershipName.includes('体验') || membershipName.includes('3天') || membershipName.includes('9.9'))) {
-            patch.membershipPlan = 'trial3';
-            patch.productCode = 'VIP_ONCE3';
-            patch.membershipProductCode = 'VIP_ONCE3';
-            patch.advancedEnabled = false;
-          }
-
-          if (Object.keys(patch).length > 0) {
-            UR.mergeUserRights(patch);
-          }
-
-          wx.setStorageSync('rc_profile_sync_ok_at', Date.now());
           this.refreshFreeTimes();
         },
         fail: (err) => {
-          console.warn('[riskCalculator] syncProfileFreeTimes skipped/fail', err);
-        },
-        complete: () => {
-          try { wx.removeStorageSync('rc_profile_sync_ing'); } catch (e) {}
+          console.log('[riskCalculator] syncProfileFreeTimes fail', err);
         }
       });
     } catch (e) {
-      console.warn('[riskCalculator] syncProfileFreeTimes error', e);
-      try { wx.removeStorageSync('rc_profile_sync_ing'); } catch (e2) {}
+      console.log('[riskCalculator] syncProfileFreeTimes error', e);
     }
   },
 
   getAdvancedAccessInfo() {
     const rights = UR.getUserRights();
-    const ok = UR.canUseAdvancedByMembership(rights);
-    const productCode = UR.normalizeProductCode(rights);
-    const expireAt = Number(rights.membershipExpireAt || 0) || 0;
-    const advancedEnabled = !!rights.advancedEnabled;
+    const effectiveRights = rights.effectiveRights || wx.getStorageSync('effectiveRights') || {};
+    const membership = effectiveRights.membership || {};
+    const calculator = effectiveRights.calculator || {};
+
+    const now = Date.now();
+
+    const productCode = String(
+      membership.productCode ||
+      rights.membershipProductCode ||
+      rights.productCode ||
+      UR.normalizeProductCode(rights) ||
+      ''
+    ).toUpperCase();
+
+    const plan = String(
+      membership.plan ||
+      rights.membershipPlan ||
+      rights.currentMembershipType ||
+      ''
+    ).toLowerCase();
+
+    const level = String(
+      membership.level ||
+      rights.membershipLevel ||
+      ''
+    ).toUpperCase();
+
+    const name = String(
+      membership.name ||
+      rights.membershipName ||
+      rights.currentMembershipName ||
+      ''
+    ).trim();
+
+    const expireAt = Number(
+      membership.expireAt ||
+      rights.membershipExpireAt ||
+      rights.trialExpireAt ||
+      0
+    ) || 0;
+
+    const notExpired = !expireAt || expireAt > now;
+
+    const isTrial3 =
+      productCode === 'VIP_ONCE3' ||
+      plan === 'trial3' ||
+      plan === 'times3' ||
+      level === 'TRIAL3' ||
+      name.indexOf('3天') >= 0 ||
+      name.indexOf('体验') >= 0;
+
+    const isMonth =
+      productCode === 'VIP_MONTH' ||
+      plan === 'month' ||
+      level === 'MONTH' ||
+      name.indexOf('月') >= 0;
+
+    const isAdvancedProduct =
+      productCode === 'VIP_QUARTER' ||
+      productCode === 'VIP_YEAR' ||
+      plan === 'quarter' ||
+      plan === 'year' ||
+      level === 'QUARTER' ||
+      level === 'YEAR' ||
+      level === 'LIFETIME';
+
+    const advancedEnabled =
+      UR.isAdvancedAllowed(rights) ||
+      rights.advancedEnabled === true ||
+      isAdvancedProduct;
+
+    const ok =
+      notExpired &&
+      isAdvancedProduct &&
+      advancedEnabled &&
+      !isTrial3 &&
+      !isMonth;
 
     let reason = '';
-    if (!UR.hasActiveMembership(rights)) {
-      reason = 'NO_ACTIVE_MEMBER';
-    } else if (!ok) {
-      reason = 'NOT_ALLOWED';
+
+    if (!notExpired) {
+      reason = 'EXPIRED';
+    } else if (isTrial3) {
+      reason = 'TRIAL3_NOT_ALLOWED';
+    } else if (isMonth) {
+      reason = 'MONTH_NOT_ALLOWED';
+    } else if (!isAdvancedProduct) {
+      reason = 'NOT_ADVANCED_PRODUCT';
+    } else if (!advancedEnabled) {
+      reason = 'ADVANCED_DISABLED';
     }
 
-    return { ok, reason, productCode, expireAt, advancedEnabled };
+    return {
+      ok,
+      reason,
+      productCode,
+      plan,
+      level,
+      name,
+      expireAt,
+      advancedEnabled,
+      calculatorCanUse: calculator.canUse === true
+    };
   },
 
   promptAdvancedBlocked() {
     const { balance, price, code } = this.data;
 
     wx.showModal({
-      title: '需要季度会员 / 年度会员',
-      content: '加强版仅对「季度会员 / 年度会员」开放；9.9体验 / 月会员仅支持稳健版。',
+      title: '加强版权限',
+      content: '加强版仅对「季卡/年卡」开放。\n月卡/3天体验/训练营奖励仅支持稳健版。',
       confirmText: '去开通',
-      cancelText: '返回',
+      cancelText: '用稳健版',
       success: (r) => {
-        this.releaseSubmitLock(0);
-
         if (r.confirm) {
           wx.navigateTo({
             url:
-              `/pages/pay/index?type=advanced` +
+              `/pages/membership/index?type=advanced` +
               `&balance=${encodeURIComponent(balance)}` +
               `&price=${encodeURIComponent(price)}` +
-              `&code=${encodeURIComponent(code || '')}` +
-              `&source=${encodeURIComponent(this.data.source || 'riskCalculator')}`
+              `&code=${encodeURIComponent(code || '')}`
           });
+        } else {
+          this.handleGeneratePlan('steady', { skipValidate: true });
         }
-      },
-      fail: () => {
-        this.releaseSubmitLock(0);
       }
     });
   },
 
   onBalanceInput(e) {
     this.setData({
-      balance: this.sanitizeNumberInput(e.detail.value, 2),
-      balanceError: '',
-      globalError: ''
+      balance: e.detail.value,
+      balanceError: ''
     });
   },
 
   onPriceInput(e) {
     this.setData({
-      price: this.sanitizeNumberInput(e.detail.value, 4),
-      priceError: '',
-      globalError: ''
+      price: e.detail.value,
+      priceError: ''
     });
   },
 
   onCodeInput(e) {
     this.setData({
-      code: this.sanitizeCodeInput(e.detail.value),
-      codeError: '',
-      globalError: ''
+      code: e.detail.value,
+      codeError: ''
     });
   },
 
   validateForm() {
-    let balance = this.sanitizeNumberInput(this.data.balance, 2);
-    let price = this.sanitizeNumberInput(this.data.price, 4);
-    const code = this.sanitizeCodeInput(this.data.code);
-
-    if (balance.endsWith('.')) balance = balance.slice(0, -1);
-    if (price.endsWith('.')) price = price.slice(0, -1);
+    const balance = String(this.data.balance || '').trim();
+    const price = String(this.data.price || '').trim();
+    const code = String(this.data.code || '').trim();
 
     let balanceError = '';
     let priceError = '';
     let codeError = '';
 
-    const balanceNum = Number(balance);
-    const priceNum = Number(price);
-
     if (!balance) {
       balanceError = '请输入可用资金';
-    } else if (!/^\d+(\.\d{1,2})?$/.test(balance) || !Number.isFinite(balanceNum)) {
-      balanceError = '请填写正确的资金数字';
-    } else if (balanceNum < 100) {
-      balanceError = '可用资金不能低于100元';
+    } else if (!/^\d+(\.\d+)?$/.test(balance) || Number(balance) <= 0) {
+      balanceError = '请填写大于 0 的数字';
     }
 
     if (!price) {
       priceError = '请输入首次买入价格';
-    } else if (!/^\d+(\.\d{1,4})?$/.test(price) || !Number.isFinite(priceNum)) {
-      priceError = '请填写正确的价格数字';
-    } else if (priceNum < 0.01) {
-      priceError = '首次买入价格不能低于0.01';
+    } else if (!/^\d+(\.\d+)?$/.test(price) || Number(price) <= 0) {
+      priceError = '请填写大于 0 的数字';
     }
 
     if (!code) {
       codeError = '请输入标的代码或名称';
-    } else {
-      const pureDigits = /^\d+$/.test(code);
-      const pureLetters = /^[A-Za-z]+$/.test(code);
-      const hasChinese = /[\u4e00-\u9fa5]/.test(code);
-      const mixedAlphaNum = /^[A-Za-z0-9._-]+$/.test(code);
-
-      let codeOk = false;
-
-      if (pureDigits) {
-        codeOk = /^\d{4,8}$/.test(code);
-      } else if (pureLetters) {
-        codeOk = /^[A-Za-z]{4,20}$/.test(code);
-      } else if (hasChinese) {
-        codeOk = code.length >= 2 && code.length <= 20;
-      } else if (mixedAlphaNum) {
-        codeOk = code.length >= 4 && code.length <= 20;
-      }
-
-      if (!codeOk) {
-        codeError = '请输入有效的代码或名称';
-      }
     }
 
     this.setData({
-      balance,
-      price,
-      code,
       balanceError,
       priceError,
       codeError
@@ -662,272 +619,207 @@ Page({
   onClickSteady() {
     console.log('[riskCalculator] click steady');
     if (!this.validateForm()) return;
-    if (!this.acquireSubmitLock('steady')) return;
 
     const gate = rcV41OnClickGate(this, 'steady');
-    if (gate && gate.blocked) {
-      this.releaseSubmitLock(0);
-      return;
-    }
+    if (gate && gate.blocked) return;
 
-    funnel.log('CALC_CLICK_STEADY', {
-      source: this.data.source || 'index'
-    });
-
+    funnel.log('CALC_CLICK_STEADY', {});
     this.handleGeneratePlan('steady', { skipValidate: true });
   },
 
   onClickAdvanced() {
     console.log('[riskCalculator] click advanced');
     if (!this.validateForm()) return;
-    if (!this.acquireSubmitLock('advanced')) return;
 
     const gate = rcV41OnClickGate(this, 'advanced');
-    if (gate && gate.blocked) {
-      this.releaseSubmitLock(0);
+    if (gate && gate.blocked) return;
+
+    const adv = this.getAdvancedAccessInfo();
+
+    if (adv.ok) {
+      funnel.log('CALC_CLICK_ADVANCED_ALLOWED', {
+        productCode: adv.productCode,
+        plan: adv.plan,
+        level: adv.level,
+        expireAt: adv.expireAt
+      });
+
+      this.handleGeneratePlan('advanced', { skipValidate: true });
       return;
     }
 
-    funnel.log('CALC_CLICK_ADVANCED', {
-      source: this.data.source || 'index'
+    funnel.log('CALC_CLICK_ADVANCED_BLOCKED', {
+      reason: adv.reason,
+      productCode: adv.productCode,
+      plan: adv.plan,
+      level: adv.level,
+      expireAt: adv.expireAt
     });
 
     try {
-      const localRights = UR.getUserRights();
-      if (UR.canUseAdvancedByMembership(localRights)) {
-        this.refreshFreeTimes();
-        this.handleGeneratePlan('advanced', { skipValidate: true });
-        return;
-      }
-    } catch (e) {
-      console.warn('[riskCalculator] local advanced check fail', e);
-    }
-
-    try {
-      const base = String(
-        wx.getStorageSync('API_BASE') ||
-        wx.getStorageSync('apiBaseUrl') ||
-        ''
-      ).replace(/\/$/, '');
-      const cid = String(wx.getStorageSync('clientId') || '').trim();
-
-      if (base && cid) {
-        wx.request({
-          url: base + '/api/fission/profile?clientId=' + encodeURIComponent(cid),
-          method: 'GET',
-          timeout: 10000,
-          success: (r) => {
-            try {
-              const d = r && r.data;
-              const p = d && (d.profile || d.user || d.data || {});
-              const lv = String((p && (p.membership_level || p.membershipLevel)) || '').toUpperCase();
-
-              const patch = {};
-
-              const freeRaw =
-                p.free_calc_times ??
-                p.freeCalcTimes ??
-                null;
-              const freeNum = Number(freeRaw);
-              if (Number.isFinite(freeNum) && freeNum >= 0) {
-                patch.freeCalcTimes = freeNum;
-              }
-
-              const expireRaw =
-                p.membership_expire_at == null
-                  ? (p.membershipExpireAt == null ? null : p.membershipExpireAt)
-                  : p.membership_expire_at;
-              if (expireRaw != null && expireRaw !== '') {
-                patch.membershipExpireAt = expireRaw;
-              }
-
-              if (lv === 'VIP_MONTH' || lv === 'MONTH') {
-                patch.membershipLevel = lv;
-                patch.membershipPlan = 'month';
-                patch.membershipName = '控局者·月卡';
-                patch.productCode = 'VIP_MONTH';
-                patch.membershipProductCode = 'VIP_MONTH';
-                patch.advancedEnabled = false;
-              } else if (lv === 'VIP_QUARTER' || lv === 'QUARTER') {
-                patch.membershipLevel = lv;
-                patch.membershipPlan = 'quarter';
-                patch.membershipName = '控局者·季卡';
-                patch.productCode = 'VIP_QUARTER';
-                patch.membershipProductCode = 'VIP_QUARTER';
-                patch.advancedEnabled = true;
-              } else if (lv === 'VIP_YEAR' || lv === 'YEAR') {
-                patch.membershipLevel = lv;
-                patch.membershipPlan = 'year';
-                patch.membershipName = '控局者·年卡';
-                patch.productCode = 'VIP_YEAR';
-                patch.membershipProductCode = 'VIP_YEAR';
-                patch.advancedEnabled = true;
-              } else if (lv === 'LIFETIME') {
-                patch.membershipLevel = lv;
-                patch.membershipPlan = 'year';
-                patch.membershipName = '终身会员';
-                patch.productCode = 'LIFETIME';
-                patch.membershipProductCode = 'LIFETIME';
-                patch.advancedEnabled = true;
-                patch.membershipExpireAt = 0;
-              }
-
-              if (!lv && p.membershipName && (String(p.membershipName).includes('体验') || String(p.membershipName).includes('3天') || String(p.membershipName).includes('9.9'))) {
-                patch.membershipPlan = 'trial3';
-                patch.productCode = 'VIP_ONCE3';
-                patch.membershipProductCode = 'VIP_ONCE3';
-                patch.advancedEnabled = false;
-              }
-
-              if (Object.keys(patch).length > 0) {
-                UR.mergeUserRights(patch);
-              }
-
-              const latestRights = UR.getUserRights();
-              if (UR.canUseAdvancedByMembership(latestRights)) {
-                this.refreshFreeTimes();
-                this.handleGeneratePlan('advanced', { skipValidate: true });
-              } else {
-                this.promptAdvancedBlocked();
-              }
-            } catch (e) {
-              console.warn('[riskCalculator] remote advanced check parse fail', e);
-              this.promptAdvancedBlocked();
-            }
-          },
-          fail: (err) => {
-            console.warn('[riskCalculator] remote advanced check fail', err);
-            this.promptAdvancedBlocked();
-          }
-        });
-        return;
-      }
-    } catch (e) {
-      console.warn('[riskCalculator] remote advanced check error', e);
-    }
+      console.log('[riskCalculator] advanced local/effective access blocked =>', adv);
+    } catch (e) {}
 
     this.promptAdvancedBlocked();
   },
 
-  buildMembershipAccessLabel() {
-    const meta = UR.getMembershipLabel();
-    if (meta && meta.label) return meta.label;
-    return '会员有效'
-  },
-
   handleGeneratePlan(planType, options = {}) {
-    if (!options.skipValidate && !this.validateForm()) {
-      this.releaseSubmitLock(0);
-      return;
-    }
+    if (!options.skipValidate && !this.validateForm()) return;
 
-    const { balance, price, code } = this.data;
-    const draft = this.saveRiskEntryDraft(planType);
-    const rights = UR.getUserRights();
-    const currentFree = Number(rights.freeCalcTimes || 0) || 0;
-
-    const hasSteadyMembership = UR.canUseSteadyByMembership(rights);
-    const hasAdvancedMembership = UR.canUseAdvancedByMembership(rights);
-    const hasRewardTimes = UR.hasRewardTimes(rights);
+    const { balance, price, code, freeCalcTimes } = this.data;
 
     if (planType === 'advanced') {
       const adv = this.getAdvancedAccessInfo();
       if (!adv.ok) {
+        console.log('[riskCalculator] advanced blocked =>', adv);
         funnel.log('CALC_ADV_BLOCK', {
           reason: adv.reason,
           productCode: adv.productCode,
           advancedEnabled: adv.advancedEnabled,
-          expireAt: adv.expireAt,
-          source: this.data.source || 'index'
+          expireAt: adv.expireAt
         });
         this.promptAdvancedBlocked();
         return;
       }
     }
 
-    if (planType === 'steady' && hasSteadyMembership) {
-      const label = this.buildMembershipAccessLabel();
+    if (planType === 'steady') {
+      const steadyAccess = this.getLocalSteadyAccessInfo();
 
-      funnel.log('CALC_MEMBER_STEADY', {
-        planType,
-        productCode: UR.normalizeProductCode(rights),
-        expireAt: rights.membershipExpireAt || 0,
-        source: this.data.source || 'index'
-      });
+      if (steadyAccess.ok) {
+        const label =
+          `${steadyAccess.name}${steadyAccess.remainingDays ? `（剩余${steadyAccess.remainingDays}天）` : ''} · 稳健版`;
 
-      this.gotoPlanResult(planType, {
-        balance,
-        price,
-        code,
-        membershipType: label,
-        source: this.data.source || 'index',
-        draftId: draft.draftId,
-        entryVersion: this.data.entryVersion
-      });
-      return;
-    }
+        funnel.log('CALC_LOCAL_STEADY_MEMBER', {
+          planType,
+          productCode: steadyAccess.productCode,
+          plan: steadyAccess.plan,
+          level: steadyAccess.level,
+          expireAt: steadyAccess.expireAt,
+          isTrial3: steadyAccess.isTrial3
+        });
 
-    if (planType === 'advanced' && hasAdvancedMembership) {
-      const label = this.buildMembershipAccessLabel();
-
-      funnel.log('CALC_MEMBER_ADVANCED', {
-        planType,
-        productCode: UR.normalizeProductCode(rights),
-        expireAt: rights.membershipExpireAt || 0,
-        source: this.data.source || 'index'
-      });
-
-      this.gotoPlanResult(planType, {
-        balance,
-        price,
-        code,
-        membershipType: label,
-        source: this.data.source || 'index',
-        draftId: draft.draftId,
-        entryVersion: this.data.entryVersion
-      });
-      return;
-    }
-
-    if (planType === 'steady' && hasRewardTimes && currentFree > 0) {
-      const left = currentFree - 1;
-      const label = '任务奖励使用';
-
-      this.gotoPlanResult(
-        planType,
-        {
+        this.gotoPlanResult(planType, {
           balance,
           price,
           code,
-          membershipType: label,
-          source: this.data.source || 'index',
-          draftId: draft.draftId,
-          entryVersion: this.data.entryVersion
-        },
+          membershipType: label
+        });
+
+        return;
+      }
+
+      try {
+        console.log('[riskCalculator] steady local access blocked =>', steadyAccess);
+      } catch (e) {}
+    }
+
+    const rights = UR.getUserRights();
+    const effectiveRights = rights.effectiveRights || wx.getStorageSync('effectiveRights') || {};
+    const effectiveMembership = effectiveRights.membership || {};
+    const effectiveCalculator = effectiveRights.calculator || {};
+    const pc = UR.normalizeProductCode(rights);
+    const unlimitedActive = UR.isUnlimitedMember(rights);
+
+    if (
+      planType === 'steady' &&
+      effectiveCalculator.canUse === true &&
+      effectiveMembership.active === true
+    ) {
+      const days =
+        Number(effectiveMembership.remainingDays || 0) ||
+        UR.getRemainingDays(rights);
+
+      const name =
+        effectiveMembership.name ||
+        rights.membershipName ||
+        '会员';
+
+      const label = `${name}${days ? `（剩余${days}天）` : ''} · 统一权益`;
+
+      funnel.log('CALC_EFFECTIVE_RIGHTS_MEMBER', {
+        planType,
+        unlockReason: effectiveCalculator.unlockReason || '',
+        productCode: effectiveMembership.productCode || pc,
+        expireAt: effectiveMembership.expireAt || rights.membershipExpireAt || 0
+      });
+
+      this.gotoPlanResult(planType, {
+        balance,
+        price,
+        code,
+        membershipType: label
+      });
+
+      return;
+    }
+
+    if (unlimitedActive) {
+      const days = UR.getRemainingDays(rights);
+      const name = rights.membershipName || '会员';
+      const label = `${name}${days ? `（剩余${days}天）` : ''} · 无限使用`;
+
+      funnel.log('CALC_MEMBER_UNLIMITED', {
+        planType,
+        productCode: pc,
+        expireAt: rights.membershipExpireAt || 0
+      });
+
+      this.gotoPlanResult(planType, {
+        balance,
+        price,
+        code,
+        membershipType: label
+      });
+
+      return;
+    }
+
+    if (UR.canUseSteadyByMembership(rights)) {
+      const days = UR.getRemainingDays(rights);
+      const name = rights.membershipName || '会员';
+      const label = `${name}${days ? `（剩余${days}天）` : ''} · 会员使用`;
+
+      funnel.log('CALC_MEMBER_STEADY', {
+        planType,
+        productCode: pc,
+        expireAt: rights.membershipExpireAt || 0
+      });
+
+      this.gotoPlanResult(planType, {
+        balance,
+        price,
+        code,
+        membershipType: label
+      });
+
+      return;
+    }
+
+    if (freeCalcTimes > 0) {
+      const left = freeCalcTimes - 1;
+      const label = `任务权益 · 剩余 ${left} 次`;
+
+      this.gotoPlanResult(
+        planType,
+        { balance, price, code, membershipType: label },
         {
           onSuccess: () => {
             UR.mergeUserRights({ freeCalcTimes: left });
-            this.refreshFreeTimes();
+            this.setData({ freeCalcTimes: left });
 
-            funnel.log('CALC_TIMES_DEDUCT', {
-              planType,
-              leftFreeTimes: left,
-              source: this.data.source || 'index'
-            });
+            funnel.log('CALC_TIMES_DEDUCT', { planType, leftFreeTimes: left });
 
             wx.showToast({
-              title: `已使用1次，剩余${left}次`,
+              title: `已使用 1 次，剩余 ${left} 次`,
               icon: 'none',
-              duration: 1600
+              duration: 2000
             });
           },
           onFail: (err) => {
             console.error('[riskCalculator] gotoPlanResult failed, will NOT deduct times:', err);
-            this.setData({
-              globalError: '页面跳转失败，请重试一次'
-            });
             wx.showToast({
-              title: '页面跳转失败，请重试一次',
+              title: '页面跳转失败，请检查结果页是否已注册',
               icon: 'none',
               duration: 2000
             });
@@ -937,48 +829,36 @@ Page({
       return;
     }
 
-    if (planType === 'advanced') {
-      this.promptAdvancedBlocked();
-      return;
-    }
-
     this.chooseNextStep(planType);
   },
 
-  gotoPlanResult(planType, { balance, price, code, membershipType, source, draftId, entryVersion }, hooks = {}) {
+  gotoPlanResult(planType, { balance, price, code, membershipType }, hooks = {}) {
     const base =
       `?balance=${encodeURIComponent(balance)}` +
       `&price=${encodeURIComponent(price)}` +
-      `&code=${encodeURIComponent(code || '')}` +
-      `&source=${encodeURIComponent(source || this.data.source || 'riskCalculator')}` +
-      `&entryVersion=${encodeURIComponent(entryVersion || this.data.entryVersion || 'V1.4')}`;
+      `&code=${encodeURIComponent(code || '')}`;
 
     const mt = membershipType ? `&membershipType=${encodeURIComponent(membershipType)}` : '';
-    const did = draftId ? `&draftId=${encodeURIComponent(draftId)}` : '';
 
-    const url = (planType === 'steady')
-      ? ('/pages/planSteady/index' + base + mt + did)
-      : ('/pages/planAdvanced/index' + base + mt + did);
+    const url =
+      (planType === 'steady')
+        ? ('/pages/planSteady/index' + base + mt)
+        : ('/pages/planAdvanced/index' + base + mt);
 
     console.log('[riskCalculator] will navigate url=', url);
 
     wx.navigateTo({
       url,
       success: () => {
-        this.releaseSubmitLock(0);
         console.log('[riskCalculator] navigate success', url);
         if (hooks && typeof hooks.onSuccess === 'function') hooks.onSuccess();
       },
       fail: (e) => {
-        this.releaseSubmitLock(0);
         console.error('[riskCalculator] navigate fail', e);
-        this.setData({
-          globalError: (e && e.errMsg) ? `跳转失败：${e.errMsg}` : '跳转失败'
-        });
         wx.showToast({
-          title: '页面跳转失败，请重试',
+          title: (e && e.errMsg) ? `跳转失败：${e.errMsg}` : '跳转失败',
           icon: 'none',
-          duration: 2000
+          duration: 2500
         });
         if (hooks && typeof hooks.onFail === 'function') hooks.onFail(e);
       }
@@ -988,55 +868,41 @@ Page({
   chooseNextStep(planType) {
     const { balance, price, code } = this.data;
 
-    funnel.log('CALC_CHOOSE_NEXT', {
-      planType,
-      hasFreeTimes: false,
-      source: this.data.source || 'index'
-    });
+    funnel.log('CALC_CHOOSE_NEXT', { planType, hasFreeTimes: false });
 
     wx.showActionSheet({
       itemList: [
         '直接开通会员，解锁完整方案',
-        '先参加7天风控训练营',
+        '先参加 7 天风控训练营',
         '邀请好友，免费获得使用次数'
       ],
       success: (res) => {
         const idx = res.tapIndex;
-        this.releaseSubmitLock(0);
 
-        funnel.log('CALC_CHOOSE_NEXT_RESULT', {
-          planType,
-          choiceIndex: idx,
-          source: this.data.source || 'index'
-        });
+        funnel.log('CALC_CHOOSE_NEXT_RESULT', { planType, choiceIndex: idx });
 
         if (idx === 0) {
           wx.navigateTo({
             url:
-              `/pages/pay/index?type=${planType}` +
+              `/pages/membership/index?type=${planType}` +
               `&balance=${encodeURIComponent(balance)}` +
               `&price=${encodeURIComponent(price)}` +
-              `&code=${encodeURIComponent(code || '')}` +
-              `&source=${encodeURIComponent(this.data.source || 'riskCalculator')}`
+              `&code=${encodeURIComponent(code || '')}`
           });
           return;
         }
 
         if (idx === 1) {
-          wx.navigateTo({
-            url: `/pages/campIntro/index?source=${encodeURIComponent(this.data.source || 'riskCalculator')}`
-          });
+          wx.navigateTo({ url: '/pages/campIntro/index' });
           return;
         }
 
         if (idx === 2) {
-          wx.navigateTo({
-            url: `/pages/fissionTask/index?fromPlan=${planType}&source=${encodeURIComponent(this.data.source || 'riskCalculator')}`
-          });
+          wx.navigateTo({ url: `/pages/fissionTask/index?fromPlan=${planType}` });
         }
       },
-      fail: () => {
-        this.releaseSubmitLock(0);
+      fail: (err) => {
+        console.log('[riskCalculator] actionSheet canceled or failed', err);
       }
     });
   },
