@@ -1,4 +1,4 @@
-﻿<view class="page risk-calculator">
+<view class="page risk-calculator">
   <view class="title-container">
     <text class="title">风控计算器</text>
     <text class="sub-title">根据你的资金与首次买入价格，快速生成风控方案。</text>
@@ -12,7 +12,7 @@
   <view class="rights-banner">
     <view class="rights-row">
       <text class="rights-label">会员权益：</text>
-      <text class="rights-text">{{membershipName || '未开通会员'}}</text>
+      <text class="rights-text">{{membershipName || '未开通'}}</text>
     </view>
 
     <view class="rights-row">
@@ -100,10 +100,10 @@
     </view>
 
     <text class="advanced-note" wx:if="{{advancedEnabled}}">
-      当前权益可直接使用加强版。
+      当前会员权益可直接使用加强版。
     </text>
     <text class="advanced-note" wx:else>
-      加强版适合进阶用户；若当前权益不支持，会自动引导开通。
+      加强版适合进阶用户；若会员权益不支持，会自动引导开通。
     </text>
   </view>
 
