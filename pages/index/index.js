@@ -1,15 +1,6 @@
 // pages/index/index.js
 
 const funnel = require('../../utils/funnel.js');
-// ====== [MOD:INDEX_DEBUG_SILENT_20260330] START ======
-const __INDEX_DEBUG__ = false;
-function idxDebug() {
-  if (!__INDEX_DEBUG__) return;
-  try {
-    console.log.apply(console, arguments);
-  } catch (e) {}
-}
-// ====== [MOD:INDEX_DEBUG_SILENT_20260330] END ======
 const USER_RIGHTS_KEY = 'userRights';
 
 function safeTrack(step, ext = {}) {
@@ -42,17 +33,53 @@ function stepWithSource(base, source = 'unknown') {
     .replace(/[^A-Z0-9_]+/g, '_');
 }
 
+function toExpireMs(v) {
+  if (v === null || typeof v === 'undefined' || v === '') return 0;
+
+  if (typeof v === 'number') {
+    if (!Number.isFinite(v)) return 0;
+    if (v > 1e12) return Math.floor(v);
+    if (v > 1e9) return Math.floor(v * 1000);
+    return Math.floor(v);
+  }
+
+  const s = String(v || '').trim();
+  if (!s) return 0;
+
+  if (/^\d+$/.test(s)) {
+    const n = Number(s);
+    if (!Number.isFinite(n)) return 0;
+    if (n > 1e12) return Math.floor(n);
+    if (n > 1e9) return Math.floor(n * 1000);
+    return Math.floor(n);
+  }
+
+  const t = Date.parse(s.replace(' ', 'T'));
+  return Number.isFinite(t) ? Math.floor(t) : 0;
+}
+
+function formatExpireDate(ms) {
+  const t = toExpireMs(ms);
+  if (!t) return '—';
+
+  const d = new Date(t);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
 Page({
   data: {
     inviteCode: '',
-    homeFreeCalcTimes: 0,
-    homeCampProgressText: '0/7',
-    homeRightsLabel: '体验用户'
+    homeMembershipLabel: '未开通会员',
+    homeMembershipExpireText: '—',
+    homeTaskRightsText: '0次'
   },
 
   onLoad(options) {
     const opts = options || {};
-    idxDebug('[index] onLoad options:', opts);
+    console.log('[index] onLoad options:', opts);
 
     safeTrack('HOME_VIEW', {
       hasInviteParam: !!(opts.inviteCode || opts.invite)
@@ -69,9 +96,9 @@ Page({
     this.refreshHomeSnapshot();
 
     safeTrack('HOME_SHOW', {
-      freeCalcTimes: Number(this.data.homeFreeCalcTimes || 0),
-      campProgressText: this.data.homeCampProgressText || '0/7',
-      rightsLabel: this.data.homeRightsLabel || '体验用户'
+      membershipLabel: this.data.homeMembershipLabel || '未开通会员',
+      membershipExpireText: this.data.homeMembershipExpireText || '—',
+      taskRightsText: this.data.homeTaskRightsText || '0次'
     });
 
     this.drawLogo2D();
@@ -79,31 +106,54 @@ Page({
 
   refreshHomeSnapshot() {
     const rights = wx.getStorageSync(USER_RIGHTS_KEY) || {};
+    const effectiveRights = rights.effectiveRights || wx.getStorageSync('effectiveRights') || {};
+    const membership = effectiveRights.membership || {};
+    const task = effectiveRights.task || {};
 
     const freeCalcTimes =
-      Number(rights.freeCalcTimes || rights.free_calc_times || 0) || 0;
+      Number(
+        task.freeCalcTimes != null
+          ? task.freeCalcTimes
+          : (task.rewardTimes != null ? task.rewardTimes : (rights.freeCalcTimes || rights.free_calc_times || 0))
+      ) || 0;
 
-    const membershipName =
-      String(rights.membershipName || rights.membership_name || '').trim();
+    const membershipName = String(
+      membership.name ||
+      rights.membershipName ||
+      rights.membership_name ||
+      rights.currentMembershipName ||
+      ''
+    ).trim();
 
-    const logs = wx.getStorageSync('campDailyLogs');
-    let doneDays = 0;
+    const expireAt = toExpireMs(
+      membership.expireAt ||
+      rights.membershipExpireAt ||
+      rights.membership_expire_at ||
+      rights.membershipExpireText ||
+      ''
+    );
 
-    if (Array.isArray(logs)) {
-      doneDays = Math.min(7, logs.length);
-    } else {
-      doneDays = Number(rights.campDaysDone || rights.camp_days_done || 0) || 0;
-      doneDays = Math.min(7, Math.max(0, doneDays));
+    const membershipActive =
+      membership.active === true ||
+      (!!expireAt && expireAt > Date.now());
+
+    let homeMembershipLabel = '\u672a\u5f00\u901a';
+    let homeMembershipExpireText = '-';
+
+    if (membershipName && membershipName !== '\u672a\u5f00\u901a' && membershipName !== '\u672a\u5f00\u901a\u4f1a\u5458') {
+      homeMembershipLabel = membershipActive
+        ? membershipName
+        : membershipName + '\uff08\u5df2\u5230\u671f\uff09';
+
+      homeMembershipExpireText = expireAt ? formatExpireDate(expireAt) : '-';
     }
 
-    const homeCampProgressText = `${doneDays}/7`;
-    const homeRightsLabel =
-      membershipName || (freeCalcTimes > 0 ? '已解锁权益' : '体验用户');
+    const homeTaskRightsText = `${Math.max(0, freeCalcTimes)}\u6b21`;
 
     this.setData({
-      homeFreeCalcTimes: freeCalcTimes,
-      homeCampProgressText,
-      homeRightsLabel
+      homeMembershipLabel,
+      homeMembershipExpireText,
+      homeTaskRightsText
     });
   },
 
@@ -119,7 +169,7 @@ Page({
         const w = res[0].width;
         const h = res[0].height;
 
-        const sys = (wx.getWindowInfo && wx.getWindowInfo()) || ((wx.getDeviceInfo && Object.assign({}, wx.getDeviceInfo(), wx.getAppBaseInfo ? wx.getAppBaseInfo() : {}, wx.getSystemSetting ? wx.getSystemSetting() : {})) || {});
+        const sys = (wx.getWindowInfo && wx.getWindowInfo()) || wx.getSystemInfoSync();
         const dpr = sys.pixelRatio || 1;
 
         canvas.width = Math.round(w * dpr);
@@ -194,13 +244,13 @@ Page({
   // 风控计算器
   goCalc(e) {
     const source = getTapSource(e, 'unknown');
-    idxDebug('[index] goCalc source:', source);
+    console.log('[index] goCalc source:', source);
     safeTrack(stepWithSource('HOME_CTA_GO_CALC', source), { source });
 
     wx.navigateTo({
       url: '/pages/riskCalculator/index',
       success() {
-        idxDebug('[index] navigate success /pages/riskCalculator/index');
+        console.log('[index] navigate success /pages/riskCalculator/index');
       },
       fail(err) {
         console.error('[index] navigate fail /pages/riskCalculator/index', err);
@@ -211,7 +261,7 @@ Page({
   // 7 天训练营
   goCamp(e) {
     const source = getTapSource(e, 'unknown');
-    idxDebug('[index] goCamp source:', source);
+    console.log('[index] goCamp source:', source);
     safeTrack(stepWithSource('HOME_CTA_GO_CAMP', source), { source });
     wx.navigateTo({ url: '/pages/campIntro/index' });
   },
@@ -219,7 +269,7 @@ Page({
   // 裂变任务中心
   goFission(e) {
     const source = getTapSource(e, 'unknown');
-    idxDebug('[index] goFission source:', source);
+    console.log('[index] goFission source:', source);
     safeTrack(stepWithSource('HOME_CTA_GO_FISSION', source), { source });
     wx.navigateTo({ url: '/pages/fissionTask/index' });
   },
@@ -227,7 +277,7 @@ Page({
   // 控局者（tabBar）
   goController(e) {
     const source = getTapSource(e, 'unknown');
-    idxDebug('[index] goController source:', source);
+    console.log('[index] goController source:', source);
     safeTrack(stepWithSource('HOME_CTA_GO_CONTROLLER', source), { source });
     wx.switchTab({ url: '/pages/controller/index' });
   },
@@ -235,7 +285,7 @@ Page({
   // 课程日历
   goCourseCalendar(e) {
     const source = getTapSource(e, 'unknown');
-    idxDebug('[index] goCourseCalendar source:', source);
+    console.log('[index] goCourseCalendar source:', source);
     safeTrack(stepWithSource('HOME_CTA_GO_COURSE_CALENDAR', source), { source });
     wx.navigateTo({ url: '/pages/course/index' });
   },
@@ -243,7 +293,7 @@ Page({
   // 进阶服务 / 会员
   goMembership(e) {
     const source = getTapSource(e, 'unknown');
-    idxDebug('[index] goMembership source:', source);
+    console.log('[index] goMembership source:', source);
     safeTrack(stepWithSource('HOME_CTA_GO_MEMBERSHIP', source), { source });
     wx.navigateTo({ url: '/pages/membership/index' });
   },
@@ -277,16 +327,16 @@ function ensureInviteCode() {
   let inviteCode = rights.inviteCode;
 
   if (!inviteCode) {
-    idxDebug('[index] no inviteCode from server/profile, skip local generation');
-    return '';
+    inviteCode = genInviteCode();
+    rights.inviteCode = inviteCode;
+    wx.setStorageSync(USER_RIGHTS_KEY, rights);
+    console.log('[index] 新生成 inviteCode =', inviteCode);
+  } else {
+    console.log('[index] 使用已有 inviteCode =', inviteCode);
   }
-  
-  rights.inviteCode = inviteCode;
-  wx.setStorageSync(USER_RIGHTS_KEY, rights);
-  idxDebug('[index] use existing inviteCode =', inviteCode);
-  
+
   return inviteCode;
-  }
+}
 
 /**
  * 处理从别人分享链接进入：
@@ -300,7 +350,7 @@ function handleInviteFromOptions(options = {}) {
     const rights = wx.getStorageSync(USER_RIGHTS_KEY) || {};
 
     if (rights.inviteCode && rights.inviteCode === inviteCode) {
-      idxDebug('[index] 自己打开自己的分享链接，不记录邀请关系');
+      console.log('[index] 自己打开自己的分享链接，不记录邀请关系');
       safeTrack('HOME_INVITE_SELF_OPEN');
       return;
     }
@@ -310,7 +360,7 @@ function handleInviteFromOptions(options = {}) {
       rights.invitedAt = Date.now();
       wx.setStorageSync(USER_RIGHTS_KEY, rights);
 
-      idxDebug('[index] 记录邀请关系成功 invitedByCode =', inviteCode);
+      console.log('[index] 记录邀请关系成功 invitedByCode =', inviteCode);
       safeTrack('HOME_INVITE_BOUND', { hasInviteCode: true });
 
       wx.showToast({
@@ -319,11 +369,11 @@ function handleInviteFromOptions(options = {}) {
         duration: 1500
       });
     } else {
-      idxDebug('[index] 已存在 invitedByCode，保持原值：', rights.invitedByCode);
+      console.log('[index] 已存在 invitedByCode，保持原值：', rights.invitedByCode);
       safeTrack('HOME_INVITE_EXISTS');
     }
   } catch (e) {
-    idxDebug('[index] 保存邀请关系失败', e);
+    console.log('[index] 保存邀请关系失败', e);
   }
 }
 

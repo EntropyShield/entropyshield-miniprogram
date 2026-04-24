@@ -1,4 +1,4 @@
-﻿<view class="page">
+<view class="page">
 
 <view class="profile-top-mask"></view>
 
@@ -30,8 +30,8 @@
 <!-- 快速统计条：横向滑动，一眼看完核心权益 -->
 <scroll-view scroll-x="true" class="stats-strip" enable-flex="true">
   <view class="stat-pill">
-    <text class="stat-label">剩余方案</text>
-    <text class="stat-value">{{freeCalcTimes}}</text>
+    <text class="stat-label">任务权益</text>
+    <text class="stat-value">{{taskRightsText || freeCalcTimes}}</text>
   </view>
   <view class="stat-pill">
     <text class="stat-label">训练轮次</text>
@@ -115,20 +115,20 @@
     </view>
     <view class="rights-grid">
       <view class="rights-item">
-        <text class="ri-label">剩余完整方案次数</text>
-        <text class="ri-value">{{freeCalcTimes}}</text>
+        <text class="ri-label">任务权益次数</text>
+        <text class="ri-value">{{taskRightsText || freeCalcTimes}}</text>
       </view>
       <view class="rights-item">
-        <text class="ri-label">已完成训练营轮次</text>
-        <text class="ri-value">{{campRewardCount}}</text>
+        <text class="ri-label">会员到期时间</text>
+        <text class="ri-value">{{membershipExpireText || '-'}}</text>
       </view>
       <view class="rights-item">
         <text class="ri-label">裂变累计同步次数</text>
         <text class="ri-value">{{fissionSyncedTimes}}</text>
       </view>
       <view class="rights-item">
-        <text class="ri-label">当前会员类型</text>
-        <text class="ri-value">{{membershipName || '体验会员'}}</text>
+        <text class="ri-label">会员权益</text>
+        <text class="ri-value">{{membershipName || '未开通'}}</text>
       </view>
     </view>
     <view class="section-tip">
@@ -192,7 +192,7 @@
 
 <!-- ================== Tab2：常用工具 ================== -->
 <view wx:elif="{{activeInnerTab === 'tools'}}">
-  <!-- 模块 A：裂变中心 · 推荐关系 -->
+  <!-- 模块 A：裂变中心 · 推荐关系（优先展示“人与人”的连接） -->
   <view class="card">
     <view class="card-header">
       <text class="card-title">裂变中心 · 推荐关系</text>
@@ -221,23 +221,13 @@
     </view>
   </view>
 
-  <!-- 模块 B：正式服务 -->
+  <!-- 模块 B：订单中心 -->
   <view class="card">
     <view class="card-header">
       <text class="card-title">正式服务</text>
-      <text class="card-subtitle">付费开通 · 线下来访</text>
+      <text class="card-subtitle">线下来访</text>
     </view>
     <view class="nav-list">
-      <view class="nav-item" bindtap="goMembership">
-        <view class="nav-main">
-          <text class="nav-title">开通会员 / 付费中心</text>
-          <text class="nav-desc">
-            当前会员：{{membershipName || '体验会员'}} ｜ 点击进入付费界面
-          </text>
-        </view>
-        <text class="nav-arrow">›</text>
-      </view>
-
       <view class="nav-item" bindtap="goVisitBooking">
         <view class="nav-main">
           <text class="nav-title">公司来访预约</text>
@@ -247,7 +237,6 @@
         </view>
         <text class="nav-arrow">›</text>
       </view>
-
       <view wx:if="{{isVisitAdmin}}" class="nav-item" bindtap="goVisitAdmin">
         <view class="nav-main">
           <text class="nav-title">来访预约管理</text>
@@ -261,13 +250,11 @@
   </view>
 </view>
 
-<!-- 成长中心入口 -->
-<view class="commission-entry-link" bindtap="goGrowthCenter">
+<!-- [ADD] commission center entry -->
+<navigator url="/pages/commissionCenter/index" class="commission-entry-link">
   <view class="commission-entry-card">
     <view class="commission-entry-title">成长中心</view>
-    <view class="commission-entry-desc">
-      邀请码：{{myInviteCode || '待生成'}} ｜ 成长分：{{fissionSyncedTimes || 0}} ｜ 累计结算分：{{commissionSummary.total_commission_fen || 0}} ｜ 待结算分：{{commissionSummary.unsettled_commission_fen || 0}}
-    </view>
+    <view class="commission-entry-desc">查看成长记录与成长排行</view>
   </view>
-</view>
-</view>
+</navigator></view>
+

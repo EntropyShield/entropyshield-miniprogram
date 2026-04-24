@@ -2,9 +2,6 @@
 // MOD: FIX_PROFILE_INNER_TABS_20260213
 // MOD: PATCH_AUDIT_PRIVACY_20260310_LOCAL_PAGE
 // MOD: PRIVACY_DEFAULT_UNCHECKED_20260310
-// MOD: P1_4_GROWTH_ENTRY_SUMMARY_20260323
-// MOD: P1_4_GROWTH_CENTER_LINKAGE_20260323
-// MOD: RESTORE_MEMBERSHIP_PAYMENT_ENTRY_20260324
 
 const funnel = require('../../utils/funnel.js');
 const { API_BASE } = require('../../config');
@@ -63,62 +60,63 @@ function normalizeVisitStatus(raw) {
   return 'pending';
 }
 
+
 function formatVisitDate(value) {
-  const raw = String(value || '').trim();
-  if (!raw) return '';
+  const raw = String(value || '').trim()
+  if (!raw) return ''
 
   function pad(n) {
-    return String(n).padStart(2, '0');
+    return String(n).padStart(2, '0')
   }
 
   function buildText(d) {
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
   }
 
   function toDate(v) {
-    if (!v) return null;
+    if (!v) return null
 
     if (/^\d{13}$/.test(v)) {
-      const d = new Date(Number(v));
-      return isNaN(d.getTime()) ? null : d;
+      const d = new Date(Number(v))
+      return isNaN(d.getTime()) ? null : d
     }
 
     if (/^\d{10}$/.test(v)) {
-      const d = new Date(Number(v) * 1000);
-      return isNaN(d.getTime()) ? null : d;
+      const d = new Date(Number(v) * 1000)
+      return isNaN(d.getTime()) ? null : d
     }
 
     if (/^\d{4}-\d{2}-\d{2}$/.test(v)) {
-      const d = new Date(v.replace(/-/g, '/') + ' 00:00:00');
-      return isNaN(d.getTime()) ? null : d;
+      const d = new Date(v.replace(/-/g, '/') + ' 00:00:00')
+      return isNaN(d.getTime()) ? null : d
     }
 
     if (/^\d{4}\/\d{2}\/\d{2}$/.test(v)) {
-      const d = new Date(v + ' 00:00:00');
-      return isNaN(d.getTime()) ? null : d;
+      const d = new Date(v + ' 00:00:00')
+      return isNaN(d.getTime()) ? null : d
     }
 
     if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(v)) {
-      const d = new Date(v.replace(/-/g, '/'));
-      return isNaN(d.getTime()) ? null : d;
+      const d = new Date(v.replace(/-/g, '/'))
+      return isNaN(d.getTime()) ? null : d
     }
 
     if (/^\d{4}\/\d{2}\/\d{2} \d{2}:\d{2}:\d{2}$/.test(v)) {
-      const d = new Date(v);
-      return isNaN(d.getTime()) ? null : d;
+      const d = new Date(v)
+      return isNaN(d.getTime()) ? null : d
     }
 
     if (/^\d{4}-\d{2}-\d{2}T/.test(v)) {
-      const d = new Date(v);
-      return isNaN(d.getTime()) ? null : d;
+      const d = new Date(v)
+      return isNaN(d.getTime()) ? null : d
     }
 
-    return null;
+    return null
   }
 
-  const d = toDate(raw);
-  if (!d) return raw;
-  return buildText(d);
+  const d = toDate(raw)
+  if (!d) return raw
+  return buildText(d)
 }
 
 function normalizeLatestVisit(list) {
@@ -145,43 +143,6 @@ function normalizeLatestVisit(list) {
   };
 }
 
-function emptyCommissionSummary() {
-  return {
-    commission_count: 0,
-    total_commission_fen: 0,
-    unsettled_commission_fen: 0,
-    settled_commission_fen: 0,
-    reversed_commission_fen: 0
-  };
-}
-
-function persistGrowthSnapshot(profile, total, myInviteCode, invitedByCode) {
-  try {
-    const oldProfile = wx.getStorageSync('fissionProfile') || {};
-    const nextProfile = Object.assign({}, oldProfile, profile || {}, {
-      invite_code: myInviteCode || oldProfile.invite_code || '',
-      inviteCode: myInviteCode || oldProfile.inviteCode || '',
-      invited_by_code: invitedByCode || oldProfile.invited_by_code || '',
-      invitedByCode: invitedByCode || oldProfile.invitedByCode || '',
-      total_reward_times: Number(total || 0) || 0,
-      totalRewardTimes: Number(total || 0) || 0
-    });
-    wx.setStorageSync('fissionProfile', nextProfile);
-  } catch (e) {
-    console.warn('[profile] persist fissionProfile fail:', e);
-  }
-
-  try {
-    const ur = wx.getStorageSync('userRights') || {};
-    if (myInviteCode) ur.inviteCode = myInviteCode;
-    if (invitedByCode) ur.invitedByCode = invitedByCode;
-    ur.fissionSyncedTimes = Number(total || 0) || 0;
-    wx.setStorageSync('userRights', ur);
-  } catch (e) {
-    console.warn('[profile] persist userRights fail:', e);
-  }
-}
-
 Page({
   data: {
     userInfo: null,
@@ -191,6 +152,8 @@ Page({
     fissionSyncedTimes: 0,
     campProgressText: '0/7',
     membershipName: '',
+    membershipExpireText: '-',
+    taskRightsText: '0次',
     isVisitAdmin: false,
 
     privacyChecked: false,
@@ -201,15 +164,14 @@ Page({
 
     myInviteCode: '',
     invitedByCode: '',
-    commissionSummary: emptyCommissionSummary(),
 
     latestVisit: null,
     statusTextMap: {
-      pending: '待确认',
-      confirmed: '已确认',
-      finished: '已完成',
-      canceled: '已取消',
-      cancelled: '已取消'
+      pending: '\u5f85\u786e\u8ba4',
+      confirmed: '\u5df2\u786e\u8ba4',
+      finished: '\u5df2\u5b8c\u6210',
+      canceled: '\u5df2\u53d6\u6d88',
+      cancelled: '\u5df2\u53d6\u6d88'
     },
     statusClassMap: {
       pending: 'status-pending',
@@ -219,10 +181,10 @@ Page({
       cancelled: 'status-canceled'
     },
     quickVisitTexts: {
-      title: '线下来访提醒',
-      timeFallback: '时间待确认',
-      purposeFallback: '交流风控体系',
-      statusFallback: '待确认'
+      title: '\u7ebf\u4e0b\u6765\u8bbf\u63d0\u9192',
+      timeFallback: '\u65f6\u95f4\u5f85\u786e\u8ba4',
+      purposeFallback: '\u4ea4\u6d41\u98ce\u63a7\u4f53\u7cfb',
+      statusFallback: '\u5f85\u786e\u8ba4'
     }
   },
 
@@ -282,22 +244,14 @@ Page({
           }
 
           const delta = total - lastSynced;
-          rights.fissionSyncedTimes = total;
-
           if (delta > 0) {
             rights.freeCalcTimes = currentFree + delta;
-            if (!rights.membershipName) rights.membershipName = 'FREE';
+            if (!rights.membershipName) rights.membershipName = '';
+            wx.setStorageSync('userRights', rights);
             wx.setStorageSync('fission_total_reward_times_synced', total);
           }
 
-          wx.setStorageSync('userRights', rights);
-
-          const latestRights = wx.getStorageSync('userRights') || rights;
-          this.setData({
-            freeCalcTimes: Number(latestRights.freeCalcTimes || currentFree) || 0,
-            membershipName: latestRights.membershipName || '体验会员',
-            fissionSyncedTimes: Number(latestRights.fissionSyncedTimes || total) || 0
-          });
+          this.refreshLocalSnapshot();
         },
         fail: (err) => {
           console.warn('[profile] onShow sync fail:', err);
@@ -344,8 +298,65 @@ Page({
     }
 
     const ur = wx.getStorageSync('userRights') || {};
-    const freeCalcTimes = Number(pick(ur, ['freeCalcTimes', 'free_calc_times'], 0)) || 0;
-    const membershipName = String(pick(ur, ['membershipName', 'membership_name'], '')) || '体验会员';
+    const effectiveRights = ur.effectiveRights || wx.getStorageSync('effectiveRights') || {};
+    const membership = effectiveRights.membership || {};
+    const task = effectiveRights.task || {};
+
+    const freeCalcTimes =
+      Number(
+        task.freeCalcTimes != null
+          ? task.freeCalcTimes
+          : (task.rewardTimes != null ? task.rewardTimes : pick(ur, ['freeCalcTimes', 'free_calc_times'], 0))
+      ) || 0;
+
+    const rawMembershipName = String(
+      membership.name ||
+      pick(ur, ['membershipName', 'membership_name', 'currentMembershipName'], '')
+    ).trim();
+
+    const expireAt = Number(
+      membership.expireAt ||
+      pick(ur, ['membershipExpireAt', 'membership_expire_at', 'trialExpireAt'], 0)
+    ) || 0;
+
+    const active =
+      membership.active === true ||
+      (!!expireAt && expireAt > Date.now());
+
+    function normalizeMemberName(name) {
+      const s = String(name || '').trim();
+
+      if (
+        !s ||
+        s === 'FREE' ||
+        s === 'free' ||
+        s === '未开通会员' ||
+        s === '未开通' ||
+        s === '体验会员'
+      ) {
+        return '未开通';
+      }
+
+      return s;
+    }
+
+    let membershipName = normalizeMemberName(rawMembershipName);
+    let membershipExpireText = '-';
+
+    if (membershipName !== '未开通') {
+      membershipName = active ? membershipName : membershipName + '（已到期）';
+
+      if (expireAt) {
+        const d = new Date(expireAt);
+        if (!isNaN(d.getTime())) {
+          const y = d.getFullYear();
+          const m = String(d.getMonth() + 1).padStart(2, '0');
+          const day = String(d.getDate()).padStart(2, '0');
+          membershipExpireText = `${y}-${m}-${day}`;
+        }
+      }
+    }
+
     const campRewardCount = Number(pick(ur, ['campRewardCount', 'camp_reward_count'], 0)) || 0;
 
     const logs = wx.getStorageSync('campDailyLogs');
@@ -355,10 +366,13 @@ Page({
 
     const campProgressText = `${Math.max(0, Math.min(7, doneDays))}/7`;
     const fissionSyncedTimes = Number(pick(ur, ['fissionSyncedTimes', 'total_reward_times'], 0)) || 0;
+    const taskRightsText = `${Math.max(0, freeCalcTimes)}次`;
 
     this.setData({
       freeCalcTimes,
+      taskRightsText,
       membershipName,
+      membershipExpireText,
       campRewardCount,
       campProgressText,
       fissionSyncedTimes
@@ -375,94 +389,27 @@ Page({
       .then((data) => {
         if (!data || !data.ok) {
           console.warn('[profile] fission profile failed:', data);
-          this.setData({
-            commissionSummary: emptyCommissionSummary()
-          });
           return;
         }
 
         const profile = data.profile || {};
-        const total = Number(pick(data, ['total_reward_times', 'totalRewardTimes'], 0)) || 0;
+        const total = Number(pick(data, ['total_reward_times'], 0)) || 0;
 
         const myInviteCode = String(
           pick(profile, ['my_invite_code', 'invite_code', 'inviteCode', 'myInviteCode'], '')
-        ).trim().toUpperCase();
-
+        );
         const invitedByCode = String(
           pick(profile, ['invited_by_code', 'invitedByCode', 'invited_by', 'invitedBy'], '')
-        ).trim().toUpperCase();
-
-        persistGrowthSnapshot(profile, total, myInviteCode, invitedByCode);
+        );
 
         this.setData({
           myInviteCode,
           invitedByCode,
           fissionSyncedTimes: total || this.data.fissionSyncedTimes
         });
-
-        const inviterUserId = Number(pick(profile, ['id', 'userId', 'user_id'], 0)) || 0;
-        const summaryKey =
-          myInviteCode ||
-          String(pick(profile, ['invite_code', 'inviteCode'], '') || '').trim().toUpperCase() ||
-          String(pick(profile, ['openid', 'clientId', 'client_id'], '') || '').trim();
-
-        this.fetchCommissionSummary({ inviterUserId, summaryKey });
       })
       .catch((err) => {
         console.warn('[profile] fission profile request fail:', err);
-        this.setData({
-          commissionSummary: emptyCommissionSummary()
-        });
-      });
-  },
-
-  fetchCommissionSummary(payload = {}) {
-    const uid = Number(payload.inviterUserId || 0) || 0;
-    const summaryKey = String(
-      payload.summaryKey ||
-      this.data.myInviteCode ||
-      ''
-    ).trim();
-
-    if (!uid && !summaryKey) {
-      this.setData({
-        commissionSummary: emptyCommissionSummary()
-      });
-      return;
-    }
-
-    const baseUrl = getBaseUrl();
-    if (!baseUrl) return;
-
-    const reqData = {
-      page: 1,
-      pageSize: 1
-    };
-
-    if (uid) {
-      reqData.inviterUserId = uid;
-    } else {
-      reqData.keyword = summaryKey;
-    }
-
-    requestJson(`${baseUrl}/api/fission/commissions`, 'GET', reqData)
-      .then((data) => {
-        if (!data || !data.ok) {
-          this.setData({
-            commissionSummary: emptyCommissionSummary()
-          });
-          return;
-        }
-
-        this.setData({
-          commissionSummary: Object.assign(emptyCommissionSummary(), data.summary || {})
-        });
-      })
-      .catch((err) => {
-        console.warn('[profile] fetchCommissionSummary fail:', err);
-        this.setData({
-          commissionSummary: emptyCommissionSummary()
-        });
       });
   },
 
@@ -529,23 +476,8 @@ Page({
     wx.navigateTo({ url: '/pages/fissionTask/index' });
   },
 
-  goGrowthCenter() {
-    wx.navigateTo({ url: '/pages/commissionCenter/index?from=profile' });
-  },
-
   goMyInvite() {
     wx.navigateTo({ url: '/pages/myInvite/index' });
-  },
-
-  goMembership() {
-    wx.navigateTo({
-      url: '/pages/pay/index',
-      fail: () => {
-        wx.navigateTo({
-          url: '/pages/pay/index?levelName=' + encodeURIComponent('年度会员')
-        });
-      }
-    });
   },
 
   goOrderCenter() {
