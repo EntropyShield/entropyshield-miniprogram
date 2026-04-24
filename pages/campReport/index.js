@@ -1,4 +1,4 @@
-// pages/campReport/index.js
+﻿// pages/campReport/index.js
 
 Page({
   data: {
@@ -337,7 +337,7 @@ Page({
   // 去进阶控局者服务（会员收费页）
   goMembership() {
     wx.navigateTo({
-      url: '/pages/membership/index?from=campReport'
+      url: '/pages/pay/index?type=steady&from=campReport'
     });
   }
 });

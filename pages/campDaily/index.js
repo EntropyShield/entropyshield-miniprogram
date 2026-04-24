@@ -1,4 +1,4 @@
-// pages/campDaily/index.js
+﻿// pages/campDaily/index.js
 // MOD: STABILIZE_APP_INSTANCE_20260103
 
 const { API_BASE } = require('../../config');  // 确保从 config.js 中导入 API_BASE
@@ -237,7 +237,7 @@ Page({
         cancelText: '稍后再说',
         success: (res) => {
           if (res.confirm) {
-            wx.navigateTo({ url: '/pages/membership/index?type=steady' });
+            wx.navigateTo({ url: '/pages/pay/index?type=steady&from=campDaily' });
           } else {
             this.goCampIntro();
           }
@@ -322,3 +322,4 @@ Page({
     wx.reLaunch({ url: '/pages/index/index' });
   }
 });
+

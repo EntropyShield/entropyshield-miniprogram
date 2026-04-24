@@ -1,4 +1,4 @@
-// pages/course/detail.js
+﻿// pages/course/detail.js
 // MOD: CLEAN_HARDCODED_API_BASE_20260103
 // 课程详情页：展示课程信息 + 加入我的课程进度
 const funnel = require('../../utils/funnel.js');
@@ -434,7 +434,7 @@ Page({
       success: (r) => {
         if (!r.confirm) return;
         wx.navigateTo({
-          url: `/pages/membership/index?from=courseDetail&courseId=${course.id}`
+          url: `/pages/pay/index?type=steady&from=courseDetail&courseId=${course.id}`
         });
       }
     });
@@ -553,3 +553,4 @@ Page({
     return { title, path };
   }
 });
+
