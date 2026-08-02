@@ -14,7 +14,7 @@ const STORAGE_KEY = 'payFunnelLogs';
 
 /**
  * 记录一个漏斗事件
- * @param {string} step - 步骤名称，例如 'REPORT_VIEW'、'PAY_COPY_WECHAT'
+ * @param {string} step - 步骤名称，例如 'REPORT_VIEW'、'PAY_ACTION'
  * @param {object} ext  - 额外信息，会一并存储
  */
 function log(step, ext = {}) {

@@ -214,12 +214,14 @@ Page({
       wx.showModal({
         title: '已完成第 1 天 · 止亏觉醒',
         content:
-          '你已经迈出了“先控亏”的第一步。\n建议继续完成 3 天训练，再考虑是否开通完整风控方案。\n也可以现在先看看进阶服务介绍。',
+          '你已经迈出了“先控亏”的第一步。\\n建议继续完成 3 天训练，也可以先查看熵盾会员方案。',
         confirmText: '继续训练',
-        cancelText: '看看进阶服务',
+        cancelText: '查看会员方案',
         success: (res) => {
           if (res.cancel) {
-            wx.navigateTo({ url: '/pages/payIntro/index' });
+            wx.navigateTo({
+              url: '/pages/membership/index?from=campDaily&stage=D1'
+            });
           } else {
             this.goCampIntro();
           }
