@@ -1,43 +1,110 @@
 <!-- pages/planSteady/index.wxml -->
 <view class="page ps-page">
-  <!-- 顶部总览卡片 -->
+  <view class="ps-loading card" wx:if="{{isGenerating && !hasResult}}">
+    <text>正在生成稳健版风控方案……</text>
+  </view>
+
+  <view class="ps-error card" wx:if="{{!isGenerating && !hasResult && loadError}}">
+    <text class="ps-error-title">方案生成失败</text>
+    <text class="ps-error-desc">{{loadError}}</text>
+    <button class="ps-edit-btn" bindtap="editParameters">返回修改基础参数</button>
+  </view>
+
+  <block wx:if="{{hasResult}}">
   <view class="card ps-summary">
     <view class="ps-summary-header">
       <text class="ps-tag">稳健版 · 风控方案</text>
     </view>
 
-    <!-- 账户 & 标的基础信息 -->
     <view class="ps-summary-row">
       <text class="ps-label">账户资金</text>
       <text class="ps-value">{{totalCapital}} 元</text>
     </view>
     <view class="ps-summary-row">
-      <text class="ps-label">标的代码</text>
+      <text class="ps-label">标的代码／名称</text>
       <text class="ps-value">{{code || '—'}}</text>
     </view>
     <view class="ps-summary-row">
-      <text class="ps-label">建仓价格</text>
+      <text class="ps-label">执行价</text>
       <text class="ps-value">{{firstPrice}} 元</text>
     </view>
     <view class="ps-summary-row">
+      <text class="ps-label">方案类型</text>
+      <text class="ps-value">稳健版</text>
+    </view>
+    <view class="ps-summary-row">
       <text class="ps-label">会员类型</text>
-      <text class="ps-value">{{membershipType || '稳健策略 · 演示版'}}</text>
+      <text class="ps-value">{{membershipType}}</text>
+    </view>
+    <view class="ps-summary-row">
+      <text class="ps-label">仓位比例</text>
+      <text class="ps-value">{{deployRatioPct}}%</text>
+    </view>
+    <view class="ps-summary-row">
+      <text class="ps-label">分批进场模板</text>
+      <text class="ps-value">{{entryTemplateName}}</text>
+    </view>
+    <view class="ps-summary-row">
+      <text class="ps-label">止损策略</text>
+      <text class="ps-value">{{stopModeName}}</text>
+    </view>
+    <view class="ps-summary-row">
+      <text class="ps-label">本次计划使用资金</text>
+      <text class="ps-value">{{deployCapital}} 元</text>
     </view>
 
     <view class="ps-summary-split"></view>
 
-    <!-- 这一笔交易的“结果感受” -->
     <view class="ps-summary-row">
-      <text class="ps-label">目标收益价格</text>
+      <text class="ps-label">风险上限</text>
+      <text class="ps-value ps-value-warning">{{riskLimitAmount}} 元（{{riskLimitPct}}%）</text>
+    </view>
+    <view class="ps-summary-row">
+      <text class="ps-label">计划最大亏损</text>
+      <text class="ps-value ps-value-warning">{{planMaxRiskAmount}} 元（{{planMaxRiskPct}}%）</text>
+    </view>
+    <view class="ps-summary-row">
+      <text class="ps-label">最终累计股数</text>
+      <text class="ps-value">{{finalTotalQty}} 股</text>
+    </view>
+    <view class="ps-summary-row">
+      <text class="ps-label">最终累计投入</text>
+      <text class="ps-value">{{finalTotalCost}} 元</text>
+    </view>
+    <view class="ps-summary-row">
+      <text class="ps-label">最终平均成本</text>
+      <text class="ps-value">{{finalAvgCost}} 元</text>
+    </view>
+    <view class="ps-summary-row">
+      <text class="ps-label">最终动态止损</text>
+      <text class="ps-value ps-value-warning">{{finalDynamicStop}} 元</text>
+    </view>
+    <view class="ps-summary-row">
+      <text class="ps-label">{{finalStopResultLabel}}</text>
+      <text class="ps-value {{finalStopResultClass}}">{{finalStopPnlDisplay}} 元（{{finalStopPnlPctDisplay}}%）</text>
+    </view>
+    <view class="ps-summary-row">
+      <text class="ps-label">目标价格</text>
       <text class="ps-value ps-value-strong">{{targetPrice}} 元</text>
     </view>
     <view class="ps-summary-row">
-      <text class="ps-label">目标收益利润</text>
-      <text class="ps-value ps-value-strong">{{targetProfit}} 元</text>
+      <text class="ps-label">目标利润</text>
+      <text class="ps-value ps-value-strong">{{targetProfitDisplay}} 元</text>
     </view>
+
+    <view class="ps-summary-split"></view>
+
+    <view class="ps-summary-row">
+      <text class="ps-label">方案重点</text>
+      <text class="ps-value ps-value-strong">分批建仓 · 动态止损 · 风险约束</text>
+    </view>
+    <view class="ps-summary-row">
+      <text class="ps-label">执行要求</text>
+      <text class="ps-value">按阶段价格与止损规则执行</text>
+    </view>
+    <button class="ps-edit-btn" bindtap="editParameters">修改基础参数</button>
   </view>
 
-  <!-- 分批建仓步骤与止损明细 -->
   <view class="card ps-steps">
     <view class="ps-section-title">分批建仓步骤与止损明细</view>
 
@@ -50,45 +117,78 @@
 
         <view class="ps-step-grid">
           <view class="ps-step-item">
-            <text class="ps-label">买入价格</text>
+            <text class="ps-label">资金分配比例</text>
+            <text class="ps-value">{{item.entryWeightRatioPct}}%</text>
+          </view>
+          <view class="ps-step-item">
+            <text class="ps-label">本档计划资金</text>
+            <text class="ps-value">{{item.plannedCash}} 元</text>
+          </view>
+          <view class="ps-step-item">
+            <text class="ps-label">建仓价格</text>
             <text class="ps-value">{{item.buyPrice}} 元</text>
           </view>
           <view class="ps-step-item">
-            <text class="ps-label">买入数量</text>
+            <text class="ps-label">理论股数</text>
+            <text class="ps-value">{{item.theoreticalShares}} 股</text>
+          </view>
+          <view class="ps-step-item">
+            <text class="ps-label">实际股数</text>
             <text class="ps-value">{{item.buyShares}} 股</text>
           </view>
           <view class="ps-step-item">
-            <text class="ps-label">买入金额</text>
+            <text class="ps-label">实际投入金额</text>
             <text class="ps-value">{{item.buyAmount}} 元</text>
           </view>
           <view class="ps-step-item">
-            <text class="ps-label">止损价格（全出）</text>
+            <text class="ps-label">累计股数</text>
+            <text class="ps-value">{{item.cumQty}} 股</text>
+          </view>
+          <view class="ps-step-item">
+            <text class="ps-label">累计投入金额</text>
+            <text class="ps-value">{{item.cumCost}} 元</text>
+          </view>
+          <view class="ps-step-item">
+            <text class="ps-label">累计平均成本</text>
+            <text class="ps-value">{{item.avgCost}} 元</text>
+          </view>
+          <view class="ps-step-item">
+            <text class="ps-label">动态止损价格</text>
             <text class="ps-value ps-value-warning">{{item.stopPrice}} 元</text>
           </view>
           <view class="ps-step-item">
-            <text class="ps-label">止损金额</text>
-            <text class="ps-value ps-value-warning">{{item.stopAmount}} 元</text>
+            <text class="ps-label">当前阶段风险额度占用</text>
+            <text class="ps-value ps-value-warning">{{item.riskUsageAmount}} 元（{{item.riskUsagePct}}%）</text>
+          </view>
+          <view class="ps-step-item">
+            <text class="ps-label">{{item.stopResultLabel}}</text>
+            <text class="ps-value {{item.stopResultClass}}">{{item.stopExitPnlDisplay}} 元（{{item.stopExitPnlPctDisplay}}%）</text>
+          </view>
+          <view class="ps-step-item">
+            <text class="ps-label">当前阶段10R目标</text>
+            <text class="ps-value">{{item.target10RStage}} 元</text>
+          </view>
+          <view class="ps-step-item">
+            <text class="ps-label">目标利润估算</text>
+            <text class="ps-value">{{item.targetProfitDisplay}} 元</text>
           </view>
         </view>
       </view>
     </block>
   </view>
 
-  <!-- 底部提示 -->
   <view class="ps-tip">
-    * 本页为“稳健版”演示方案，仅基于固定参数推演风控结构，不构成任何买卖建议。
+    * 本页为稳健版风险测算结果，用于风险识别、规则执行与复盘，不构成买卖建议或收益承诺。
   </view>
 
-  <!-- 底部按钮区域 -->
   <view class="ps-bottom">
-    <view class="ps-bottom-btn" bindtap="goPlanAdvanced">
-      <text>想要更高阶服务 · 查看进阶控局者服务</text>
+    <view class="ps-bottom-btn" bindtap="goPayIntro">
+      <text>查看会员权益</text>
     </view>
 
-    <!-- ====== [MOD:PLANSTEADY_MAINCHAIN_ENTRY_20260402] START ====== -->
     <view class="result-entry-card">
-      <view class="result-entry-title">查看业务链</view>
-      <view class="result-entry-desc">从当前方案直达交易记录、风控报告、长期档案与主链总览</view>
+      <view class="result-entry-title">查看后续记录</view>
+      <view class="result-entry-desc">从当前方案查看交易记录、风控报告、长期档案与主链总览</view>
 
       <view class="result-entry-grid">
         <view class="result-entry-btn" bindtap="openTradeRecordEntry">交易记录</view>
@@ -97,10 +197,10 @@
         <view class="result-entry-btn result-entry-btn--primary" bindtap="openMainchainOverviewEntry">主链总览</view>
       </view>
     </view>
-    <!-- ====== [MOD:PLANSTEADY_MAINCHAIN_ENTRY_20260402] END ====== -->
 
     <view class="ps-bottom-btn" bindtap="goHome">
       <text>返回首页</text>
     </view>
   </view>
+  </block>
 </view>

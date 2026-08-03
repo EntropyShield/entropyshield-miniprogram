@@ -1,12 +1,12 @@
 <view class="page risk-calculator">
   <view class="title-container">
     <text class="title">风控计算器</text>
-    <text class="sub-title">根据你的资金与首次买入价格，快速生成风控方案。</text>
+    <text class="sub-title">一次填写完整参数，直接生成稳健版或加强版风控方案。</text>
   </view>
 
   <view class="quick-tip-card">
-    <text class="quick-tip-title">先填 3 项即可开始</text>
-    <text class="quick-tip-text">请填写「可用资金」「首次买入价格」「标的代码或名称」。首次使用建议先算稳健版。</text>
+    <text class="quick-tip-title">填写基础参数</text>
+    <text class="quick-tip-text">依次填写标的、资金和买入执行价，再选择仓位比例、分批进场模板与止损策略。</text>
   </view>
 
   <view class="rights-banner">
@@ -18,12 +18,8 @@
     <view class="rights-row">
       <text class="rights-label">到期状态：</text>
       <block wx:if="{{membershipName}}">
-        <text class="rights-text" wx:if="{{remainingDays > 0}}">
-          剩余 {{remainingDays}} 天
-        </text>
-        <text class="rights-text" wx:else>
-          已到期
-        </text>
+        <text class="rights-text" wx:if="{{remainingDays > 0}}">剩余 {{remainingDays}} 天</text>
+        <text class="rights-text" wx:else>已到期</text>
       </block>
       <text class="rights-text" wx:else>—</text>
     </view>
@@ -37,7 +33,23 @@
   <view class="input-container">
     <view class="input-field">
       <view class="label-row">
-        <text class="input-label">可用资金（元）</text>
+        <text class="input-label">标的代码／名称</text>
+        <text class="label-tag required-tag">必填</text>
+      </view>
+      <input
+        class="input {{codeError ? 'input-error' : ''}}"
+        placeholder="例如：000001 或 平安银行"
+        bindinput="onCodeInput"
+        value="{{code}}"
+        confirm-type="next"
+      />
+      <text class="field-tip">用于方案记录、统计与后续跟踪。</text>
+      <text class="field-error" wx:if="{{codeError}}">{{codeError}}</text>
+    </view>
+
+    <view class="input-field">
+      <view class="label-row">
+        <text class="input-label">账户可用资金（元）</text>
         <text class="label-tag required-tag">必填</text>
       </view>
       <input
@@ -48,13 +60,13 @@
         value="{{balance}}"
         confirm-type="next"
       />
-      <text class="field-tip">填写你这次准备参与计算的可用资金。</text>
+      <text class="field-tip">填写本次计划可用于风险测算的账户资金。</text>
       <text class="field-error" wx:if="{{balanceError}}">{{balanceError}}</text>
     </view>
 
     <view class="input-field">
       <view class="label-row">
-        <text class="input-label">首次买入价格</text>
+        <text class="input-label">买入执行价</text>
         <text class="label-tag required-tag">必填</text>
       </view>
       <input
@@ -65,29 +77,68 @@
         value="{{price}}"
         confirm-type="next"
       />
-      <text class="field-tip">填写你计划第一次建仓的价格。</text>
+      <text class="field-tip">填写本次计划首次执行买入的价格。</text>
       <text class="field-error" wx:if="{{priceError}}">{{priceError}}</text>
     </view>
 
     <view class="input-field">
       <view class="label-row">
-        <text class="input-label">标的代码或名称</text>
-        <text class="label-tag required-tag">必填</text>
+        <text class="input-label">仓位比例</text>
+        <text class="label-tag required-tag">必选</text>
       </view>
-      <input
-        class="input {{codeError ? 'input-error' : ''}}"
-        placeholder="例如：000001 或 平安银行"
-        bindinput="onCodeInput"
-        value="{{code}}"
-        confirm-type="done"
-      />
-      <text class="field-tip">必填，用于后续记录、统计与跟踪。</text>
-      <text class="field-error" wx:if="{{codeError}}">{{codeError}}</text>
+      <picker range="{{deployRatioOptions}}" range-key="label" value="{{deployRatioIndex}}" bindchange="onDeployRatioChange">
+        <view class="picker-shell">
+          <text class="picker-value">{{deployRatioOptions[deployRatioIndex].label}}</text>
+          <text class="picker-arrow">›</text>
+        </view>
+      </picker>
+      <text class="field-tip">可选30%—80%，默认80%。后续价格上涨和整手交易可能形成实际投入偏差。</text>
+    </view>
+
+    <view class="input-field">
+      <view class="label-row">
+        <text class="input-label">分批进场模板</text>
+        <text class="label-tag required-tag">必选</text>
+      </view>
+      <picker range="{{templateOptions}}" range-key="label" value="{{templateIndex}}" bindchange="onTemplateChange">
+        <view class="picker-shell picker-shell-column">
+          <view class="picker-main-row">
+            <text class="picker-value">{{templateOptions[templateIndex].label}}</text>
+            <text class="picker-arrow">›</text>
+          </view>
+          <text class="picker-desc">{{templateOptions[templateIndex].description}}</text>
+        </view>
+      </picker>
+      <text class="field-tip">加强版模板为5:2:3、4:3:3、6:2:2，需使用加强版权益。</text>
+    </view>
+
+    <view class="input-field">
+      <view class="label-row">
+        <text class="input-label">止损策略</text>
+        <text class="label-tag required-tag">必选</text>
+      </view>
+      <picker range="{{stopModeOptions}}" range-key="label" value="{{stopModeIndex}}" bindchange="onStopModeChange">
+        <view class="picker-shell picker-shell-column">
+          <view class="picker-main-row">
+            <text class="picker-value">{{stopModeOptions[stopModeIndex].label}}</text>
+            <text class="picker-arrow">›</text>
+          </view>
+          <text class="picker-desc">{{stopModeOptions[stopModeIndex].description}}</text>
+        </view>
+      </picker>
+    </view>
+
+    <view class="risk-rule-card">
+      <view class="risk-rule-row">
+        <text class="risk-rule-label">固定最大风险</text>
+        <text class="risk-rule-value">2%</text>
+      </view>
+      <text class="risk-rule-desc">单笔计划最大风险不得超过账户可用资金的2%</text>
     </view>
   </view>
 
   <view class="button-container">
-    <text class="cta-tip">首次使用建议先算稳健版，先完成一次完整计算。</text>
+    <text class="cta-tip">所选模板必须与方案版本一致；点击后直接计算并进入完整结果页。</text>
 
     <view class="btn-primary" bindtap="onClickSteady">
       <text class="btn-text">先算稳健版（推荐）</text>
@@ -99,15 +150,9 @@
       <text class="btn-icon btn-icon-secondary">→</text>
     </view>
 
-    <text class="advanced-note" wx:if="{{advancedEnabled}}">
-      当前会员权益可直接使用加强版。
-    </text>
-    <text class="advanced-note" wx:else>
-      加强版适合进阶用户；若会员权益不支持，会自动引导开通。
-    </text>
+    <text class="advanced-note" wx:if="{{advancedEnabled}}">当前会员权益可直接使用加强版。</text>
+    <text class="advanced-note" wx:else>加强版仅对季度会员、年度会员和终身权益开放。</text>
   </view>
 
-  <view class="btn-back" bindtap="goHome">
-    返回首页
-  </view>
+  <view class="btn-back" bindtap="goHome">返回首页</view>
 </view>

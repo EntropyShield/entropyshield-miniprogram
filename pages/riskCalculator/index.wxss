@@ -184,6 +184,81 @@ page {
   color: #ff6b6b;
 }
 
+/* 选择器与固定风险 */
+.picker-shell {
+  width: 100%;
+  min-height: 90rpx;
+  box-sizing: border-box;
+  padding: 20rpx 22rpx;
+  border: 2rpx solid #2aff2a;
+  border-radius: 16rpx;
+  background-color: #000000;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.picker-shell-column {
+  align-items: stretch;
+  flex-direction: column;
+}
+
+.picker-main-row,
+.risk-rule-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.picker-value {
+  font-size: 30rpx;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.picker-arrow {
+  font-size: 38rpx;
+  color: #2aff2a;
+  line-height: 1;
+}
+
+.picker-desc {
+  display: block;
+  margin-top: 8rpx;
+  padding-right: 40rpx;
+  font-size: 22rpx;
+  line-height: 1.5;
+  color: #9aa0a6;
+}
+
+.risk-rule-card {
+  margin-top: 4rpx;
+  margin-bottom: 30rpx;
+  padding: 22rpx;
+  border-radius: 16rpx;
+  background: rgba(42, 255, 42, 0.08);
+  border: 1px solid rgba(42, 255, 42, 0.35);
+}
+
+.risk-rule-label {
+  font-size: 28rpx;
+  color: #ffffff;
+}
+
+.risk-rule-value {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #2aff2a;
+}
+
+.risk-rule-desc {
+  display: block;
+  margin-top: 10rpx;
+  font-size: 22rpx;
+  line-height: 1.6;
+  color: #c0c0c0;
+}
+
 /* 按钮区 */
 .button-container {
   margin-top: 40rpx;

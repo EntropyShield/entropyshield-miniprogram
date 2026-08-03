@@ -3,6 +3,57 @@ const funnel = require('../../utils/funnel.js');
 const UR = require('../../utils/userRights.js');
 const { syncEffectiveRights } = require('../../utils/rightsSync.js');
 
+const DEPLOY_RATIO_OPTIONS = [30, 40, 50, 60, 70, 80].map(value => ({
+  label: `${value}%`,
+  value: value / 100
+}));
+
+const TEMPLATE_OPTIONS = [
+  {
+    label: '4:1:3:2',
+    description: '稳健版 · 40% / 10% / 30% / 20%',
+    planType: 'steady',
+    value: 'FOUR_STEP_4_1_3_2_CHAIN_UP'
+  },
+  {
+    label: '4:2:2:2',
+    description: '稳健版 · 40% / 20% / 20% / 20%',
+    planType: 'steady',
+    value: 'FOUR_STEP_4_2_2_2_CHAIN_UP'
+  },
+  {
+    label: '5:2:3',
+    description: '加强版 · 50% / 20% / 30%',
+    planType: 'advanced',
+    value: 'THREE_STEP_5_2_3_CHAIN_UP'
+  },
+  {
+    label: '4:3:3',
+    description: '加强版 · 40% / 30% / 30%',
+    planType: 'advanced',
+    value: 'THREE_STEP_4_3_3_CHAIN_UP'
+  },
+  {
+    label: '6:2:2',
+    description: '加强版 · 60% / 20% / 20%',
+    planType: 'advanced',
+    value: 'THREE_STEP_6_2_2_CHAIN_UP'
+  }
+];
+
+const STOP_MODE_OPTIONS = [
+  {
+    label: '标准风险控制',
+    description: '优先保证各阶段最大亏损不超过账户资金的2%',
+    value: 'STANDARD_RISK_CONTROL'
+  },
+  {
+    label: '动态利润保护',
+    description: '随分批进场动态上移止损，后期可能锁定已有收益',
+    value: 'DYNAMIC_PROFIT_PROTECTION'
+  }
+];
+
 /* ====== RC_V41_CLICK_DEDUPE (v4.1.2 / 2026-03-05) ======
 目标：同一 clientId + 同一输入 + 同一按钮(稳健/加强) 只扣 1 次；第二次点击直接“复用跳转”，不再触发扣次
 实现：sig = hash(picked inputs + __btn)，storage 写 rc_v41_consumed_{cid}_{sig}
@@ -31,7 +82,7 @@ function rcV41Normalize(v) {
 }
 
 function rcV41PickKeys(data) {
-  const allow = /(balance|amount|money|fund|price|buy|buyPrice|first|code|symbol|ticker|name|mode|type|risk|loss|profit|step|qty|count|__btn)/i;
+  const allow = /(balance|amount|money|fund|price|buy|buyPrice|first|code|symbol|ticker|name|mode|type|risk|loss|profit|step|qty|count|deploy|ratio|template|stop|__btn)/i;
   const deny = /(^_|loading|disabled|plan|result|rights|freeCalc|membership|modal|show|err|error|toast|tips|log)/i;
   const keys = Object.keys(data || {});
   const picked = [];
@@ -113,16 +164,34 @@ function rcV41ReuseNavigate(pageThis, btn, sig) {
   const balance = rcV41PickNumber(data, [/balance/i, /amount/i, /money/i, /fund/i]);
   const price = rcV41PickNumber(data, [/buyprice/i, /first/i, /price/i]);
   const code = rcV41PickString(data, [/code/i, /symbol/i, /ticker/i, /name/i]);
+  const deployRatio = Number(data.deployRatio || 0.8);
+  const entryTemplateId = String(data.entryTemplateId || '').trim();
+  const entryTemplateName = String(data.entryTemplateName || '').trim();
+  const templatePlanType = String(data.templatePlanType || '').trim();
+  const stopMode = String(data.stopMode || 'STANDARD_RISK_CONTROL').trim();
+  const stopModeName = String(data.stopModeName || '标准风险控制').trim();
 
-  if (!balance || !price || !code) {
+  if (!balance || !price || !code || !entryTemplateId) {
     wx.showToast({ title: '复用跳转缺少参数，继续走原流程', icon: 'none' });
     return false;
   }
 
   const membershipType = encodeURIComponent('任务权益 · 已扣次复用');
+  const base =
+    `?balance=${encodeURIComponent(balance)}` +
+    `&price=${encodeURIComponent(price)}` +
+    `&code=${encodeURIComponent(code)}` +
+    `&deployRatio=${encodeURIComponent(deployRatio)}` +
+    `&entryTemplateId=${encodeURIComponent(entryTemplateId)}` +
+    `&entryTemplateName=${encodeURIComponent(entryTemplateName)}` +
+    `&templatePlanType=${encodeURIComponent(templatePlanType)}` +
+    `&stopMode=${encodeURIComponent(stopMode)}` +
+    `&stopModeName=${encodeURIComponent(stopModeName)}` +
+    `&membershipType=${membershipType}`;
+
   const url = (btn === 'advanced')
-    ? `/pages/planAdvanced/index?balance=${encodeURIComponent(balance)}&price=${encodeURIComponent(price)}&code=${encodeURIComponent(code)}&membershipType=${membershipType}`
-    : `/pages/planSteady/index?balance=${encodeURIComponent(balance)}&price=${encodeURIComponent(price)}&code=${encodeURIComponent(code)}&membershipType=${membershipType}`;
+    ? `/pages/planAdvanced/index${base}`
+    : `/pages/planSteady/index${base}`;
 
   try { console.log('[riskCalculator][v4.1] reuse navigate sig=', sig, 'url=', url); } catch (e) {}
   wx.navigateTo({ url });
@@ -208,6 +277,21 @@ Page({
     balance: '',
     price: '',
     code: '',
+
+    deployRatioOptions: DEPLOY_RATIO_OPTIONS,
+    deployRatioIndex: 5,
+    deployRatio: 0.8,
+
+    templateOptions: TEMPLATE_OPTIONS,
+    templateIndex: 0,
+    entryTemplateId: TEMPLATE_OPTIONS[0].value,
+    entryTemplateName: TEMPLATE_OPTIONS[0].label,
+    templatePlanType: TEMPLATE_OPTIONS[0].planType,
+
+    stopModeOptions: STOP_MODE_OPTIONS,
+    stopModeIndex: 0,
+    stopMode: STOP_MODE_OPTIONS[0].value,
+    stopModeName: STOP_MODE_OPTIONS[0].label,
 
     freeCalcTimes: 0,
     membershipName: '',
@@ -534,21 +618,18 @@ Page({
 
     wx.showModal({
       title: '加强版权限',
-      content: '加强版仅对「季卡/年卡」开放。\n月卡/3天体验/训练营奖励仅支持稳健版。',
+      content: '加强版仅对有效季卡会员、年卡会员和终生会员开放。',
       confirmText: '去开通',
-      cancelText: '用稳健版',
+      cancelText: '返回修改',
       success: (r) => {
-        if (r.confirm) {
-          wx.navigateTo({
-            url:
-              `/pages/membership/index?type=advanced` +
-              `&balance=${encodeURIComponent(balance)}` +
-              `&price=${encodeURIComponent(price)}` +
-              `&code=${encodeURIComponent(code || '')}`
-          });
-        } else {
-          this.handleGeneratePlan('steady', { skipValidate: true });
-        }
+        if (!r.confirm) return;
+        wx.navigateTo({
+          url:
+            `/pages/membership/index?type=advanced` +
+            `&balance=${encodeURIComponent(balance)}` +
+            `&price=${encodeURIComponent(price)}` +
+            `&code=${encodeURIComponent(code || '')}`
+        });
       }
     });
   },
@@ -574,23 +655,64 @@ Page({
     });
   },
 
+  onDeployRatioChange(e) {
+    const index = Number(e.detail.value || 0);
+    const option = DEPLOY_RATIO_OPTIONS[index] || DEPLOY_RATIO_OPTIONS[5];
+    this.setData({
+      deployRatioIndex: index,
+      deployRatio: option.value
+    });
+  },
+
+  onTemplateChange(e) {
+    const index = Number(e.detail.value || 0);
+    const option = TEMPLATE_OPTIONS[index] || TEMPLATE_OPTIONS[0];
+    this.setData({
+      templateIndex: index,
+      entryTemplateId: option.value,
+      entryTemplateName: option.label,
+      templatePlanType: option.planType
+    });
+
+    if (option.planType === 'advanced') {
+      wx.showToast({
+        title: '该模板属于加强版，需使用加强版权益',
+        icon: 'none',
+        duration: 2200
+      });
+    }
+  },
+
+  onStopModeChange(e) {
+    const index = Number(e.detail.value || 0);
+    const option = STOP_MODE_OPTIONS[index] || STOP_MODE_OPTIONS[0];
+    this.setData({
+      stopModeIndex: index,
+      stopMode: option.value,
+      stopModeName: option.label
+    });
+  },
+
   validateForm() {
     const balance = String(this.data.balance || '').trim();
     const price = String(this.data.price || '').trim();
     const code = String(this.data.code || '').trim();
+    const deployRatio = Number(this.data.deployRatio);
+    const entryTemplateId = String(this.data.entryTemplateId || '').trim();
+    const stopMode = String(this.data.stopMode || '').trim();
 
     let balanceError = '';
     let priceError = '';
     let codeError = '';
 
     if (!balance) {
-      balanceError = '请输入可用资金';
+      balanceError = '请输入账户可用资金';
     } else if (!/^\d+(\.\d+)?$/.test(balance) || Number(balance) <= 0) {
       balanceError = '请填写大于 0 的数字';
     }
 
     if (!price) {
-      priceError = '请输入首次买入价格';
+      priceError = '请输入买入执行价';
     } else if (!/^\d+(\.\d+)?$/.test(price) || Number(price) <= 0) {
       priceError = '请填写大于 0 的数字';
     }
@@ -599,17 +721,26 @@ Page({
       codeError = '请输入标的代码或名称';
     }
 
-    this.setData({
-      balanceError,
-      priceError,
-      codeError
-    });
+    this.setData({ balanceError, priceError, codeError });
 
-    if (balanceError || priceError || codeError) {
-      wx.showToast({
-        title: balanceError || priceError || codeError,
-        icon: 'none'
-      });
+    const basicError = balanceError || priceError || codeError;
+    if (basicError) {
+      wx.showToast({ title: basicError, icon: 'none' });
+      return false;
+    }
+
+    if (!DEPLOY_RATIO_OPTIONS.some(item => item.value === deployRatio)) {
+      wx.showToast({ title: '仓位比例仅支持30%至80%', icon: 'none' });
+      return false;
+    }
+
+    if (!TEMPLATE_OPTIONS.some(item => item.value === entryTemplateId)) {
+      wx.showToast({ title: '请选择有效分批进场模板', icon: 'none' });
+      return false;
+    }
+
+    if (!STOP_MODE_OPTIONS.some(item => item.value === stopMode)) {
+      wx.showToast({ title: '请选择有效止损策略', icon: 'none' });
       return false;
     }
 
@@ -620,16 +751,38 @@ Page({
     console.log('[riskCalculator] click steady');
     if (!this.validateForm()) return;
 
+    if (this.data.templatePlanType !== 'steady') {
+      wx.showToast({
+        title: '该模板属于加强版，请使用加强版方案',
+        icon: 'none',
+        duration: 2200
+      });
+      return;
+    }
+
     const gate = rcV41OnClickGate(this, 'steady');
     if (gate && gate.blocked) return;
 
-    funnel.log('CALC_CLICK_STEADY', {});
+    funnel.log('CALC_CLICK_STEADY', {
+      deployRatio: this.data.deployRatio,
+      entryTemplateId: this.data.entryTemplateId,
+      stopMode: this.data.stopMode
+    });
     this.handleGeneratePlan('steady', { skipValidate: true });
   },
 
   onClickAdvanced() {
     console.log('[riskCalculator] click advanced');
     if (!this.validateForm()) return;
+
+    if (this.data.templatePlanType !== 'advanced') {
+      wx.showToast({
+        title: '当前是稳健版四次进场模板，请先选择加强版三次进场模板',
+        icon: 'none',
+        duration: 2400
+      });
+      return;
+    }
 
     const gate = rcV41OnClickGate(this, 'advanced');
     if (gate && gate.blocked) return;
@@ -641,7 +794,10 @@ Page({
         productCode: adv.productCode,
         plan: adv.plan,
         level: adv.level,
-        expireAt: adv.expireAt
+        expireAt: adv.expireAt,
+        deployRatio: this.data.deployRatio,
+        entryTemplateId: this.data.entryTemplateId,
+        stopMode: this.data.stopMode
       });
 
       this.handleGeneratePlan('advanced', { skipValidate: true });
@@ -927,11 +1083,29 @@ Page({
     this.chooseNextStep(planType);
   },
 
-  gotoPlanResult(planType, { balance, price, code, membershipType }, hooks = {}) {
+  gotoPlanResult(planType, payload = {}, hooks = {}) {
+    const data = this.data || {};
+    const balance = payload.balance !== undefined ? payload.balance : data.balance;
+    const priceValue = payload.price !== undefined ? payload.price : data.price;
+    const code = payload.code !== undefined ? payload.code : data.code;
+    const membershipType = payload.membershipType || '';
+    const deployRatio = Number(data.deployRatio || 0.8);
+    const entryTemplateId = String(data.entryTemplateId || '').trim();
+    const entryTemplateName = String(data.entryTemplateName || '').trim();
+    const templatePlanType = String(data.templatePlanType || '').trim();
+    const stopMode = String(data.stopMode || 'STANDARD_RISK_CONTROL').trim();
+    const stopModeName = String(data.stopModeName || '标准风险控制').trim();
+
     const base =
       `?balance=${encodeURIComponent(balance)}` +
-      `&price=${encodeURIComponent(price)}` +
-      `&code=${encodeURIComponent(code || '')}`;
+      `&price=${encodeURIComponent(priceValue)}` +
+      `&code=${encodeURIComponent(code || '')}` +
+      `&deployRatio=${encodeURIComponent(deployRatio)}` +
+      `&entryTemplateId=${encodeURIComponent(entryTemplateId)}` +
+      `&entryTemplateName=${encodeURIComponent(entryTemplateName)}` +
+      `&templatePlanType=${encodeURIComponent(templatePlanType)}` +
+      `&stopMode=${encodeURIComponent(stopMode)}` +
+      `&stopModeName=${encodeURIComponent(stopModeName)}`;
 
     const mt = membershipType ? `&membershipType=${encodeURIComponent(membershipType)}` : '';
 
