@@ -12,6 +12,9 @@ $RECYCLE.BIN/
 
 # Node.js
 node_modules/
+
+# 微信开发者工具「项目私有配置」：只覆盖本地编译条件，官方建议不入库
+project.private.config.json
 # local backups / patch scripts
 **/*.bak_*
 scripts/*.py
