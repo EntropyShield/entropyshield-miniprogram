@@ -637,6 +637,50 @@ Page({
       title: '7 天风控训练营｜先控亏，再谈收益',
       path
     };
+  },
+
+  /**
+   * 「去绑定邀请码」按钮。
+   *
+   * 背景（代码事实）：邀请关系的绑定是**自动**的——onLoad 已把入口邀请码写入
+   * pendingInviteCode，由 app.js 在 clientId 就绪后调 /api/fission/init 完成，
+   * 无需用户手动输入。全库也不存在 C 端"手动绑定"页：
+   * myInvite / inviteLookup 是运营查询工具（展示手机号、clientId、订单号），
+   * 不能给 C 端跳转，否则泄露他人数据。
+   * 因此该方法只做状态反馈，不做跳转。
+   */
+  goBindInvite() {
+    const bound = String(this.data.invitedByCode || '').trim().toUpperCase();
+    if (bound) {
+      wx.showModal({
+        title: '绑定状态',
+        content: '你已绑定邀请人：' + bound,
+        showCancel: false
+      });
+      return;
+    }
+
+    let pending = '';
+    try {
+      pending = String(wx.getStorageSync(PENDING_INVITE_KEY) || '').trim().toUpperCase();
+    } catch (e) {
+      pending = '';
+    }
+
+    if (pending) {
+      wx.showModal({
+        title: '绑定状态',
+        content: '邀请码 ' + pending + ' 已记录，系统会自动完成绑定，无需手动操作。',
+        showCancel: false
+      });
+      return;
+    }
+
+    wx.showModal({
+      title: '绑定状态',
+      content: '未识别到邀请码。可以让好友把训练营页面重新分享给你，打开后会自动记录。',
+      showCancel: false
+    });
   }
 });
 
