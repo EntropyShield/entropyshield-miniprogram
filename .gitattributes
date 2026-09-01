@@ -1,5 +1,28 @@
-﻿*.md text eol=lf
-*.js text eol=lf
-*.json text eol=lf
-*.wxml text eol=lf
-*.wxss text eol=lf
+﻿# 统一行尾为 LF，消除跨平台 diff 噪音
+# 历史背景：仓库内 CRLF/LF 混用，每次 git add 都会刷出
+#   "warning: ... CRLF will be replaced by LF" 并让 diff 整体变乱。
+# 规则：文本文件一律以 LF 入库并检出为 LF（配合 core.autocrlf=false）。
+* text=auto eol=lf
+
+# 小程序源文件（四类 + wxs）
+*.js    text eol=lf
+*.json  text eol=lf
+*.wxml  text eol=lf
+*.wxss  text eol=lf
+*.wxs   text eol=lf
+
+# 脚本与文档
+*.sh    text eol=lf
+*.md    text eol=lf
+*.html  text eol=lf
+*.css   text eol=lf
+
+# 二进制：绝不转换
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.svg   binary
+*.ttf   binary
+*.woff  binary
+*.woff2 binary
