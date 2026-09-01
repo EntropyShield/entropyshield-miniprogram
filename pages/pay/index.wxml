@@ -11,7 +11,7 @@
       <view class="plan-card {{selectedPlanKey === item.key ? 'plan-card-active' : ''}}" data-key="{{item.key}}" bindtap="onSelectPlan">
         <view class="plan-top">
           <view class="plan-name">{{item.title}}</view>
-          <view class="plan-rights">{{item.rights}}</view>
+          <view class="plan-rights">{{item.rightsText}}</view>
         </view>
         <view class="plan-desc">{{item.desc}}</view>
         <view wx:if="{{type === 'advanced' && (item.key === 'times3' || item.key === 'month')}}" class="plan-disabled-tip">
@@ -24,8 +24,8 @@
   <view class="card">
     <view class="section-title">当前选择</view>
 
-    <view wx:if="{{upgradeMode}}" style="margin: 24rpx 0 0 0; padding: 24rpx; border: 1px solid #19ff4a; border-radius: 20rpx; background: rgba(25,255,74,0.06);">
-      <view style="font-size: 30rpx; font-weight: 600; color: #19ff4a;">{{upgradeTitle}}</view>
+    <view wx:if="{{upgradeMode}}" style="margin: 24rpx 0 0 0; padding: 24rpx; border: 1px solid #00E5A0; border-radius: 20rpx; background: rgba(0,229,160,0.06);">
+      <view style="font-size: 30rpx; font-weight: 600; color: #00E5A0;">{{upgradeTitle}}</view>
       <view style="margin-top: 12rpx; font-size: 24rpx; line-height: 1.7; color: #d8d8d8;">{{upgradeContent}}</view>
     </view>
 

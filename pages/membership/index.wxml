@@ -1,92 +1,62 @@
 <view class="page membership-page">
-
-<!-- 顶部：本次准备生成的风控方案 -->
-<view class="card summary-card">
-  <view class="summary-tag">{{ planLabel }}</view>
-
-  <view class="summary-title">本次准备生成的风控方案</view>
-
-  <view class="summary-row">
-    <text class="summary-label">账户资金</text>
-    <text class="summary-value">{{ balance }} 元</text>
+  <view class="card hero-card">
+    <view class="brand-mark">熵盾</view>
+    <view class="hero-title">会员权益</view>
+    <view class="hero-sub">交易之前，先用熵盾看风险。开通会员，把风控规则执行落地。</view>
   </view>
 
-  <view class="summary-row">
-    <text class="summary-label">首次买入价</text>
-    <text class="summary-value">{{ price }} 元</text>
-  </view>
-
-  <view class="summary-row">
-    <text class="summary-label">标的代码 / 名称</text>
-    <text class="summary-value">{{ code || '—' }}</text>
-  </view>
-
-  <!-- 当前权益展示：统一口径 -->
-  <view class="summary-row">
-    <text class="summary-label">会员权益</text>
-    <text class="summary-value">{{membershipNameDisplay || '未开通'}}</text>
-  </view>
-
-  <view class="summary-row">
-    <text class="summary-label">到期时间</text>
-    <text class="summary-value">{{membershipExpireText || '-'}}</text>
-  </view>
-
-  <view class="summary-row">
-    <text class="summary-label">任务权益</text>
-    <text class="summary-value">{{freeCalcTimes || 0}}次</text>
-  </view>
-</view>
-
-<!-- 说明：选择开通方式 -->
-<view class="card info-card">
-  <view class="info-title">选择开通方式</view>
-  <view class="info-sub">
-    开通后，在有效期内可以多次生成当前类型的风控方案，用于训练与实战演练。
-  </view>
-</view>
-
-<!-- 会员方案列表 -->
-<block wx:for="{{plans}}" wx:key="id">
-  <view class="card plan-card">
-    <view class="plan-header">
-      <view class="plan-title">{{item.name}}</view>
-      <view class="plan-price">
-        <text class="plan-price-main">{{item.priceText}}</text>
-        <text class="plan-price-unit">{{item.unitText}}</text>
-      </view>
+  <view class="card current-card {{current.isMember ? 'is-member' : 'is-guest'}}">
+    <view class="current-row">
+      <text class="current-label">当前状态</text>
+      <text class="current-value">{{current.levelText}}</text>
     </view>
-
-    <view class="plan-desc">
-      {{item.desc}}
+    <view wx:if="{{current.isMember && current.expireText}}" class="current-row">
+      <text class="current-label">到期时间</text>
+      <text class="current-value">{{current.expireText}}</text>
     </view>
+    <view wx:if="{{current.isMember}}" class="current-row">
+      <text class="current-label">加强版</text>
+      <text class="current-value">{{current.advancedEnabled ? '已开通' : '未包含'}}</text>
+    </view>
+    <view wx:if="{{!current.isMember}}" class="current-tip">
+      未开通会员，可使用稳健版免费测算次数。开通任一会员即可解锁完整风控工具。
+    </view>
+  </view>
 
-    <button
-      class="btn-primary"
-      data-plan-id="{{item.id}}"
-      bindtap="onSelectPlan"
+  <view class="card">
+    <view class="section-title">选择开通方式</view>
+    <view class="section-sub">所有套餐均提供风险测算、规则工具与风险管理支持，不构成投资建议。</view>
+
+    <view
+      wx:for="{{plans}}"
+      wx:key="key"
+      class="plan-card {{item.highlight ? 'plan-highlight' : ''}}"
+      data-key="{{item.key}}"
+      bindtap="onChoosePlan"
     >
-      立即开通 {{item.name}}
-    </button>
+      <view wx:if="{{item.highlight}}" class="plan-flag">推荐</view>
+      <view class="plan-head">
+        <view class="plan-name">{{item.title}}</view>
+        <view class="plan-price">
+          <text class="price-num">¥{{item.amountText}}</text>
+          <text class="price-cycle">/ {{item.cycleText}}</text>
+        </view>
+      </view>
+      <view class="plan-rights">{{item.rightsText}}</view>
+      <view class="plan-desc">{{item.desc}}</view>
+      <view class="plan-action">选择并开通 ›</view>
+    </view>
   </view>
-</block>
 
-<!-- 底部说明 & 跳转入口 -->
-<view class="card bottom-card">
-  <view class="note-title">说明</view>
-  <view class="note-text">
-    <text>当前为产品演示阶段，暂未接通真实支付，点击任一方案视为模拟开通，用于体验流程。</text>
-    <text>本工具与训练营内容仅用于交易风控能力训练，不构成任何投资建议或收益承诺。</text>
+  <view class="card notice-card">
+    <view class="notice-title">关于权益与服务</view>
+    <view class="notice-item">· 会员权益以服务端确认结果为准，支付完成后将在本机同步。</view>
+    <view class="notice-item">· 风险测算结果基于你的输入参数，仅作风险管理参考。</view>
+    <view class="notice-item">· 熵盾提供风险工具与规则支持，不构成任何投资建议。</view>
   </view>
 
-  <button class="btn-secondary" bindtap="goCamp">
-    先参加 7 天风控训练营
-  </button>
-
-  <button class="btn-ghost" bindtap="goBackCalc">
-    先返回风控计算器
-  </button>
+  <view class="footer-actions">
+    <button class="btn-ghost" bindtap="goCalculator">先去免费测算</button>
+    <button class="btn-ghost" bindtap="goBack">返回</button>
+  </view>
 </view>
-
-</view>
-

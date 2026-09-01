@@ -1,3 +1,6 @@
 {
-  "navigationBarTitleText": "控局者"
+  "navigationBarTitleText": "风控工作台",
+  "usingComponents": {
+    "disclaimer": "/components/disclaimer/disclaimer"
+  }
 }

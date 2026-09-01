@@ -1,17 +1,17 @@
 page {
-  background: #050505;
+  background: var(--es-bg-deep, #050505);
 }
 
 .page {
   padding: 24rpx;
   min-height: 100vh;
   box-sizing: border-box;
-  background: #050505;
+  background: var(--es-bg-deep, #050505);
 }
 
 .hero-card,
 .card {
-  background: #0b1110;
+  background: var(--es-green-surface, #0b1110);
   border: 2rpx solid #0f7a2d;
   border-radius: 24rpx;
   padding: 28rpx;
@@ -21,7 +21,7 @@ page {
 
 .hero-title,
 .section-title {
-  color: #24ff5a;
+  color: var(--es-green-bright, #24ff5a);
   font-size: 36rpx;
   font-weight: 700;
   margin-bottom: 14rpx;
@@ -52,7 +52,7 @@ page {
 }
 
 .plan-card-active {
-  border-color: #24ff5a;
+  border-color: var(--es-green-bright, #24ff5a);
   box-shadow: 0 0 16rpx rgba(36, 255, 90, 0.12);
 }
 
@@ -70,7 +70,7 @@ page {
 .plan-name {
   font-size: 30rpx;
   font-weight: 700;
-  color: #24ff5a;
+  color: var(--es-green-bright, #24ff5a);
 }
 
 .plan-rights {
@@ -109,12 +109,12 @@ page {
 }
 
 .btn-primary {
-  background: #24ff5a;
-  color: #041006;
+  background: var(--es-green-bright, #24ff5a);
+  color: var(--es-green-surface, #041006);
 }
 
 .btn-ghost {
   background: transparent;
-  color: #24ff5a;
-  border: 2rpx solid #24ff5a;
+  color: var(--es-green-bright, #24ff5a);
+  border: 2rpx solid var(--es-green-bright, #24ff5a);
 }

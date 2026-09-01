@@ -1,27 +1,211 @@
-/* ===== Brand Tokens ===== */
-:root {
-  --Bg-Dark:#0D0D0D;        /* 深空黑 背景 */
-  --Primary-Green:#2AFF2A;  /* 能量绿 主高亮 */
-  --Accent-Blue:#1E90FF;    /* 科技蓝 链接/图表 */
-  --Gold:#D4AF37;           /* 金色 悬停/强调 */
-  --Text-Main:#EAEAEA;      /* 主文字 */
-  --Text-Secondary:#9AA0A6; /* 次文字 */
-  --Line:#2A2A2A;           /* 分隔线 */
-  --Card:#161616;           /* 卡片底 */
-  --Radius-Card:16px;
-  --Radius-Btn:12px;
-  --Gutter:16px;
+/* ============================================================
+   熵盾 设计系统 v1.0  [V2.0-G1 2026-09-01]
+   ------------------------------------------------------------
+   为什么重写：原令牌定义在 :root 上，而小程序的根节点是 page 不是 html，
+   :root 选择器不生效 → var() 全部落空 → 开发者只能到处硬编码，
+   最终形成"全库 327 处 #00E5A0、20 种黑灰、14 档字号"的失控局面。
+   修复方式：令牌改挂 page，并为每个 var() 补 fallback，确保任何环境都能渲染。
+
+   使用约定（进 9/29 Gate 验收）：
+   1. 新增样式一律用 var()，且必须带 fallback：color: var(--es-green, #00E5A0);
+   2. 裸色值仅允许出现在 app.wxss 的令牌定义区，页面 wxss 中出现即为不合格；
+   3. 旧令牌名（--Primary-Green 等）保留映射，避免存量 11 处引用断裂。
+   ============================================================ */
+
+page {
+  /* ---- 品牌与语义色 ---- */
+  --es-green: #00E5A0;          /* 电光绿：主色，替代原荧光绿 #00E5A0 */
+  --es-green-deep: #0F6E56;     /* 深绿：渐变末端、按下态 */
+  --es-green-bg: rgba(0, 229, 160, .12);   /* 绿底：标签/徽章 */
+  --es-red: #FF4D5E;            /* 危险：破戒、止损触发 */
+  --es-amber: #FFB020;          /* 警示：关注、待确认 */
+  --es-blue: #1E90FF;           /* 科技蓝：链接、图表 */
+
+  /* ---- 背景三层（原 20 种黑灰收敛为 3 层）---- */
+  --es-bg: #0A0E14;             /* 页面底 */
+  --es-card: #121A26;           /* 卡片 */
+  --es-elevated: #1A2434;       /* 悬浮层/输入框 */
+  --es-line: #1E2A3A;           /* 分隔线、描边 */
+
+  /* ---- 文字三级 ---- */
+  --es-txt-1: #E8EDF5;          /* 主文字 */
+  --es-txt-2: #8A94A6;          /* 次要 */
+  --es-txt-3: #5A6577;          /* 辅助/时间戳 */
+
+  /* ---- G6 二期补充令牌（页面唯一语义色收敛为 --es-*）---- */
+  --es-white: #FFFFFF;          /* 卡片内纯白文字/图标描边 */
+  --es-ink: #000000;            /* 通用纯黑（多作 fallback） */
+  --es-on-green: #04140E;       /* 绿按钮/绿底上的深色字 */
+  --es-txt-4: #C0C6D2;          /* 浅灰：占位符/禁用/辅助说明 */
+  --es-bg-deep: #050505;        /* 比 --es-bg 更暗的纯黑底（弹层背板） */
+  --es-card-2: #16181D;         /* 次级区块/内嵌卡片底 */
+  --es-green-surface: #0B2F10;  /* 品牌绿染暗底（进度环/选中态） */
+  --es-green-bright: #24FF5A;   /* 比主色更亮的激活/成功绿 */
+  --es-green-20: rgba(0, 229, 160, .2);  /* 主色 20% 透明（进度/选中） */
+  --es-green-40: rgba(0, 229, 160, .4);  /* 主色 40% 透明（描边/高亮） */
+
+  /* ---- 字号六档（原 14 档收敛）---- */
+  --fs-xs: 20rpx;               /* 10px 角标 */
+  --fs-sm: 24rpx;               /* 12px 辅助说明 */
+  --fs-base: 28rpx;             /* 14px 正文 */
+  --fs-md: 32rpx;               /* 16px 卡片标题 */
+  --fs-lg: 36rpx;               /* 18px 区块标题 */
+  --fs-xl: 44rpx;               /* 22px 关键数值 */
+
+  /* ---- 间距四档 ---- */
+  --sp-1: 8rpx;
+  --sp-2: 16rpx;
+  --sp-3: 24rpx;
+  --sp-4: 32rpx;
+
+  /* ---- 圆角 ---- */
+  --radius-sm: 12rpx;
+  --radius-md: 20rpx;
+  --radius-lg: 28rpx;
+
+  /* ---- 兼容旧令牌名（存量 11 处 var() 引用不断裂，且统一到新主色）---- */
+  --Primary-Green: #00E5A0;
+  --Accent-Blue: #1E90FF;
+  --Gold: #D4AF37;
+  --Bg-Dark: #0A0E14;
+  --Card: #121A26;
+  --Line: #1E2A3A;
+  --Text-Main: #E8EDF5;
+  --Text-Secondary: #8A94A6;
+  --Radius-Card: 20rpx;
+  --Radius-Btn: 16rpx;
+  --Gutter: 24rpx;
 }
 
-/* ===== Global Reset ===== */
-page{background:var(--Bg-Dark);color:var(--Text-Main);font-family:"Noto Sans SC","Source Han Sans CN",system-ui;}
-.text-secondary{color:var(--Text-Secondary);}
-.card{background:var(--Card);border-radius:var(--Radius-Card);padding:var(--Gutter);}
-.h1{font-size:20px;font-weight:600;}
-.h2{font-size:18px;font-weight:600;}
-.p{font-size:14px;line-height:22px;}
-.btn-primary{background:var(--Primary-Green);color:#0B0B0B;height:44px;border-radius:var(--Radius-Btn);display:flex;align-items:center;justify-content:center;font-weight:600;}
-.btn-primary:active{background:var(--Gold);}
-.input{height:44px;border-radius:12px;background:#111;color:var(--Text-Main);border:1px solid var(--Line);padding:0 12px;}
-.row{display:flex;gap:16px;}
-.col{display:flex;flex-direction:column;gap:16px;}
+/* 兼容 Web 预览环境（:root 在此生效，与 page 双写保证一致） */
+:root {
+  --es-green: #00E5A0;
+  --es-green-deep: #0F6E56;
+  --es-red: #FF4D5E;
+  --es-amber: #FFB020;
+  --es-bg: #0A0E14;
+  --es-card: #121A26;
+  --es-elevated: #1A2434;
+  --es-line: #1E2A3A;
+  --es-txt-1: #E8EDF5;
+  --es-txt-2: #8A94A6;
+  --es-txt-3: #5A6577;
+  --es-white: #FFFFFF;
+  --es-ink: #000000;
+  --es-on-green: #04140E;
+  --es-txt-4: #C0C6D2;
+  --es-bg-deep: #050505;
+  --es-card-2: #16181D;
+  --es-green-surface: #0B2F10;
+  --es-green-bright: #24FF5A;
+  --es-green-20: rgba(0, 229, 160, .2);
+  --es-green-40: rgba(0, 229, 160, .4);
+  --Primary-Green: #00E5A0;
+  --Bg-Dark: #0A0E14;
+  --Card: #121A26;
+  --Line: #1E2A3A;
+  --Text-Main: #E8EDF5;
+  --Text-Secondary: #8A94A6;
+}
+
+/* ============================================================
+   组件四件套（23 号方案）：卡片 / 按钮 / 标签 / 列表
+   新页面一律复用，杜绝各页各写一套
+   ============================================================ */
+
+/* 1. 卡片 */
+.es-card {
+  background: var(--es-card, #121A26);
+  border: 1rpx solid var(--es-line, #1E2A3A);
+  border-radius: var(--radius-md, 20rpx);
+  padding: var(--sp-3, 24rpx);
+  margin-bottom: var(--sp-2, 16rpx);
+}
+
+/* 2. 按钮 */
+.es-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 88rpx;
+  border-radius: var(--radius-sm, 12rpx);
+  font-size: var(--fs-md, 32rpx);
+  font-weight: 600;
+  background: linear-gradient(135deg, var(--es-green, #00E5A0), var(--es-green-deep, #0F6E56));
+  color: var(--es-on-green, #04140E);
+}
+.es-btn--ghost {
+  background: transparent;
+  border: 1rpx solid rgba(0, 229, 160, .4);
+  color: var(--es-green, #00E5A0);
+}
+.es-btn:active { opacity: .85; }
+
+/* 3. 标签 */
+.es-tag {
+  display: inline-block;
+  font-size: var(--fs-xs, 20rpx);
+  font-weight: 600;
+  padding: 6rpx 16rpx;
+  border-radius: 8rpx;
+  background: var(--es-green-bg, rgba(0, 229, 160, .12));
+  color: var(--es-green, #00E5A0);
+}
+.es-tag--warn { background: rgba(255, 176, 32, .12); color: var(--es-amber, #FFB020); }
+.es-tag--danger { background: rgba(255, 77, 94, .12); color: var(--es-red, #FF4D5E); }
+
+/* 4. 列表 */
+.es-list {
+  background: var(--es-card, #121A26);
+  border: 1rpx solid var(--es-line, #1E2A3A);
+  border-radius: var(--radius-md, 20rpx);
+  overflow: hidden;
+}
+.es-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--sp-3, 24rpx);
+  border-bottom: 1rpx solid var(--es-line, #1E2A3A);
+}
+.es-item:last-child { border-bottom: none; }
+
+/* ============================================================
+   全局基础（保留原有类名，确保存量页面不破坏）
+   ============================================================ */
+page {
+  background: var(--es-bg, #0A0E14);
+  color: var(--es-txt-1, #E8EDF5);
+  font-family: "Noto Sans SC", "Source Han Sans CN", system-ui;
+}
+
+.text-secondary { color: var(--es-txt-2, #8A94A6); }
+.card {
+  background: var(--es-card, #121A26);
+  border-radius: var(--radius-md, 20rpx);
+  padding: var(--sp-3, 24rpx);
+}
+.h1 { font-size: var(--fs-lg, 36rpx); font-weight: 600; }
+.h2 { font-size: var(--fs-md, 32rpx); font-weight: 600; }
+.p { font-size: var(--fs-base, 28rpx); line-height: 44rpx; }
+.btn-primary {
+  background: var(--es-green, #00E5A0);
+  color: var(--es-on-green, #0B0B0B);
+  height: 88rpx;
+  border-radius: var(--radius-sm, 12rpx);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+}
+.btn-primary:active { opacity: .85; }
+.input {
+  height: 88rpx;
+  border-radius: var(--radius-sm, 12rpx);
+  background: var(--es-elevated, #1A2434);
+  color: var(--es-txt-1, #E8EDF5);
+  border: 1rpx solid var(--es-line, #1E2A3A);
+  padding: 0 var(--sp-2, 16rpx);
+}
+.row { display: flex; gap: var(--sp-3, 24rpx); }
+.col { display: flex; flex-direction: column; gap: var(--sp-3, 24rpx); }

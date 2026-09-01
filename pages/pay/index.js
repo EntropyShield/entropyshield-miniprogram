@@ -1,40 +1,6 @@
 // pages/pay/index.js
 const { API_BASE } = require('../../config');
-
-const PLAN_LIST = [
-  {
-    key: 'times3',
-    title: '3天体验',
-    amountFen: 990,
-    amountText: '9.9',
-    rights: '稳健版',
-    desc: '9.9元 / 3天体验'
-  },
-  {
-    key: 'month',
-    title: '月会员',
-    amountFen: 99900,
-    amountText: '999',
-    rights: '稳健版',
-    desc: '999元 / 月'
-  },
-  {
-    key: 'quarter',
-    title: '季度会员',
-    amountFen: 299900,
-    amountText: '2999',
-    rights: '稳健版 + 加强版',
-    desc: '2999元 / 季度'
-  },
-  {
-    key: 'year',
-    title: '年度会员',
-    amountFen: 999900,
-    amountText: '9999',
-    rights: '稳健版 + 加强版',
-    desc: '9999元 / 年'
-  }
-];
+const { PLAN_LIST, getPlanByKey, buildOrderTitle } = require('../../utils/plans');
 
 function getApiBase() {
   try {
@@ -128,24 +94,29 @@ function loginCode() {
 
 async function ensureRealClientId(base) {
   const cached = readCachedClientId();
-  console.log('[pay] cached clientId =', cached);
-
-  if (cached && !isTempClientId(cached)) {
-    return cached;
-  }
+  console.log('[pay] cached clientId present =', Boolean(cached));
 
   const code = await loginCode();
   const res = await requestJson('POST', `${base}/api/wx/login`, { code });
   const data = res && res.data ? res.data : {};
 
-  console.log('[pay] /api/wx/login response =', data);
+  console.log('[pay] wx login ok =', Boolean(data && data.ok));
 
   if (!data || !data.ok) {
-    throw new Error(data.message || data.error || '登录态获取失败');
+    throw new Error(
+      data.message ||
+      data.error ||
+      '微信登录态获取失败'
+    );
   }
 
-  const clientId = String(data.clientId || data.openid || '').trim();
-  if (!clientId) {
+  const clientId = String(
+    data.clientId ||
+    data.openid ||
+    ''
+  ).trim();
+
+  if (!clientId || isTempClientId(clientId)) {
     throw new Error('后端未返回真实用户身份');
   }
 
@@ -153,44 +124,26 @@ async function ensureRealClientId(base) {
   return clientId;
 }
 
-function resolvePayArgs(payload = {}) {
+function resolveVirtualPayArgs(payload = {}) {
   const p = payload || {};
+
   return {
-    timeStamp: String(p.timeStamp || p.timestamp || ''),
-    nonceStr: String(p.nonceStr || p.noncestr || ''),
-    package: String(p.package || p.packageValue || ''),
-    signType: String(p.signType || 'RSA'),
-    paySign: String(p.paySign || p.paysign || '')
+    mode: String(p.mode || ''),
+    signData: String(p.signData || ''),
+    paySig: String(p.paySig || ''),
+    signature: String(p.signature || ''),
+    outTradeNo: String(p.outTradeNo || ''),
+    productId: String(p.productId || ''),
+    amountFen: Number(p.amountFen || 0) || 0,
+    reusedPendingOrder: p.reusedPendingOrder === true
   };
 }
 
-function getPlanByKey(key) {
-  return PLAN_LIST.find(item => item.key === key) || PLAN_LIST[0];
-}
-
-function buildOrderTitle(plan, options = {}) {
-  const type = String(options.type || '').trim().toLowerCase();
-  if (type === 'advanced') return `风控计算器-${plan.title}-加强版`;
-  if (type === 'steady') return `风控计算器-${plan.title}-稳健版`;
-  return `风控计算器-${plan.title}`;
-}
-
-function buildPayPayload(plan, pageData, clientId) {
-  const title = buildOrderTitle(plan, pageData);
+function buildVirtualPayPayload(plan, clientId) {
   return {
     clientId,
     openid: clientId,
-    planKey: plan.key,
-    amountFen: plan.amountFen,
-    totalFee: plan.amountFen,
-    priceFen: plan.amountFen,
-    title,
-    body: title,
-    description: title,
-    from: pageData.from || '',
-    type: pageData.type || '',
-    courseId: pageData.courseId || '',
-    source: 'pages/pay/index.js'
+    productId: plan.virtualProductId
   };
 }
 
@@ -220,15 +173,23 @@ Page({
   onLoad(options) {
     const opts = options || {};
     const type = String(opts.type || '').trim().toLowerCase();
-    let selectedPlanKey = 'times3';
-    let topNotice = '请选择你的开通方式';
+
+    let selectedPlanKey = getPlanByKey(opts.planKey).key;
 
     if (type === 'advanced') {
-      selectedPlanKey = 'quarter';
-      topNotice = '加强版仅支持：季度会员 / 年度会员';
+      if (selectedPlanKey !== 'quarter' && selectedPlanKey !== 'year') {
+        selectedPlanKey = 'quarter';
+        topNotice = '加强版仅支持：季度会员 / 年度会员';
+      } else {
+        topNotice = '加强版仅支持：季度会员 / 年度会员';
+      }
     } else if (type === 'steady') {
-      selectedPlanKey = 'times3';
-      topNotice = '稳健版支持：3天体验 / 月会员 / 季度会员 / 年度会员';
+      topNotice = '稳健版支持：7天体验 / 月会员 / 季度会员 / 年度会员';
+    } else {
+      const sel = getPlanByKey(selectedPlanKey);
+      topNotice = sel.rights === 'advanced'
+        ? '稳健版 + 加强版：季度会员 / 年度会员'
+        : '稳健版支持：7天体验 / 月会员 / 季度会员 / 年度会员';
     }
 
     this.setData({
@@ -272,10 +233,10 @@ Page({
       selectedPlanKey: nextPlanKey,
       upgradeMode: true,
       upgradeTargetPlanKey: nextPlanKey,
-      upgradeTitle: '3天体验次数已用完',
+      upgradeTitle: '7天体验购买资格已用完',
       upgradeContent: isAdvanced
-        ? '当前账号已完成 3 次 9.9元/3天体验购买。继续使用加强版，请直接开通季度会员或年度会员。'
-        : '当前账号已完成 3 次 9.9元/3天体验购买。继续使用稳健版，建议直接开通月会员。',
+        ? '当前账号已完成 1 次 9.9元/7天体验购买。继续使用加强版，请直接开通季度会员或年度会员。'
+        : '当前账号已完成 1 次 9.9元/7天体验购买。继续使用稳健版，可直接开通月会员。',
       upgradeButtonText: isAdvanced ? '去开通季度会员' : '去开通月会员',
       topNotice: isAdvanced
         ? '已切换为季度会员升级方案'
@@ -292,7 +253,7 @@ Page({
       upgradeButtonText: '',
       topNotice: this.data.type === 'advanced'
         ? '加强版仅支持：季度会员 / 年度会员'
-        : '稳健版支持：3天体验 / 月会员 / 季度会员 / 年度会员'
+        : '稳健版支持：7天体验 / 月会员 / 季度会员 / 年度会员'
     });
   },
 
@@ -304,6 +265,23 @@ Page({
       upgradeMode: false
     }, () => {
       this.onPayTap();
+    });
+  },
+
+  // 支付页「返回」按钮：优先返回上一页；
+  // 若页面栈只有 1 层（如从分享/扫码直接进入支付页），navigateBack 会失败，
+  // 此时兜底跳首页 tab，避免出现「点了没反应」。
+  goBack() {
+    const pages = (typeof getCurrentPages === 'function' && getCurrentPages()) || [];
+    if (pages.length > 1) {
+      wx.navigateBack({ delta: 1 });
+      return;
+    }
+    wx.switchTab({
+      url: '/pages/index/index',
+      fail: () => {
+        wx.reLaunch({ url: '/pages/index/index' });
+      }
     });
   },
 
@@ -319,12 +297,38 @@ Page({
     const plan = getPlanByKey(this.data.selectedPlanKey);
 
     if (!base) {
-      wx.showToast({ title: 'API_BASE 未配置', icon: 'none' });
+      wx.showToast({
+        title: 'API_BASE 未配置',
+        icon: 'none'
+      });
       return;
     }
 
-    if (this.data.type === 'advanced' && (plan.key === 'times3' || plan.key === 'month')) {
-      wx.showToast({ title: '加强版仅支持季度会员 / 年度会员', icon: 'none' });
+    if (
+      this.data.type === 'advanced' &&
+      (plan.key === 'times3' || plan.key === 'month')
+    ) {
+      wx.showToast({
+        title: '加强版仅支持季度会员 / 年度会员',
+        icon: 'none'
+      });
+      return;
+    }
+
+    if (!plan.virtualProductId) {
+      wx.showToast({
+        title: '虚拟商品未配置',
+        icon: 'none'
+      });
+      return;
+    }
+
+    if (typeof wx.requestVirtualPayment !== 'function') {
+      wx.showModal({
+        title: '无法发起支付',
+        content: '当前微信版本不支持虚拟支付，请升级微信后重试。',
+        showCancel: false
+      });
       return;
     }
 
@@ -332,7 +336,6 @@ Page({
 
     try {
       const clientId = await ensureRealClientId(base);
-      console.log('[pay] final clientId =', clientId);
 
       if (!clientId || isTempClientId(clientId)) {
         throw new Error('未获取到真实用户身份');
@@ -342,23 +345,48 @@ Page({
         this.setData({ clientId });
       }
 
-      const payload = buildPayPayload(plan, this.data, clientId);
-      console.log('[pay] /api/pay/jsapi payload =', payload);
+      const payload = buildVirtualPayPayload(
+        plan,
+        clientId
+      );
 
-      const res = await requestJson('POST', `${base}/api/pay/jsapi`, payload);
+      const res = await requestJson(
+        'POST',
+        `${base}/api/virtual-pay/create`,
+        payload
+      );
+
       const data = res && res.data ? res.data : {};
 
-      console.log('[pay] /api/pay/jsapi response =', data);
+      console.log('[pay][virtual] create result =', {
+        ok: Boolean(data && data.ok),
+        error: String((data && data.error) || ''),
+        productId: String((data && data.productId) || ''),
+        amountFen: Number((data && data.amountFen) || 0),
+        reusedPendingOrder:
+          Boolean(data && data.reusedPendingOrder),
+        outTradeNo:
+          String((data && data.outTradeNo) || '')
+      });
 
       if (!data || !data.ok) {
-        const rawMsg = String(data.message || data.error || '支付下单失败');
+        const errorCode = String(data.error || '');
+        const rawMsg = String(
+          data.message ||
+          data.error ||
+          '支付下单失败'
+        );
+
         const isTrialLimit =
-          String(data.error || '') === 'trial_purchase_limit_reached' ||
-          /最多购买3次9\.9元\/3天体验/.test(rawMsg) ||
-          /times3 purchase limit reached/i.test(rawMsg);
+          errorCode === 'TRIAL_PURCHASE_LIMIT_REACHED' ||
+          /每个ID只能购买1次9\.9元\/7天体验/.test(rawMsg);
 
         if (isTrialLimit) {
-          const nextPlanKey = this.data.type === 'advanced' ? 'quarter' : 'month';
+          const nextPlanKey =
+            this.data.type === 'advanced'
+              ? 'quarter'
+              : 'month';
+
           this.enterUpgradeFlow(nextPlanKey);
           return;
         }
@@ -366,51 +394,69 @@ Page({
         throw new Error(rawMsg);
       }
 
-      if (data.alreadyPaid) {
-        this.clearUpgradeFlow();
-        this.setData({ paying: false });
-        wx.showToast({
-          title: data.message || '已开通，无需重复支付',
-          icon: 'none'
-        });
-        return;
+      const payArgs = resolveVirtualPayArgs(data);
+
+      if (
+        !payArgs.mode ||
+        !payArgs.signData ||
+        !payArgs.paySig ||
+        !payArgs.signature
+      ) {
+        throw new Error('虚拟支付参数不完整');
+      }
+
+      if (
+        payArgs.productId !== plan.virtualProductId ||
+        payArgs.amountFen !== plan.amountFen
+      ) {
+        throw new Error('虚拟支付商品或金额校验失败');
       }
 
       this.clearUpgradeFlow();
-      const payArgs = resolvePayArgs(data.payargs || data.payArgs || data.data || data);
-      console.log('[pay] requestPayment params =', payArgs);
 
-      if (!payArgs.timeStamp || !payArgs.nonceStr || !payArgs.package || !payArgs.paySign) {
-        throw new Error('支付参数不完整');
-      }
+      const payResult = await new Promise(
+        (resolve, reject) => {
+          wx.requestVirtualPayment({
+            mode: payArgs.mode,
+            signData: payArgs.signData,
+            paySig: payArgs.paySig,
+            signature: payArgs.signature,
 
-      const payResult = await new Promise((resolve, reject) => {
-        wx.requestPayment({
-          timeStamp: payArgs.timeStamp,
-          nonceStr: payArgs.nonceStr,
-          package: payArgs.package,
-          signType: payArgs.signType,
-          paySign: payArgs.paySign,
-          success: (res2) => {
-            console.log('[pay] requestPayment success =', res2);
-            resolve(res2);
-          },
-          fail: (err) => {
-            console.log('[pay] requestPayment fail =', err);
-            const msg = getErrMsg(err);
+            success: (result) => {
+              console.log(
+                '[pay][virtual] payment success'
+              );
+              resolve(result || {});
+            },
 
-            if (/requestPayment:fail cancel/i.test(msg)) {
-              resolve({ cancelled: true, errMsg: msg });
-              return;
+            fail: (error) => {
+              const message = getErrMsg(error);
+
+              console.log(
+                '[pay][virtual] payment failed =',
+                message
+              );
+
+              if (
+                /requestVirtualPayment:fail cancel/i.test(message) ||
+                /cancel/i.test(message)
+              ) {
+                resolve({
+                  cancelled: true,
+                  errMsg: message
+                });
+                return;
+              }
+
+              reject(error);
             }
-
-            reject(err);
-          }
-        });
-      });
+          });
+        }
+      );
 
       if (payResult && payResult.cancelled) {
         this.setData({ paying: false });
+
         wx.showToast({
           title: '已取消支付',
           icon: 'none',
@@ -419,21 +465,25 @@ Page({
         return;
       }
 
+      this.setData({ paying: false });
+
       wx.redirectTo({
         url:
           '/pages/paySuccess/index' +
           `?planKey=${encodeURIComponent(plan.key)}` +
-          `&amountFen=${encodeURIComponent(String(plan.amountFen))}`
+          `&amountFen=${encodeURIComponent(String(plan.amountFen))}` +
+          `&outTradeNo=${encodeURIComponent(payArgs.outTradeNo)}`
       });
     } catch (err) {
       this.setData({ paying: false });
 
       const msg = getErrMsg(err);
-      console.error('[pay] onPayTap error =', err);
+      console.error('[pay][virtual] onPayTap error =', msg);
 
-      wx.hideLoading && wx.hideLoading();
-
-      if (/requestPayment:fail cancel/i.test(msg)) {
+      if (
+        /requestVirtualPayment:fail cancel/i.test(msg) ||
+        /cancel/i.test(msg)
+      ) {
         wx.showToast({
           title: '已取消支付',
           icon: 'none',
@@ -443,20 +493,24 @@ Page({
       }
 
       try {
-        wx.setStorageSync('pay_debug_last_error', JSON.stringify({
-          time: new Date().toISOString(),
-          planKey: plan.key,
-          message: msg,
-          err: err || null
-        }));
+        wx.setStorageSync(
+          'pay_debug_last_error',
+          JSON.stringify({
+            time: new Date().toISOString(),
+            planKey: plan.key,
+            productId: plan.virtualProductId,
+            message: msg
+          })
+        );
       } catch (e) {}
 
       wx.showModal({
         title: '支付失败',
-        content: msg || '支付过程中出现异常，请重试',
+        content:
+          msg ||
+          '支付过程中出现异常，请重试',
         showCancel: false
       });
     }
   }
 });
-

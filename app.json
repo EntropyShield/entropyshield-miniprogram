@@ -3,43 +3,18 @@
     "pages/index/index",
     "pages/controller/index",
     "pages/profile/index",
-    "pages/campDaily/index",
-    "pages/campIntro/index",
-    "pages/campReport/index",
-    "pages/club/index",
-    "pages/course/index",
-    "pages/course/detail",
-    "pages/course/progress",
-    "pages/courses/index",
-    "pages/fissionTask/index",
-    "pages/membership/index",
+    "pages/riskCalculator/index",
+    "pages/pay/index",
+    "pages/paySuccess/index",
+    "pages/payFail/index",
     "pages/agreementService/index",
     "pages/agreementPrivacy/index",
-    "pages/pay/index",
-    "pages/payFail/index",
-    "pages/paySuccess/index",
-    "pages/planAdvanced/index",
-    "pages/planSteady/index",
-    "pages/tradeRecord/index",
-    "pages/riskReport/index",
-    "pages/longArchive/index",
-    "pages/mainchainOverview/index",
-    "pages/mainchainDebug/index",
-    "pages/resultCommon/index",
-    "pages/riskCalculator/index",
-    "pages/taskDetail/index",
-    "pages/testDangerLevel/index",
-    "pages/upsell/index",
-    "pages/visitAdmin/index",
-    "pages/visitBooking/index",
-    "pages/visitMyList/index",
-    "pages/myInvite/index",
-    "pages/inviteLookup/index",
-    "pages/inviteTracker/index",
-    "pages/commissionCenter/index"
+    "pages/agreementGate/index",
+    "pages/membership/index",
+    "pages/message/index"
   ],
   "window": {
-    "navigationBarTitleText": "\u71b5\u76fe\u7814\u7a76\u9662",
+    "navigationBarTitleText": "熵盾研究院",
     "navigationBarBackgroundColor": "#0D0D0D",
     "navigationBarTextStyle": "white",
     "backgroundColor": "#0D0D0D",
@@ -47,23 +22,80 @@
   },
   "tabBar": {
     "color": "#9ea0a4",
-    "selectedColor": "#2AFF2A",
+    "selectedColor": "#00E5A0",
     "backgroundColor": "#0D0D0D",
     "borderStyle": "black",
     "list": [
       {
         "pagePath": "pages/index/index",
-        "text": "\u9996\u9875"
+        "text": "首页"
       },
       {
         "pagePath": "pages/controller/index",
-        "text": "\u63a7\u5c40\u8005"
+        "text": "风控工作台"
       },
       {
         "pagePath": "pages/profile/index",
-        "text": "\u4e2a\u4eba\u4e2d\u5fc3"
+        "text": "个人中心"
+      },
+      {
+        "pagePath": "pages/message/index",
+        "text": "消息"
       }
     ]
   },
-  "sitemapLocation": "sitemap.json"
+  "sitemapLocation": "sitemap.json",
+  "subpackages": [
+    {
+      "root": "pkgTest",
+      "pages": [
+        "testLossPersonality/index",
+        "testMarketRisk/index",
+        "testRiskScore/index",
+        "testEmotionIndex/index",
+        "testDangerLevel/index",
+        "sentiment/sentiment",
+        "resultCommon/index"
+      ]
+    },
+    {
+      "root": "pkgChallenge",
+      "pages": [
+        "campDaily/index",
+        "campIntro/index",
+        "campReport/index",
+        "club/index",
+        "fissionTask/index"
+      ]
+    },
+    {
+      "root": "pkgReport",
+      "pages": [
+        "longArchive/index",
+        "riskReport/index",
+        "tradeRecord/index",
+        "planAdvanced/index",
+        "planSteady/index"
+      ]
+    },
+    {
+      "root": "pkgService",
+      "pages": [
+        "course/index",
+        "course/detail",
+        "course/progress",
+        "courses/index",
+        "visitAdmin/index",
+        "visitBooking/index",
+        "visitMyList/index",
+        "myInvite/index",
+        "inviteLookup/index",
+        "inviteTracker/index",
+        "commissionCenter/index",
+        "upsell/index",
+        "mainchainOverview/index",
+        "settings/recall/index"
+      ]
+    }
+  ]
 }

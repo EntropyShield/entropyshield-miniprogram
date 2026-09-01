@@ -229,8 +229,199 @@ Page = function(pageOptions) {
  return __RAW_PAGE__(opts);
 };
 // [PATCH END] GLOBAL_SHARE_ALL_PAGES
+function __clearLocalMembershipCache() {
+  let current = {};
+
+  try {
+    current = wx.getStorageSync('userRights') || {};
+  } catch (e) {}
+
+  const cleaned = Object.assign({}, current);
+
+  const membershipKeys = [
+    'membership',
+    'calculator',
+    'membershipName',
+    'currentMembershipName',
+    'membershipPlan',
+    'currentMembershipType',
+    'membershipType',
+    'membershipLevel',
+    'membershipProductCode',
+    'membershipProduct',
+    'productCode',
+    'membershipExpireAt',
+    'membershipExpireText',
+    'membershipExpireAtText',
+    'membership_name',
+    'membership_level',
+    'membership_expire_at',
+    'membership_active',
+    'trialActive',
+    'trialExpireAt',
+    'advancedEnabled',
+    'advanced_enabled',
+    'isMemberActive',
+    'membershipActive',
+    'is_member_active',
+    'canUseCalculator',
+    'can_use_calculator',
+    'needsPay',
+    'needs_pay',
+    'effectiveRights'
+  ];
+
+  membershipKeys.forEach((key) => {
+    delete cleaned[key];
+  });
+
+  try {
+    wx.setStorageSync('userRights', cleaned);
+
+    if (
+      typeof wx.removeStorageSync === 'function'
+    ) {
+      wx.removeStorageSync('effectiveRights');
+      wx.removeStorageSync(
+        'lastEffectiveRightsSyncAt'
+      );
+    }
+  } catch (e) {}
+
+  try {
+    const app = getApp();
+
+    if (app && app.globalData) {
+      app.globalData.userRights = cleaned;
+      app.globalData.effectiveRights = {};
+    }
+  } catch (e) {}
+
+  return cleaned;
+}
+
+function __syncServerAuthoritativeRights(
+  clientId,
+  scene
+) {
+  const cid = String(clientId || '').trim();
+
+  if (!cid) {
+    return Promise.resolve({
+      ok: false,
+      code: 'CLIENT_ID_EMPTY'
+    });
+  }
+
+  if (
+    wx.__authoritativeRightsClientId === cid &&
+    wx.__authoritativeRightsPromise
+  ) {
+    return wx.__authoritativeRightsPromise;
+  }
+
+  try {
+    const {
+      syncEffectiveRights
+    } = require('./utils/rightsSync');
+
+    let task = null;
+
+    const clearTask = () => {
+      if (
+        wx.__authoritativeRightsClientId === cid &&
+        wx.__authoritativeRightsPromise === task
+      ) {
+        wx.__authoritativeRightsClientId = '';
+        wx.__authoritativeRightsPromise = null;
+      }
+    };
+
+    task = syncEffectiveRights({
+      clientId: cid,
+      scene: scene || 'app_launch'
+    }).then(
+      (result) => {
+        appDebug(
+          '[BOOT][RIGHTS] authoritative sync:',
+          {
+            ok: !!(result && result.ok),
+            code:
+              (result && result.code) || '',
+            scene: scene || 'app_launch'
+          }
+        );
+
+        clearTask();
+        return result;
+      },
+      (error) => {
+        appDebug(
+          '[BOOT][RIGHTS] authoritative sync fail:',
+          String(
+            (error && error.message) ||
+            error ||
+            ''
+          )
+        );
+
+        clearTask();
+
+        return {
+          ok: false,
+          code: 'RIGHTS_SYNC_EXCEPTION'
+        };
+      }
+    );
+
+    wx.__authoritativeRightsClientId = cid;
+    wx.__authoritativeRightsPromise = task;
+
+    return task;
+  } catch (error) {
+    appDebug(
+      '[BOOT][RIGHTS] module load fail:',
+      String(
+        (error && error.message) ||
+        error ||
+        ''
+      )
+    );
+
+    return Promise.resolve({
+      ok: false,
+      code: 'RIGHTS_SYNC_MODULE_ERROR'
+    });
+  }
+}
+
 App({
  onLaunch(options) {
+   // ====== [A1:COMPLIANCE_GATE] START ======
+   // 首次进入强制阅读并勾选协议，否则拦截使用（合规 Gate）
+   try {
+     const __agreed = wx.getStorageSync('agreedTerms');
+     if (!__agreed) {
+       let __enc = '';
+       try {
+         const __path = (options && options.path) || '';
+         const __q = (options && options.query) || {};
+         const __pairs = [];
+         Object.keys(__q).forEach((k) => {
+           const v = __q[k];
+           if (v === undefined || v === null || v === '') return;
+           __pairs.push(encodeURIComponent(k) + '=' + encodeURIComponent(String(v)));
+         });
+         const __full = __pairs.length ? (__path + '?' + __pairs.join('&')) : __path;
+         __enc = __full ? encodeURIComponent(__full) : '';
+       } catch (e) {}
+       wx.reLaunch({ url: '/pages/agreementGate/index' + (__enc ? ('?entry=' + __enc) : '') });
+     }
+   } catch (e) {}
+   // ====== [A1:COMPLIANCE_GATE] END ======
+
+   // SERVER_MEMBERSHIP_AUTHORITATIVE
+   __clearLocalMembershipCache();
    // [ST_P0_BIND_INVITE_APPJS] capture inviteCode at launch (do not wait payment)
    try { __stCapturePendingInvite(options); } catch(e) {}
    // [ST_P0_BIND_INVITE_APPJS] retry bind after clientId ready
@@ -272,20 +463,6 @@ App({
            const free = Number(freeRaw) || 0;
            ur.freeCalcTimes = free;
 
-           ur.membershipLevel = up((p && (p.membership_level || p.membershipLevel)) || ur.membershipLevel || '');
-           const nameRaw = (p && (p.membership_name || p.membershipName)) || ur.membershipName || ur.membership_name || '';
-           if (nameRaw) ur.membershipName = nameRaw;
-
-           const expRaw = (p && (p.membership_expire_at != null ? p.membership_expire_at : p.membershipExpireAt)) ?? ur.membershipExpireAt ?? ur.membership_expire_at ?? null;
-           ur.membershipExpireAt = toMs(expRaw);
-
-           const nm = String(ur.membershipName || '');
-           const isLife = (ur.membershipLevel === 'LIFETIME') || (up(expRaw) === 'LIFETIME') || (nm.indexOf('终身') >= 0) || (nm.indexOf('终生') >= 0) || (nm.indexOf('永久') >= 0);
-           if (isLife) {
-             ur.membershipLevel = 'LIFETIME';
-             ur.membershipName = '终身会员';
-             ur.membershipExpireAt = 4102444800000;
-           }
 
            const bootInviteCode = String((p && (p.invite_code || p.inviteCode)) || '').trim().toUpperCase();
            const bootInvitedByCode = String((p && (p.invited_by_code || p.invitedByCode)) || '').trim().toUpperCase();
@@ -320,6 +497,11 @@ App({
 
        const syncByClientId = (cid) => {
          if (!cid) return;
+
+         __syncServerAuthoritativeRights(
+           cid,
+           'app_launch'
+         );
          wx.request({
            url: base + '/api/fission/profile?clientId=' + encodeURIComponent(cid),
            success: (res) => {
@@ -385,6 +567,11 @@ App({
                if (!__cid) return;
                wx.setStorageSync('clientId', __cid);
 
+               __syncServerAuthoritativeRights(
+                 __cid,
+                 'app_login_refresh'
+               );
+
                wx.request({
                  url: __base + '/api/fission/profile?clientId=' + encodeURIComponent(__cid),
                  success: (pr) => {
@@ -399,24 +586,6 @@ App({
                    const t = (p.total_reward_times != null ? p.total_reward_times : (p.totalRewardTimes != null ? p.totalRewardTimes : null));
                    if (t != null && !Number.isNaN(Number(t))) ur.freeCalcTimes = Number(t);
 
-                   const lv = (p.membership_level || p.membershipLevel || ur.membershipLevel || '');
-                   const exp = (p.membership_expire_at == null ? (p.membershipExpireAt == null ? null : p.membershipExpireAt) : p.membership_expire_at);
-                   const nm = (p.membership_name || p.membershipName || ur.membershipName || '');
-                   if (nm) ur.membershipName = nm;
-                   if (lv) ur.membershipLevel = String(lv).toUpperCase();
-                   if (exp != null) ur.membershipExpireAt = exp;
-
-                   const expUp = String(exp || '').toUpperCase();
-                   const isLife =
-                     (String(ur.membershipLevel || '').toUpperCase() === 'LIFETIME') ||
-                     (expUp === 'LIFETIME') ||
-                     (String(ur.membershipName || '').indexOf('终身') >= 0);
-
-                   if (isLife) {
-                     ur.membershipLevel = 'LIFETIME';
-                     ur.membershipName = '终身会员';
-                     ur.membershipExpireAt = 4102444800000;
-                   }
 
                    const bootInviteCode = String(p.invite_code || p.inviteCode || '').trim().toUpperCase();
                    const bootInvitedByCode = String(p.invited_by_code || p.invitedByCode || '').trim().toUpperCase();
@@ -531,7 +700,7 @@ App({
        function _tryFinishRewardOnReportNav(url) {
          try {
            if (!url || typeof url !== 'string') return;
-           if (url.indexOf('/pages/campReport/index') === -1) return;
+           if (url.indexOf('/pkgChallenge/campReport/index') === -1) return;
            if (wx.__campFinishNavDone) return;
 
            var doneMap = wx.getStorageSync('campFinishedMap') || {};
@@ -610,6 +779,11 @@ App({
      const base = (resolvedBase || '').replace(/\/$/, '');
      const cid = (wx.getStorageSync('clientId') || '').trim();
      if (base && cid) {
+       __syncServerAuthoritativeRights(
+         cid,
+         'app_existing_identity'
+       );
+
        wx.request({
          url: base + '/api/fission/profile?clientId=' + encodeURIComponent(cid),
          method: 'GET',
@@ -621,26 +795,6 @@ App({
              const cur = wx.getStorageSync('userRights');
              const curObj = (cur && typeof cur === 'object') ? cur : {};
              const ur = Object.assign({}, curObj);
-             ur.membershipLevel = (p.membership_level || p.membershipLevel || ur.membershipLevel || '').toString().toUpperCase();
-
-             const expRaw = (p.membership_expire_at == null ? (p.membershipExpireAt == null ? null : p.membershipExpireAt) : p.membership_expire_at);
-             const expUp = String(expRaw || '').toUpperCase();
-
-             const nameRaw = (p.membership_name || p.membershipName || ur.membershipName || ur.membership_name || '');
-             if (nameRaw) ur.membershipName = nameRaw;
-
-             ur.membershipExpireAt = expRaw;
-
-             const isLife =
-               (ur.membershipLevel === 'LIFETIME') ||
-               (expUp === 'LIFETIME') ||
-               (String(ur.membershipName || '').indexOf('终身') >= 0);
-
-             if (isLife) {
-               ur.membershipLevel = 'LIFETIME';
-               ur.membershipName = '终身会员';
-               ur.membershipExpireAt = 4102444800000;
-             }
 
              const bootInviteCode = String((p && (p.invite_code || p.inviteCode)) || '').trim().toUpperCase();
              const bootInvitedByCode = String((p && (p.invited_by_code || p.invitedByCode)) || '').trim().toUpperCase();
@@ -683,5 +837,5 @@ App({
 
 // 防止依赖分析忽略管理端页面（开发环境用）
 if (false) {
- require('./pages/visitAdmin/index.js');
+ require('./pkgService/visitAdmin/index.js');
 }

@@ -1,8 +1,19 @@
 // pages/controller/index.js
 // MOD: CLEAN_HARDCODED_API_BASE_20260103
 const funnel = require('../../utils/funnel.js');
-const { getCourseTypeMeta } = require('../../utils/courseType.js'); // 统一类型口径
-const { API_BASE } = require('../../config.js'); // ✅ 统一从 config 读取
+// [V2.0-接线] 本周 7 格改用后端权威数据 /api/discipline/weekly
+const CONFIG = require('../../config.js');
+const clientIdUtil = require('../../utils/clientId.js');
+
+// [V2.0-接线] 取 clientId，取不到返回空串（不抛错、不阻塞渲染）
+async function safeClientId() {
+  try {
+    const cid = await clientIdUtil.ensureClientId();
+    return cid ? String(cid) : '';
+  } catch (e) {
+    return '';
+  }
+}
 
 // [P1-SHARE-20251215] 安全开启分享菜单
 function safeShowShareMenu() {
@@ -36,7 +47,7 @@ function savePendingInviteCode(inCode) {
 Page({
   data: {
     finishedDays: 0,
-    stageText: '训练待开始',
+    stageText: '风险管理待启动',
     nextStepText: '',
 
     campSummary: {
@@ -44,10 +55,22 @@ Page({
       rewardRounds: 0
     },
 
-    bLoading: false,
-    bErrorText: '',
-    fixedEntries: [],
-    baseUrl: ''
+
+    // ===== [V2.0-G3] 风控工作台（24 号原型落地）=====
+    // 数据策略：能本地推导的立刻可用；需后端的诚实占位，不编造数字。
+    wbDateText: '',      // 头部日期文案
+    wbDoneCount: 0,      // 今日清单完成数
+    wbTotalCount: 0,
+    wbStreak: 0,         // 连续守纪天数（本地打卡推导）
+    wbWeekCells: [],     // 本周 7 格打卡状态
+    wbRateReady: false,  // 周执行率是否有后端数据（当前无，诚实占位）
+    wbRate: 0,           // 周执行率百分比（后端 /api/discipline/weekly 就绪后填充）
+    todoList: [],        // 今日执行清单
+    wbPlans: [],         // 存续方案（本地 tradeRecords 推导）
+    wbRecords: [],       // 执行记录
+    wbSeg: 0,            // 内部分段：0 方案 / 1 记录 / 2 报告
+    wbReports: [],       // 报告入口
+    wbHint: ''           // 空态提示
   },
 
   // [P1-SHARE-20251215] 接收分享参数
@@ -66,7 +89,210 @@ Page({
     safeShowShareMenu();
 
     this.refreshCampSummary();
-    console.log('[controller][audit] skip loadFixedEntries');
+    this.buildWorkbench(); // [V2.0-G3] 工作台数据（本地推导 + 后端就绪即接管）
+  },
+
+  // ===== [V2.0-G3] 风控工作台：把"门面"改成"每天要干活的地方" =====
+  // 设计取舍：24 号原型里"周执行率/存续方案进度"本应由后端算，
+  // 后端未就绪时**不编造数字** —— 能本地推导的（打卡、持仓）立刻可用，
+  // 需要历史执行数据的诚实显示"数据积累中"。与 J1 站内消息同一降级原则。
+  buildWorkbench() {
+    try {
+      const today = this._todayKey();
+      const wd = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'][new Date().getDay()];
+
+      // --- 打卡（本地）---
+      const streak = Number(wx.getStorageSync('checkinStreak') || 0) || 0;
+      const lastDate = wx.getStorageSync('checkinLastDate') || '';
+      const checkedToday = lastDate === today;
+
+      // --- 持仓（复用首页 B4 同款兼容映射，不另造字段口径）---
+      let recs = [];
+      try {
+        const raw = wx.getStorageSync('tradeRecords');
+        if (Array.isArray(raw)) recs = raw;
+      } catch (e) {}
+      const hasHolding = recs.length > 0;
+      const noStopCount = recs.filter(
+        (it) => !(it.stopLossPrice || it.stopPrice)
+      ).length;
+
+      // --- 今日执行清单（5 项，全部可本地判定）---
+      const todoList = [
+        {
+          key: 'checkin',
+          name: '每日打卡',
+          desc: checkedToday ? '已完成 · 连续守纪 ' + streak + ' 天' : '今天还没打卡',
+          done: checkedToday,
+          path: '/pages/index/index',
+          tab: true
+        },
+        {
+          key: 'holding',
+          name: '检查持仓诊断',
+          desc: hasHolding
+            ? (noStopCount > 0 ? (noStopCount + ' 个标的未设止损') : '全部已设止损')
+            : '你还没有录入持仓记录',
+          done: hasHolding && noStopCount === 0,
+          path: '/pkgReport/tradeRecord/index'
+        },
+        {
+          key: 'stoploss',
+          name: '确认持仓止损线',
+          desc: noStopCount > 0 ? (noStopCount + ' 个标的待补止损') : '止损线已齐备',
+          done: hasHolding && noStopCount === 0,
+          path: '/pkgReport/tradeRecord/index'
+        },
+        {
+          key: 'calc',
+          name: '交易前的风控测算',
+          desc: '开仓先过一遍，把最大风险写清楚',
+          done: false,
+          path: '/pages/riskCalculator/index'
+        },
+        {
+          key: 'review',
+          name: '写收盘复盘',
+          desc: '沉淀进长期档案，是年报的原料',
+          done: false,
+          path: '/pkgReport/longArchive/index'
+        }
+      ];
+
+      const doneCount = todoList.filter((i) => i.done).length;
+
+      // --- 本周 7 格：先用本地数据渲染，随后由 loadWeekFromServer 用后端权威数据回填 ---
+      // Q1 决策 A：只点亮已打卡（hit），未打卡一律中性态 —— 不加 miss 红态，零羞辱感。
+      // 后端不可达时保持这里的本地结果（今天命中即亮），不伪装成"未执行"。
+      const wbWeekCells = ['一', '二', '三', '四', '五', '六', '日'].map((label, idx) => {
+        const isToday = idx === ((new Date().getDay() + 6) % 7);
+        let state = 'idle';
+        if (isToday) state = checkedToday ? 'hit' : 'idle';
+        return { label: label, state: state, isToday: isToday };
+      });
+
+      // --- 存续方案 / 执行记录（同一份 tradeRecords 的两种视图）---
+      const wbPlans = recs.slice(0, 10).map((it, i) => {
+        const nm = String(it.stockName || it.name || ('标的' + (i + 1)));
+        const hasStop = !!(it.stopLossPrice || it.stopPrice);
+        return {
+          name: nm,
+          initial: nm.charAt(0) || '—',
+          desc: hasStop ? '已设止损 · 规则已就位' : '未设止损 · 规则缺口',
+          hasStop: hasStop,
+          stopText: hasStop ? String(it.stopLossPrice || it.stopPrice) : '—'
+        };
+      });
+
+      const wbRecords = recs.slice(0, 10).map((it, i) => {
+        const nm = String(it.stockName || it.name || ('标的' + (i + 1)));
+        const hasStop = !!(it.stopLossPrice || it.stopPrice);
+        return {
+          name: nm,
+          desc: (it.createTime || it.createdAt || it.date || '近期记录') +
+                (hasStop ? ' · 止损已设' : ' · 未设止损'),
+          ok: hasStop
+        };
+      });
+
+      // --- 报告入口（静态，长期有效）---
+      const wbReports = [
+        { name: '风控报告', desc: '风险重点、纪律提醒与待复核事项', path: '/pkgReport/riskReport/index' },
+        { name: '长期档案', desc: '持续沉淀的风险管理记录与执行表现', path: '/pkgReport/longArchive/index' },
+        { name: '亏损人格档案', desc: '亏损时更接近规则执行还是情绪驱动', path: '/pkgTest/testLossPersonality/index' }
+      ];
+
+      this.setData({
+        wbDateText: this._todayMD() + ' ' + wd + ' · 你的规则，今天执行到哪了',
+        wbStreak: streak,
+        wbWeekCells: wbWeekCells,
+        wbRateReady: false, // 后端 /api/discipline/weekly 就绪后改为 true 并填真实百分比
+        todoList: todoList,
+        wbDoneCount: doneCount,
+        wbTotalCount: todoList.length,
+        wbPlans: wbPlans,
+        wbRecords: wbRecords,
+        wbReports: wbReports,
+        wbHint: recs.length ? '' : '还没有交易记录，先做一次测算并录入持仓，这里就会长出你的工作台'
+      });
+
+      // [V2.0-接线] 后端权威周数据回填（异步，失败静默保留上面的本地渲染）
+      this.loadWeekFromServer().catch(() => {});
+    } catch (e) {
+      console.error('[controller] buildWorkbench error', e);
+    }
+  },
+
+  // [V2.0-接线] 本周 7 格取自后端 /api/discipline/weekly
+  // 响应：{ ok, weekStart, weekEnd, days:[{date,weekday,checked,isToday}], checkedCount, streak, ... }
+  // Q1-A：只亮 hit（checked=true），其余 idle；后端 days 顺序与前端周一为首一致（WEEKDAY_CN[0]='一'）。
+  // 注意：后端 weekStartOf 固定 Asia/Shanghai，前端 new Date().getDay() 取本地时区，
+  //       跨时区/跨零点时"今天"可能错位 → 以服务端返回的 isToday 为准，不自行推算。
+  async loadWeekFromServer() {
+    const base = (CONFIG && CONFIG.API_BASE) ? CONFIG.API_BASE : '';
+    if (!base) return;
+    const cid = await safeClientId();
+    if (!cid) return;
+    const self = this;
+    wx.request({
+      url: base + '/api/discipline/weekly?clientId=' + encodeURIComponent(cid),
+      method: 'GET',
+      timeout: 6000,
+      success(res) {
+        const r = (res && res.data) || {};
+        if (!r.ok || !Array.isArray(r.days) || r.days.length !== 7) return;
+        const cells = r.days.map((d) => ({
+          label: d.weekday,
+          state: d.checked ? 'hit' : 'idle', // Q1-A：无 miss 态
+          isToday: !!d.isToday
+        }));
+        const patch = { wbWeekCells: cells };
+        // streak 以后端权威值为准（跨设备一致）
+        const s = Number(r.streak);
+        if (Number.isFinite(s)) patch.wbStreak = s;
+        // wbRateReady 保持 false：执行率口径未定义，后端故意不返回 rate，不编造百分比
+        self.setData(patch);
+      }
+      // fail 静默：保留本地渲染
+    });
+  },
+
+  _todayKey() {
+    const d = new Date();
+    const p = (n) => (n < 10 ? '0' + n : '' + n);
+    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+  },
+
+  _todayMD() {
+    const d = new Date();
+    const p = (n) => (n < 10 ? '0' + n : '' + n);
+    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+  },
+
+  // 分段切换：0 存续方案 / 1 执行记录 / 2 报告
+  onSegChange(e) {
+    const seg = Number(e.currentTarget.dataset.seg || 0);
+    this.setData({ wbSeg: seg });
+  },
+
+  // 清单项点击：tab 页用 switchTab，普通页用 navigateTo
+  onTodoTap(e) {
+    const item = e.currentTarget.dataset.item || {};
+    if (!item.path) return;
+    if (item.tab) {
+      wx.switchTab({ url: item.path });
+    } else {
+      wx.navigateTo({ url: item.path });
+    }
+  },
+
+  onPlanTap(e) {
+    wx.navigateTo({ url: '/pkgReport/tradeRecord/index' });
+  },
+
+  onReportTap(e) {
+    const path = e.currentTarget.dataset.path;
+    if (path) wx.navigateTo({ url: path });
   },
 
   refreshCampSummary() {
@@ -76,24 +302,23 @@ Page({
 
       const userRights = wx.getStorageSync('userRights') || {};
       const rewardRounds = Number(userRights.campRewardCount || 0);
-
       const hasPaidCourse = !!wx.getStorageSync('hasPaidCourse');
 
       let stageText = '';
       let nextStepText = '';
 
       if (hasPaidCourse) {
-        stageText = '控局者进阶中';
-        nextStepText = '建议结合线下沙龙或一对一账户体检，为你的盈利系统做年度体检。';
+        stageText = '风控能力持续建设中';
+        nextStepText = '结合交易记录、风控报告和长期档案，持续复盘每一笔交易的规则执行。';
       } else if (finishedDays >= 7) {
-        stageText = '已完成一轮训练营';
-        nextStepText = '建议进入风控系统课/进阶课，把训练营体验升级成完整盈利系统。';
+        stageText = '已完成一轮训练';
+        nextStepText = '把训练中形成的仓位、退出和复盘动作应用到每一笔交易。';
       } else if (finishedDays > 0) {
         stageText = '训练进行中';
-        nextStepText = '优先打完本轮 7 天训练营，再考虑体验课或账户体检课。';
+        nextStepText = '继续完成本轮训练，并在每次交易前先完成风险测算。';
       } else {
-        stageText = '训练待开始';
-        nextStepText = '建议先用风控计算器跑 1 套方案，然后从 D1 开始 7 天风控训练营。';
+        stageText = '风险管理待启动';
+        nextStepText = '先完成一次风险测算，再开始7天风控训练。';
       }
 
       this.setData({
@@ -108,392 +333,60 @@ Page({
   },
 
   goCamp() {
-    wx.navigateTo({ url: '/pages/campIntro/index' });
+    wx.navigateTo({ url: '/pkgChallenge/campIntro/index' });
   },
 
-  goCampIntro() {
-    this.goCamp();
-  },
 
   // [P1-ROUTE-FINAL-FIX-20251215]
   goToCourseList() {
     console.log('[controller] goToCourseList tap');
 
     wx.navigateTo({
-      url: '/pages/course/index?from=controller',
+      url: '/pkgService/course/index?from=controller',
       success() {
-        console.log('[controller] navigateTo /pages/course/index success');
+        console.log('[controller] navigateTo /pkgService/course/index success');
       },
       fail(err1) {
-        console.warn('[controller] /pages/course/index fail, fallback to /pages/courses/index', err1);
+        console.warn('[controller] /pkgService/course/index fail, fallback to /pkgService/courses/index', err1);
 
         wx.navigateTo({
-          url: '/pages/courses/index?from=controller',
+          url: '/pkgService/courses/index?from=controller',
           success() {
-            console.log('[controller] fallback navigateTo /pages/courses/index success');
+            console.log('[controller] fallback navigateTo /pkgService/courses/index success');
           },
           fail(err2) {
-            console.error('[controller] fallback navigateTo /pages/courses/index fail:', err2);
-            wx.showToast({ title: '暂时无法打开控局日历', icon: 'none' });
+            console.error('[controller] fallback navigateTo /pkgService/courses/index fail:', err2);
+            wx.showToast({ title: '暂时无法打开课程与训练', icon: 'none' });
           }
         });
       }
     });
   },
 
-  goCourseProgress() {
-    wx.navigateTo({ url: '/pages/course/progress' });
-  },
 
   goCalc() {
     wx.navigateTo({ url: '/pages/riskCalculator/index' });
   },
 
+  goTradeRecord() {
+    wx.navigateTo({ url: '/pkgReport/tradeRecord/index?from=controller' });
+  },
+
+
+  goLongArchive() {
+    wx.navigateTo({ url: '/pkgReport/longArchive/index?from=controller' });
+  },
+
+
+
   // =========================
   // B 区：固定入口（口径与课程日历一致）
   // =========================
 
-  // MOD: 统一从 config.js 取 API_BASE
-  getBaseUrl() {
-    return String(API_BASE || '').replace(/\/$/, '');  // 确保从 config.js 中正确读取生产环境地址
-  },
 
-  requestJson(url, method = 'GET', data) {
-    return new Promise((resolve, reject) => {
-      wx.request({
-        url,  // 确保 URL 使用的是从 config.js 中读取的 API_BASE
-        method,
-        data,
-        header: { 'content-type': 'application/json' },
-        success: (res) => resolve(res.data),
-        fail: (err) => reject(err)
-      });
-    });
-  },
 
-  extractCourseList(payload) {
-    const pickArr = (v) => (Array.isArray(v) ? v : null);
-    if (Array.isArray(payload)) return payload;
-    if (!payload || typeof payload !== 'object') return [];
 
-    let list =
-      pickArr(payload.courses) ||
-      pickArr(payload.list) ||
-      pickArr(payload.rows) ||
-      pickArr(payload.items);
-    if (list) return list;
-
-    const d1 = payload.data;
-    if (d1 && typeof d1 === 'object') {
-      list =
-        pickArr(d1.courses) ||
-        pickArr(d1.list) ||
-        pickArr(d1.rows) ||
-        pickArr(d1.items);
-      if (list) return list;
-
-      const d2 = d1.data;
-      if (d2 && typeof d2 === 'object') {
-        list =
-          pickArr(d2.courses) ||
-          pickArr(d2.list) ||
-          pickArr(d2.rows) ||
-          pickArr(d2.items);
-        if (list) return list;
-      }
-    }
-    return [];
-  },
-
-  parseDT(v) {
-    if (!v) return null;
-    const raw = String(v).trim();
-    if (!raw) return null;
-
-    const tries = [];
-    tries.push(raw);
-
-    if (/^\d{4}-\d{2}-\d{2}\s/.test(raw)) {
-      tries.push(raw.replace(/-/g, '/'));
-    }
-
-    if (raw.indexOf('T') >= 0) {
-      tries.push(raw.replace('T', ' '));
-      tries.push(raw.replace('T', ' ').replace(/-/g, '/'));
-    }
-
-    for (let i = 0; i < tries.length; i++) {
-      const d = new Date(tries[i]);
-      if (!isNaN(d.getTime())) return d;
-    }
-    return null;
-  },
-
-  pad2(n) {
-    return n < 10 ? `0${n}` : `${n}`;
-  },
-
-  weekdayCN(d) {
-    const map = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
-    return map[d.getDay()] || '';
-  },
-
-  fmtMDW(d) {
-    return `${this.pad2(d.getMonth() + 1)}/${this.pad2(d.getDate())} ${this.weekdayCN(d)}`;
-  },
-
-  fmtHM(d) {
-    return `${this.pad2(d.getHours())}:${this.pad2(d.getMinutes())}`;
-  },
-
-  getRawType(x) {
-    return (x.type || x.courseType || x.course_type || x.category || '');
-  },
-
-  typeUiMetaByKey(typeKey) {
-    switch (typeKey) {
-      case 'PUBLIC':
-        return { typeLabel: '公开课', pillClass: 'pill-promo', stepLabel: '第一站', stepClass: 'step-1' };
-      case 'EXPERIENCE':
-        return { typeLabel: '体验课', pillClass: 'pill-experience', stepLabel: '第二站', stepClass: 'step-2' };
-      case 'CAMP':
-        return { typeLabel: '训练营', pillClass: 'pill-camp', stepLabel: '训练营', stepClass: 'step-camp' };
-      case 'SALON':
-        return { typeLabel: '线下', pillClass: 'pill-salon', stepLabel: '线下', stepClass: 'step-salon' };
-      case 'RISK':
-        return { typeLabel: '风控课', pillClass: 'pill-risk', stepLabel: '风控', stepClass: 'step-risk' };
-      case 'CONTROLLER':
-        return { typeLabel: '进阶', pillClass: 'pill-paid', stepLabel: '进阶', stepClass: 'step-paid' };
-      default:
-        return { typeLabel: '课程', pillClass: 'pill-default', stepLabel: '入口', stepClass: 'step-default' };
-    }
-  },
-
-  statusMeta(statusRaw, startTs, endTs) {
-    const s = String(statusRaw || '').toLowerCase();
-    const now = Date.now();
-
-    if (s === 'draft') {
-      return { text: '待发布', badge: 'fixed-status-upcoming', isDraft: true, isEnded: false, isLive: false };
-    }
-    if (s === 'closed' || s === 'finished' || s === 'ended') {
-      return { text: '已结束', badge: 'fixed-status-ended', isDraft: false, isEnded: true, isLive: false };
-    }
-
-    if (!startTs || !endTs) {
-      return { text: '未开始', badge: 'fixed-status-upcoming', isDraft: false, isEnded: false, isLive: false };
-    }
-    if (now < startTs) {
-      return { text: '未开始', badge: 'fixed-status-upcoming', isDraft: false, isEnded: false, isLive: false };
-    }
-    if (now >= startTs && now <= endTs) {
-      return { text: '进行中', badge: 'fixed-status-live', isDraft: false, isEnded: false, isLive: true };
-    }
-    return { text: '已结束', badge: 'fixed-status-ended', isDraft: false, isEnded: true, isLive: false };
-  },
-
-  onRetryFixed() {
-    console.log('[controller][audit] skip loadFixedEntries');
-  },
-
-  loadFixedEntries() {
-    const baseUrl = this.getBaseUrl();  // 确保使用生产环境 API_BASE
-    const url = `${baseUrl}/api/courses`; // 确保请求的 URL 使用 API_BASE
-
-    console.log('[controller] loadFixedEntries url =', url);
-
-    this.setData({ bLoading: true, bErrorText: '', baseUrl });
-
-    this.requestJson(url, 'GET')
-      .then((payload) => {
-        const list = this.extractCourseList(payload);
-        console.log('[controller] extracted course list length =', list.length);
-
-        const normalized = (list || [])
-          .map((x) => {
-            const rawType = this.getRawType(x);
-            const typeMeta = getCourseTypeMeta(rawType);
-            const ui = this.typeUiMetaByKey(typeMeta.key);
-
-            const startRaw = x.startTime || x.start_time || '';
-            const endRaw = x.endTime || x.end_time || '';
-            const startD = this.parseDT(startRaw);
-            const endD = this.parseDT(endRaw);
-            const startTs = startD ? startD.getTime() : 0;
-            const endTs = endD ? endD.getTime() : 0;
-
-            const st = this.statusMeta(x.status, startTs, endTs);
-
-            const timeRange =
-              startD && endD
-                ? `${this.fmtMDW(startD)} ${this.fmtHM(startD)} - ${this.fmtHM(endD)}`
-                : '时间待定';
-
-            const desc = x.description_text || x.description || '';
-
-            return {
-              id: x.id,
-              title: x.title || '',
-              typeKey: typeMeta.key,
-              status: x.status || '',
-              startTs,
-              endTs,
-              timeRange,
-              statusText: st.text,
-              statusBadgeClass: st.badge,
-              isDraft: st.isDraft,
-              isEnded: st.isEnded,
-              isLive: st.isLive,
-              desc,
-              ...ui
-            };
-          })
-          .filter((c) => {
-            if (c.isDraft) return false;
-            if (c.isEnded) return false;
-            return true;
-          })
-          .sort((a, b) => {
-            const at = a.startTs || Number.MAX_SAFE_INTEGER;
-            const bt = b.startTs || Number.MAX_SAFE_INTEGER;
-            return at - bt;
-          });
-
-        const pickFirstByKey = (k) => normalized.find((c) => c.typeKey === k) || null;
-
-        const promo = pickFirstByKey('PUBLIC');
-        const experience = pickFirstByKey('EXPERIENCE');
-        const camp = pickFirstByKey('CAMP');
-        const salon = pickFirstByKey('SALON');
-
-        console.log('[controller] fixed pick =', {
-          promo: promo ? promo.id : null,
-          exp: experience ? experience.id : null,
-          camp: camp ? camp.id : null,
-          salon: salon ? salon.id : null
-        });
-
-        const defaults = [
-          {
-            key: 'promo',
-            fallback: {
-              title: '止亏觉醒：为什么 90% 的人输在风控？（公开课）',
-              timeRange: '时间待定',
-              desc: '先止亏，再谈盈利。用 60 分钟搭好你的风控框架。',
-              statusText: '未开始',
-              statusBadgeClass: 'fixed-status-upcoming',
-              id: '',
-              ...this.typeUiMetaByKey('PUBLIC')
-            }
-          },
-          {
-            key: 'experience',
-            fallback: {
-              title: '风控计算器实战：搭建你的分批进出场护栏（体验课）',
-              timeRange: '时间待定',
-              desc: '一人一标的，现场跑完完整方案，把“先控亏”落地。',
-              statusText: '未开始',
-              statusBadgeClass: 'fixed-status-upcoming',
-              id: '',
-              ...this.typeUiMetaByKey('EXPERIENCE')
-            }
-          },
-          {
-            key: 'camp',
-            fallback: {
-              title: '7天风控训练营 · 说明会（D0）',
-              timeRange: '时间待定',
-              desc: '讲清打卡方式、权益发放、控局者路径，适合准备入营用户。',
-              statusText: '未开始',
-              statusBadgeClass: 'fixed-status-upcoming',
-              id: '',
-              ...this.typeUiMetaByKey('CAMP')
-            }
-          },
-          {
-            key: 'salon',
-            fallback: {
-              title: '控局者线下沙龙 + 账户体检（来访）',
-              timeRange: '时间待定',
-              desc: '小范围线下交流 + 账户体检 + 下一步路径建议。',
-              statusText: '未开始',
-              statusBadgeClass: 'fixed-status-upcoming',
-              id: '',
-              ...this.typeUiMetaByKey('SALON')
-            }
-          }
-        ];
-
-        const fixedEntries = defaults.map((d) => {
-          let real = null;
-          if (d.key === 'promo') real = promo;
-          if (d.key === 'experience') real = experience;
-          if (d.key === 'camp') real = camp;
-          if (d.key === 'salon') real = salon;
-
-          const use = real || d.fallback;
-
-          const brief = String(use.desc || '').trim();
-          const brief2 = brief.length > 64 ? `${brief.slice(0, 64)}...` : brief;
-
-          return {
-            key: d.key,
-            id: use.id,
-            title: use.title,
-            timeRange: use.timeRange,
-            brief: brief2,
-
-            courseType: d.key,
-            typeLabel: use.typeLabel,
-            pillClass: use.pillClass,
-            stepLabel: use.stepLabel,
-            stepClass: use.stepClass,
-            statusText: use.statusText,
-            statusBadgeClass: use.statusBadgeClass || 'fixed-status-upcoming',
-
-            isFallback: !use.id
-          };
-        });
-
-        this.setData({ fixedEntries, bLoading: false, bErrorText: '' });
-      })
-      .catch((e) => {
-        console.error('[controller] loadFixedEntries error', e);
-        this.setData({
-          bLoading: false,
-          bErrorText: '课表加载失败（请确认后端已启动）'
-        });
-      });
-  },
-
-  onFixedCardTap(e) {
-    const id = String(e.currentTarget.dataset.id || '');
-    if (!id) {
-      wx.showToast({ title: '当前审核版本暂不展示该入口', icon: 'none' });
-      return;
-    }
-    wx.navigateTo({ url: `/pages/course/detail?id=${id}&from=controller` });
-  },
-
-  onFixedDetailTap(e) {
-    const id = String(e.currentTarget.dataset.id || '');
-    if (!id) {
-      wx.showToast({ title: '当前审核版本暂不展示该入口', icon: 'none' });
-      return;
-    }
-    wx.navigateTo({ url: `/pages/course/detail?id=${id}&from=controller` });
-  },
-
-  onFixedBookingTap(e) {
-    const id = String(e.currentTarget.dataset.id || '');
-    if (!id) {
-      wx.showToast({ title: '当前审核版本暂不展示该入口', icon: 'none' });
-      return;
-    }
-    wx.navigateTo({ url: `/pages/visitBooking/index?from=controller&courseId=${id}` });
-  },
-
-  // [P1-SHARE-20251215] 分享控局者入口（携带 inviteCode）
+  // [P1-SHARE-20251215] 分享守护者入口（携带 inviteCode）
   onShareAppMessage() {
     const inviteCode = getMyInviteCode();
     const path =
@@ -505,7 +398,7 @@ Page({
     });
 
     return {
-      title: '熵盾研究院 · 控局者训练中枢',
+      title: '熵盾 · 风控中心',
       path
     };
   }

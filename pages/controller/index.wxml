@@ -1,136 +1,155 @@
+<!-- pages/controller/index.wxml · [V2.0-G3] 风控中心 → 风控工作台（24 号原型落地） -->
+<!-- 改造要点：删掉与首页四宫格/更多入口 100% 重复的"核心风控功能""风控能力训练"，
+     以及 hero 说教卡；换成"每天要干活的地方"：执行率 + 今日清单 + 快捷动作 + 方案/记录/报告三段。 -->
 <view class="page">
 
-<!-- 顶部：控局航道总览 -->
-<view class="hero-card">
-  <view class="hero-left">
-    <view class="hero-label">控局者 · 训练中枢</view>
-    <view class="hero-title">从 7 天训练到完整控局体系</view>
-    <view class="hero-desc">
-      这里承载你的训练营进度、控局日历与后续升级路径。
+  <!-- ① 工作台头部：轻量，无 hero、无说教 -->
+  <view class="wb-head">
+    <view class="wb-head-l">
+      <view class="wb-title">风控工作台</view>
+      <view class="wb-sub">{{wbDateText}}</view>
     </view>
-  </view>
-  <view class="hero-right">
-    <view class="hero-stat">
-      <text class="hero-stat-label">本轮训练营</text>
-      <text class="hero-stat-value">{{finishedDays}} / 7 天</text>
-    </view>
-    <view class="hero-stat-tag">{{stageText}}</view>
-  </view>
-</view>
-
-<!-- A 区：7 天风控训练营 -->
-<view class="section-card">
-
-  <view class="section-a-row section-a-row-top">
-    <view class="section-a-main">
-      <text class="section-tag">A. 7 天风控训练营</text>
-    </view>
-    <view class="section-a-btn-wrap">
-      <button class="section-a-btn" bindtap="goCamp">进入训练营</button>
+    <view class="wb-chip">
+      <text class="wb-chip-k">今日清单</text>
+      <text class="wb-chip-v">{{wbDoneCount}} / {{wbTotalCount}}</text>
     </view>
   </view>
 
-  <view class="section-a-row">
-    <view class="section-a-main">
-      <view class="section-a-title">熵盾研究院 · 控局日历</view>
-      <view class="section-a-sub">统一查看训练营与多类控局排期，集中安排控局节奏</view>
+  <!-- ② 本周纪律执行率 -->
+  <view class="rate-card">
+    <view class="rate-top">
+      <text class="rate-k">本周纪律执行率</text>
+      <text class="rate-v" wx:if="{{wbRateReady}}">{{wbRate}}% · 高于你的均值</text>
+      <!-- 后端 /api/discipline/weekly 未就绪：诚实占位，不编造百分比 -->
+      <text class="rate-v rate-v-idle" wx:else>数据积累中</text>
     </view>
-    <view class="section-a-btn-wrap">
-      <button class="section-a-btn" bindtap="goToCourseList">继续训练</button>
+
+    <view class="rate-row">
+      <block wx:for="{{wbWeekCells}}" wx:key="label">
+        <view class="rate-cell {{item.state === 'hit' ? 'hit' : ''}} {{item.isToday ? 'today' : ''}}">
+          <text>{{item.label}}</text>
+        </view>
+      </block>
+    </view>
+
+    <view class="rate-note">
+      连续守纪 <text class="rate-em">{{wbStreak}}</text> 天 · 逐日执行率待后端统计接口就绪后自动填充
     </view>
   </view>
 
-  <view class="section-a-row">
-    <view class="section-a-main">
-      <view class="section-a-title">我的控局进度</view>
-      <view class="section-a-sub">查看训练营与控局的完成情况，掌握自己的控局节奏</view>
+  <!-- ③ 今日执行清单 -->
+  <view class="wb-sec">
+    <view class="sec-head">
+      <text class="sec-h3">今日执行清单</text>
+      <text class="sec-r">完成 <text class="sec-rb">{{wbDoneCount}}</text>/{{wbTotalCount}}</text>
     </view>
-    <view class="section-a-btn-wrap">
-      <button class="section-a-btn" bindtap="goCourseProgress">查看进度</button>
+
+    <view class="wb-list">
+      <block wx:for="{{todoList}}" wx:key="key">
+        <view class="wb-item" bindtap="onTodoTap" data-item="{{item}}">
+          <view class="wb-item-l">
+            <view class="wb-cb {{item.done ? 'done' : ''}}">
+              <text wx:if="{{item.done}}">✓</text>
+            </view>
+            <view class="wb-item-txt">
+              <view class="wb-item-nm {{item.done ? 'dim' : ''}}">{{item.name}}</view>
+              <view class="wb-item-d">{{item.desc}}</view>
+            </view>
+          </view>
+          <text class="wb-tag {{item.done ? 't-safe' : 't-warn'}}">{{item.done ? '完成' : '待办'}}</text>
+        </view>
+      </block>
     </view>
   </view>
 
-  <view class="section-meta">
-    <text class="row-label">当前进度</text>
-    <text class="row-value">{{finishedDays}} / 7 天</text>
+  <!-- ④ 快捷动作条：计算器降级为其中一个动作，不再是整页主角 -->
+  <view class="wb-quick">
+    <view class="qbtn" bindtap="goCalc">
+      <text class="q-ico">▦</text>
+      <text class="q-t">风控测算</text>
+      <text class="q-s">开仓必过</text>
+    </view>
+    <view class="qbtn" bindtap="goTradeRecord">
+      <text class="q-ico">✎</text>
+      <text class="q-t">记一笔</text>
+      <text class="q-s">持仓/执行</text>
+    </view>
+    <view class="qbtn" bindtap="goLongArchive">
+      <text class="q-ico">◆</text>
+      <text class="q-t">写复盘</text>
+      <text class="q-s">沉淀档案</text>
+    </view>
   </view>
 
-  <view class="section-goal">
-    <text class="row-text section-goal-text">
-      训练目标：通过 7 天，把“止损、仓位、复盘”变成你交易前后自动会做的动作。
-    </text>
+  <!-- ⑤ 内部分段：存续方案 / 执行记录 / 报告 -->
+  <view class="wb-seg">
+    <view class="seg-item {{wbSeg === 0 ? 'on' : ''}}" data-seg="0" bindtap="onSegChange">存续方案 {{wbPlans.length}}</view>
+    <view class="seg-item {{wbSeg === 1 ? 'on' : ''}}" data-seg="1" bindtap="onSegChange">执行记录</view>
+    <view class="seg-item {{wbSeg === 2 ? 'on' : ''}}" data-seg="2" bindtap="onSegChange">报告</view>
   </view>
 
-  <view class="section-footer">
-    <text class="section-tip">建议顺序：先完成一轮 7 天训练，再进入控局系统课与线下沙龙。</text>
-  </view>
-</view>
-
-<!-- B 区：近期内容与预约（真实课表驱动） -->
-<view class="section-card">
-  <view class="section-header-b header-row">
-    <text class="section-tag">B. 近期安排与预约</text>
-    <text class="header-link" bindtap="goToCourseList">查看安排</text>
-  </view>
-  <view class="section-sub-line">内容 / 体验课 / 训练营 / 线下沙龙</view>
-
-  <view class="fixed-title">控局路径 · 固定入口</view>
-
-  <!-- loading：首次加载用骨架 -->
-  <view wx:if="{{bLoading && fixedEntries.length===0}}" class="b-skeleton-wrap">
-    <view class="b-skeleton-card"></view>
-    <view class="b-skeleton-card"></view>
-  </view>
-
-  <view wx:elif="{{bLoading}}" class="b-hint">
-    正在刷新课表...
-  </view>
-
-  <view class="b-error" wx:if="{{bErrorText}}">
-    <text>{{bErrorText}}</text>
-    <button class="b-retry" catchtap="onRetryFixed">重试</button>
-  </view>
-
-  <view wx:for="{{fixedEntries}}" wx:key="key" class="fixed-card {{item.isFallback?'fixed-card-fallback':''}}" data-id="{{item.id}}" bindtap="onFixedCardTap">
-    <view class="fixed-top">
-      <view class="fixed-step {{item.stepClass}}">{{item.stepLabel}}</view>
-      <view class="fixed-right">
-        <view class="fixed-pill {{item.pillClass}}">{{item.typeLabel}}</view>
-        <view class="fixed-status {{item.statusBadgeClass}}">{{item.statusText}}</view>
+  <!-- 5-1 存续方案：让每个方案成为"活物" -->
+  <view class="wb-sec" wx:if="{{wbSeg === 0}}">
+    <block wx:for="{{wbPlans}}" wx:key="name">
+      <view class="plan-card" bindtap="onPlanTap">
+        <view class="plan-top">
+          <view class="plan-top-l">
+            <view class="plan-nm">{{item.name}}</view>
+            <view class="plan-d">{{item.desc}}</view>
+          </view>
+          <text class="wb-tag {{item.hasStop ? 't-safe' : 't-danger'}}">{{item.hasStop ? '规则就位' : '待补止损'}}</text>
+        </view>
+        <view class="plan-stat">
+          <view class="pstat"><text class="pstat-k">止损线</text><text class="pstat-v">{{item.stopText}}</text></view>
+          <view class="pstat"><text class="pstat-k">状态</text><text class="pstat-v">{{item.hasStop ? '已设' : '未设'}}</text></view>
+        </view>
       </view>
+    </block>
+
+    <view class="wb-empty" wx:if="{{!wbPlans.length}}">{{wbHint || '暂无存续方案'}}</view>
+  </view>
+
+  <!-- 5-2 执行记录 -->
+  <view class="wb-sec" wx:if="{{wbSeg === 1}}">
+    <view class="wb-list">
+      <block wx:for="{{wbRecords}}" wx:key="name">
+        <view class="rec">
+          <view class="rec-l">
+            <view class="rec-ico {{item.ok ? 'ok' : 'bad'}}">{{item.ok ? '✓' : '!'}}</view>
+            <view class="rec-txt">
+              <view class="rec-nm">{{item.name}}</view>
+              <view class="rec-d">{{item.desc}}</view>
+            </view>
+          </view>
+          <text class="wb-tag {{item.ok ? 't-safe' : 't-warn'}}">{{item.ok ? '守纪' : '待补'}}</text>
+        </view>
+      </block>
     </view>
+    <view class="wb-empty" wx:if="{{!wbRecords.length}}">{{wbHint || '暂无执行记录'}}</view>
+  </view>
 
-    <view class="fixed-name">{{item.title}}</view>
-    <view class="fixed-time">{{item.timeRange}}</view>
-
-    <view class="fixed-brief" wx:if="{{item.brief}}">
-      {{item.brief}}
+  <!-- 5-3 报告 -->
+  <view class="wb-sec" wx:if="{{wbSeg === 2}}">
+    <view class="wb-list">
+      <block wx:for="{{wbReports}}" wx:key="name">
+        <view class="rep" bindtap="onReportTap" data-path="{{item.path}}">
+          <view class="rep-top">
+            <text class="rep-nm">{{item.name}}</text>
+          </view>
+          <view class="rep-d">{{item.desc}}</view>
+        </view>
+      </block>
     </view>
+  </view>
 
-    <view class="fixed-actions">
-      <button class="btn-ghost {{item.isFallback?'btn-disabled':''}}" data-id="{{item.id}}" catchtap="onFixedDetailTap">查看详情</button>
-      <button class="btn-primary {{item.isFallback?'btn-disabled':''}}"
-        wx:if="{{item.courseType==='salon' || item.key==='salon'}}"
-        data-id="{{item.id}}"
-        catchtap="onFixedBookingTap">预约来访</button>
+  <!-- ⑥ 责任边界（保留，A3 合规要求） -->
+  <view class="card notice-card">
+    <view class="notice-title">风险与责任边界</view>
+    <view class="notice-text">
+      <text>熵盾提供风险信息、规则工具和风险管理支持。</text>
+      <text>相关结果不构成投资建议，不替代用户独立判断和自主决策。</text>
     </view>
   </view>
 
-  <view class="b-foot">
-    说明：当前审核版本正式开放训练营打卡与来访预约。
-  </view>
-</view>
-
-<!-- C 区：内容预约与渠道数据（预留） -->
-<view class="section-card section-card-small">
-  <view class="section-header-c">
-    <text class="section-tag">C. 当前开放内容</text>
-  </view>
-  <view class="section-body">
-    <text class="row-text">
-      当前审核版本仅展示已正式开放的训练营与来访内容，未开放内容不在此版本展示。
-    </text>
-  </view>
-</view>
-
+  <disclaimer />
 </view>
