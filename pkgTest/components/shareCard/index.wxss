@@ -1,0 +1,102 @@
+/* pkgTest/components/shareCard/index.wxss */
+/* [V2.0-C4] 分享卡浮层样式 —— 色值一律经 var() 并带 fallback */
+
+.sc-root {
+  position: fixed;
+  left: 0; top: 0; right: 0; bottom: 0;
+  z-index: 9999;
+}
+
+/* 画布移出视口（不能用 display:none，否则 selectorQuery 取不到 node） */
+.sc-canvas {
+  position: absolute;
+  left: -9999px;
+  top: -9999px;
+}
+
+.sc-mask {
+  position: absolute;
+  left: 0; top: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.72);
+}
+
+.sc-panel {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 600rpx;
+  padding: var(--sp-4, 32rpx);
+  background: var(--es-card, #121A26);
+  border: 2rpx solid var(--es-line, #1E2A3A);
+  border-radius: var(--radius-lg, 28rpx);
+  box-sizing: border-box;
+}
+
+.sc-status {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 400rpx;
+}
+
+.sc-spinner {
+  width: 56rpx;
+  height: 56rpx;
+  border: 6rpx solid var(--es-line, #1E2A3A);
+  border-top-color: var(--es-green, #00E5A0);
+  border-radius: 50%;
+  animation: sc-spin 0.8s linear infinite;
+  margin-bottom: var(--sp-3, 24rpx);
+}
+
+@keyframes sc-spin {
+  to { transform: rotate(360deg); }
+}
+
+.sc-status-txt {
+  font-size: var(--fs-base, 28rpx);
+  color: var(--es-txt-2, #8A94A6);
+}
+
+.sc-img {
+  width: 100%;
+  border-radius: var(--radius-md, 20rpx);
+  display: block;
+}
+
+.sc-tip {
+  margin-top: var(--sp-2, 16rpx);
+  font-size: var(--fs-sm, 24rpx);
+  color: var(--es-txt-3, #5A6577);
+  text-align: center;
+}
+
+.sc-actions {
+  display: flex;
+  gap: var(--sp-2, 16rpx);
+  margin-top: var(--sp-4, 32rpx);
+}
+
+.sc-btn {
+  flex: 1;
+  height: 84rpx;
+  line-height: 84rpx;
+  font-size: var(--fs-base, 28rpx);
+  border-radius: var(--radius-md, 20rpx);
+  border: none;
+}
+
+.sc-btn::after { border: none; }
+
+.sc-btn-ghost {
+  background: var(--es-elevated, #1A2434);
+  color: var(--es-txt-2, #8A94A6);
+}
+
+.sc-btn-primary {
+  background: var(--es-green, #00E5A0);
+  color: var(--es-bg, #0A0E14);
+  font-weight: 700;
+}

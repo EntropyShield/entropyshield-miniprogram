@@ -1,0 +1,14 @@
+.disc {
+  padding: 24rpx 32rpx 40rpx;
+  box-sizing: border-box;
+}
+.disc-compact {
+  padding: 16rpx 24rpx;
+}
+.disc-text {
+  display: block;
+  font-size: 22rpx;
+  line-height: 34rpx;
+  color: var(--es-txt-3, #5A6577);
+  text-align: center;
+}

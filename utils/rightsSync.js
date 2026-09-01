@@ -1,5 +1,3 @@
-const { saveUserRights } = require('./userRights');
-
 const DEFAULT_API_BASE = 'https://api.entropyshield.com';
 
 function safeGetApp() {
@@ -257,236 +255,128 @@ function normalizeEffectiveRights(payload) {
   };
 }
 
-function hasLocalPaidMembership(rights) {
-  rights = rights || {};
-
-  const expireAt = toMs(
-    pickFirst(
-      rights.membershipExpireAt,
-      rights.trialExpireAt,
-      rights.expireAt
-    )
-  );
-
-  const now = Date.now();
-
-  const name = String(
-    pickFirst(
-      rights.membershipName,
-      rights.currentMembershipName,
-      ''
-    )
-  ).trim();
-
-  const plan = String(
-    pickFirst(
-      rights.membershipPlan,
-      rights.currentMembershipType,
-      ''
-    )
-  ).trim();
-
-  const productCode = String(
-    pickFirst(
-      rights.membershipProductCode,
-      rights.productCode,
-      ''
-    )
-  ).trim();
-
-  const level = String(
-    pickFirst(
-      rights.membershipLevel,
-      ''
-    )
-  ).trim();
-
-  const hasIdentity =
-    !!name ||
-    !!plan ||
-    !!productCode ||
-    !!level;
-
-  const isNotFree =
-    name !== '未开通' &&
-    name !== '未开通会员' &&
-    plan !== 'free' &&
-    level.toUpperCase() !== 'FREE';
-
-  return !!(hasIdentity && isNotFree && expireAt && expireAt > now);
-}
-
-function buildProtectedEffectiveRights(effectiveRights, localRights) {
-  const next = Object.assign({}, effectiveRights || {});
-  const membership = Object.assign({}, next.membership || {});
-  const calculator = Object.assign({}, next.calculator || {});
-
-  const expireAt = toMs(
-    pickFirst(
-      localRights.membershipExpireAt,
-      localRights.trialExpireAt,
-      0
-    )
-  );
-
-  const name = String(
-    pickFirst(
-      localRights.membershipName,
-      localRights.currentMembershipName,
-      membership.name,
-      '会员权益'
-    )
-  );
-
-  const plan = String(
-    pickFirst(
-      localRights.membershipPlan,
-      localRights.currentMembershipType,
-      membership.plan,
-      ''
-    )
-  );
-
-  const productCode = String(
-    pickFirst(
-      localRights.membershipProductCode,
-      localRights.productCode,
-      membership.productCode,
-      ''
-    )
-  );
-
-  const level = String(
-    pickFirst(
-      localRights.membershipLevel,
-      membership.level,
-      ''
-    )
-  );
-
-  const remainingDays = expireAt > Date.now()
-    ? Math.ceil((expireAt - Date.now()) / 86400000)
-    : 0;
-
-  next.membership = Object.assign({}, membership, {
-    active: true,
-    name,
-    level,
-    plan,
-    productCode,
-    expireAt,
-    expireAtText: membership.expireAtText || '',
-    remainingMs: expireAt > Date.now() ? expireAt - Date.now() : 0,
-    remainingDays
-  });
-
-  next.calculator = Object.assign({}, calculator, {
-    canUse: true,
-    needsPay: false,
-    unlockReason: 'local_paid_membership_preserved'
-  });
-
-  next.membershipName = name;
-  next.membershipLevel = level;
-  next.membershipExpireAt = expireAt;
-  next.canUseCalculator = true;
-  next.needsPay = false;
-
-  return next;
-}
-
 function persistRights(normalized) {
-  let rights = normalized && normalized.rights ? normalized.rights : {};
-  let effectiveRights = normalized && normalized.effectiveRights ? normalized.effectiveRights : {};
+  const rights =
+    normalized && normalized.rights
+      ? normalized.rights
+      : {};
+
+  const effectiveRights =
+    normalized && normalized.effectiveRights
+      ? normalized.effectiveRights
+      : {};
 
   let current = {};
+
   try {
     current = wx.getStorageSync('userRights') || {};
   } catch (e) {}
 
-  const localHasPaid = hasLocalPaidMembership(current);
-  const incomingHasPaid = hasLocalPaidMembership(rights);
+  /*
+   * SERVER_MEMBERSHIP_AUTHORITATIVE
+   *
+   * 会员权益以服务端为准：本地任何会员字段都不再参与合并，
+   * 只保留与会员无关的字段（如免费次数），避免本地旧状态覆盖服务端结果。
+   *
+   * 免费测算次数取本地与服务端的较大值，防止服务端延迟导致次数丢失。
+   */
+  const localOnly = Object.assign({}, current);
 
-  const localExpireAt = toMs(
-    pickFirst(
-      current.membershipExpireAt,
-      current.trialExpireAt,
-      0
-    )
-  );
+  const membershipKeys = [
+    'membership',
+    'calculator',
+    'membershipName',
+    'currentMembershipName',
+    'membershipPlan',
+    'currentMembershipType',
+    'membershipType',
+    'membershipLevel',
+    'membershipProductCode',
+    'membershipProduct',
+    'productCode',
+    'membershipExpireAt',
+    'membershipExpireText',
+    'membershipExpireAtText',
+    'membership_name',
+    'membership_level',
+    'membership_expire_at',
+    'membership_active',
+    'trialActive',
+    'trialExpireAt',
+    'advancedEnabled',
+    'advanced_enabled',
+    'isMemberActive',
+    'membershipActive',
+    'is_member_active',
+    'canUseCalculator',
+    'can_use_calculator',
+    'needsPay',
+    'needs_pay',
+    'effectiveRights'
+  ];
 
-  const incomingExpireAt = toMs(
-    pickFirst(
-      rights.membershipExpireAt,
-      rights.trialExpireAt,
-      0
-    )
-  );
-
-  // 核心保护：
-  // 如果本地刚支付成功已有有效会员权益，而服务端返回空权益、未开通、或更早到期时间，
-  // 则不允许服务端旧状态覆盖本地刚支付成功状态。
-  if (localHasPaid && (!incomingHasPaid || incomingExpireAt < localExpireAt)) {
-    rights = Object.assign({}, rights, {
-      currentMembershipType: current.currentMembershipType || rights.currentMembershipType || '',
-      currentMembershipName: current.currentMembershipName || current.membershipName || rights.currentMembershipName || '',
-      membershipName: current.membershipName || rights.membershipName || '',
-      membershipPlan: current.membershipPlan || rights.membershipPlan || '',
-      membershipLevel: current.membershipLevel || rights.membershipLevel || '',
-      productCode: current.productCode || rights.productCode || '',
-      membershipProductCode: current.membershipProductCode || rights.membershipProductCode || '',
-      membershipExpireAt: localExpireAt,
-      membershipExpireText: current.membershipExpireText || rights.membershipExpireText || localExpireAt,
-      membershipExpireAtText: current.membershipExpireAtText || rights.membershipExpireAtText || '',
-      trialActive: current.trialActive || rights.trialActive || false,
-      trialExpireAt: current.trialExpireAt || rights.trialExpireAt || localExpireAt,
-      advancedEnabled: current.advancedEnabled || rights.advancedEnabled || false,
-      isMemberActive: true,
-      canUseCalculator: true,
-      needsPay: false
-    });
-
-    effectiveRights = buildProtectedEffectiveRights(effectiveRights, rights);
-
-    try {
-      console.log('[rightsSync] preserve local paid membership, block stale server overwrite =>', {
-        localExpireAt,
-        incomingExpireAt,
-        membershipName: rights.membershipName,
-        membershipPlan: rights.membershipPlan,
-        membershipProductCode: rights.membershipProductCode
-      });
-    } catch (e) {}
-  }
-
-  let saved = {};
-
-  try {
-    saved = saveUserRights(rights) || {};
-  } catch (e) {
-    saved = rights;
-  }
-
-  let latest = {};
-  try {
-    latest = wx.getStorageSync('userRights') || {};
-  } catch (e) {}
-
-  const finalRights = Object.assign({}, latest, saved, rights, {
-    effectiveRights
+  membershipKeys.forEach((key) => {
+    delete localOnly[key];
   });
+
+  const localFreeCalcTimes = Math.max(
+    0,
+    toNumber(
+      pickFirst(
+        current.freeCalcTimes,
+        current.free_calc_times,
+        current.rewardTimes,
+        0
+      ),
+      0
+    )
+  );
+
+  const serverFreeCalcTimes = Math.max(
+    0,
+    toNumber(
+      pickFirst(
+        rights.freeCalcTimes,
+        rights.rewardTimes,
+        rights.totalUsablePlanTimes,
+        0
+      ),
+      0
+    )
+  );
+
+  const finalRights = Object.assign(
+    {},
+    localOnly,
+    rights,
+    {
+      freeCalcTimes: Math.max(
+        localFreeCalcTimes,
+        serverFreeCalcTimes
+      ),
+      effectiveRights
+    }
+  );
 
   try {
     wx.setStorageSync('userRights', finalRights);
-    wx.setStorageSync('effectiveRights', effectiveRights);
-    wx.setStorageSync('lastEffectiveRightsSyncAt', Date.now());
+    wx.setStorageSync(
+      'effectiveRights',
+      effectiveRights
+    );
+    wx.setStorageSync(
+      'lastEffectiveRightsSyncAt',
+      Date.now()
+    );
   } catch (e) {}
 
   try {
     const app = safeGetApp();
+
     if (app && app.globalData) {
       app.globalData.userRights = finalRights;
-      app.globalData.effectiveRights = effectiveRights;
+      app.globalData.effectiveRights =
+        effectiveRights;
     }
   } catch (e) {}
 

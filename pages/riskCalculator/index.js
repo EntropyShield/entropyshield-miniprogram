@@ -190,8 +190,8 @@ function rcV41ReuseNavigate(pageThis, btn, sig) {
     `&membershipType=${membershipType}`;
 
   const url = (btn === 'advanced')
-    ? `/pages/planAdvanced/index${base}`
-    : `/pages/planSteady/index${base}`;
+    ? `/pkgReport/planAdvanced/index${base}`
+    : `/pkgReport/planSteady/index${base}`;
 
   try { console.log('[riskCalculator][v4.1] reuse navigate sig=', sig, 'url=', url); } catch (e) {}
   wx.navigateTo({ url });
@@ -556,6 +556,7 @@ Page({
       plan === 'trial3' ||
       plan === 'times3' ||
       level === 'TRIAL3' ||
+      name.indexOf('7天') >= 0 ||
       name.indexOf('3天') >= 0 ||
       name.indexOf('体验') >= 0;
 
@@ -866,6 +867,7 @@ Page({
       plan === 'trial3' ||
       plan === 'times3' ||
       level === 'TRIAL3' ||
+      name.indexOf('7天') >= 0 ||
       name.indexOf('3天') >= 0 ||
       name.indexOf('体验') >= 0 ||
       name.indexOf('9.9') >= 0;
@@ -885,7 +887,7 @@ Page({
       level === 'YEAR' ||
       level === 'LIFETIME';
 
-    // 稳健版规则：3天体验、月卡、季卡、年卡、终身，只要未到期都可用稳健版。
+    // 稳健版规则：7天体验、月卡、季卡、年卡、终身，只要未到期都可用稳健版。
     const ok =
       activeByExpire &&
       (isTrial3 || isMonth || isAdvancedProduct || activeByServer);
@@ -901,7 +903,7 @@ Page({
     return {
       ok,
       reason,
-      name: name || (isTrial3 ? '3天体验' : '会员'),
+      name: name || (isTrial3 ? '7天体验' : '会员'),
       productCode,
       plan,
       level,
@@ -1111,8 +1113,8 @@ Page({
 
     const url =
       (planType === 'steady')
-        ? ('/pages/planSteady/index' + base + mt)
-        : ('/pages/planAdvanced/index' + base + mt);
+        ? ('/pkgReport/planSteady/index' + base + mt)
+        : ('/pkgReport/planAdvanced/index' + base + mt);
 
     console.log('[riskCalculator] will navigate url=', url);
 
@@ -1162,12 +1164,12 @@ Page({
         }
 
         if (idx === 1) {
-          wx.navigateTo({ url: '/pages/campIntro/index' });
+          wx.navigateTo({ url: '/pkgChallenge/campIntro/index' });
           return;
         }
 
         if (idx === 2) {
-          wx.navigateTo({ url: `/pages/fissionTask/index?fromPlan=${planType}` });
+          wx.navigateTo({ url: `/pkgChallenge/fissionTask/index?fromPlan=${planType}` });
         }
       },
       fail: (err) => {

@@ -1,0 +1,9 @@
+{
+  "navigationBarTitleText": "我的交易记录",
+  "navigationBarBackgroundColor": "#0D0D0D",
+  "navigationBarTextStyle": "white",
+  "usingComponents": {
+    "disclaimer": "/components/disclaimer/disclaimer",
+    "pipl-consent": "/components/piplConsent/piplConsent"
+  }
+}

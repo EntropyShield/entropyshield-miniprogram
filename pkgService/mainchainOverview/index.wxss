@@ -1,0 +1,223 @@
+page {
+  background: var(--es-ink, #000000);
+}
+
+.mc-page {
+  min-height: 100vh;
+  background: var(--es-ink, #000000);
+  padding: 24rpx;
+  box-sizing: border-box;
+}
+
+.mc-hero,
+.mc-card {
+  background: var(--es-card-2, #16181d);
+  border-radius: 24rpx;
+  padding: 24rpx;
+  margin-bottom: 20rpx;
+  box-sizing: border-box;
+  border: 1rpx solid rgba(0, 229, 160, 0.14);
+}
+
+.mc-hero {
+  background: linear-gradient(180deg, rgba(0, 229, 160,0.06), rgba(22,24,29,1));
+}
+
+.mc-hero-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20rpx;
+  margin-bottom: 20rpx;
+}
+
+.mc-hero-left {
+  flex: 1;
+}
+
+.mc-title {
+  display: block;
+  font-size: 34rpx;
+  font-weight: 700;
+  color: var(--es-white, #ffffff);
+}
+
+.mc-sub {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  line-height: 1.7;
+  color: var(--es-txt-2, #8a8d93);
+}
+
+.mc-badge {
+  min-width: 112rpx;
+  text-align: center;
+  padding: 10rpx 16rpx;
+  border-radius: 9999rpx;
+  background: rgba(0, 229, 160, 0.12);
+  color: var(--es-green, #00E5A0);
+  font-size: 24rpx;
+  font-weight: 700;
+  box-sizing: border-box;
+}
+
+.mc-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16rpx;
+}
+
+.mc-metric {
+  background: var(--es-card-2, #1c1f25);
+  border-radius: 18rpx;
+  padding: 16rpx;
+  box-sizing: border-box;
+}
+
+.mc-metric-label {
+  display: block;
+  font-size: 22rpx;
+  color: var(--es-txt-2, #8a8d93);
+}
+
+.mc-metric-value {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 34rpx;
+  font-weight: 700;
+  color: var(--es-green, #00E5A0);
+}
+
+.mc-section-title {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: var(--es-green, #00E5A0);
+  margin-bottom: 18rpx;
+}
+
+.mc-item,
+.mc-qa-item {
+  background: var(--es-card-2, #1c1f25);
+  border-radius: 18rpx;
+  padding: 18rpx;
+  box-sizing: border-box;
+}
+
+.mc-item-top {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  flex-wrap: wrap;
+  margin-bottom: 10rpx;
+}
+
+.mc-item-title {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: var(--es-white, #ffffff);
+}
+
+.mc-item-tag {
+  padding: 6rpx 14rpx;
+  border-radius: 9999rpx;
+  font-size: 20rpx;
+  color: var(--es-green, #00E5A0);
+  background: rgba(0, 229, 160, 0.1);
+}
+
+.mc-item-sub,
+.mc-item-time,
+.mc-empty {
+  display: block;
+  font-size: 22rpx;
+  line-height: 1.7;
+  color: var(--es-txt-4, #cfd6df);
+  margin-top: 6rpx;
+}
+
+.mc-input {
+  width: 100%;
+  height: 84rpx;
+  border-radius: 18rpx;
+  background: var(--es-card-2, #1c1f25);
+  color: var(--es-white, #ffffff);
+  padding: 0 20rpx;
+  box-sizing: border-box;
+  font-size: 26rpx;
+  margin-bottom: 16rpx;
+  border: 1rpx solid rgba(0, 229, 160, 0.14);
+}
+
+.mc-presets {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12rpx;
+  margin-bottom: 16rpx;
+}
+
+.mc-chip {
+  min-height: 64rpx;
+  padding: 0 16rpx;
+  border-radius: 9999rpx;
+  font-size: 22rpx;
+  color: var(--es-green, #00E5A0);
+  background: rgba(0, 229, 160, 0.08);
+  border: 1rpx solid rgba(0, 229, 160, 0.24);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  line-height: 1.4;
+  box-sizing: border-box;
+}
+
+.mc-qa-item {
+  margin-top: 16rpx;
+}
+
+.mc-qa-q {
+  display: block;
+  font-size: 24rpx;
+  font-weight: 700;
+  color: var(--es-white, #ffffff);
+  margin-bottom: 10rpx;
+}
+
+.mc-qa-a {
+  display: block;
+  font-size: 24rpx;
+  line-height: 1.7;
+  color: var(--es-txt-4, #cfd6df);
+  white-space: pre-wrap;
+}
+
+.mc-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+  margin-top: 8rpx;
+  margin-bottom: 20rpx;
+}
+
+.mc-btn {
+  height: 84rpx;
+  border-radius: 18rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+  font-weight: 700;
+  box-sizing: border-box;
+}
+
+.mc-btn-primary {
+  background: var(--es-green, #00E5A0);
+  color: var(--es-bg-deep, #020305);
+}
+
+.mc-btn-secondary {
+  background: transparent;
+  color: var(--es-green, #00E5A0);
+  border: 2rpx solid rgba(0, 229, 160, 0.6);
+}

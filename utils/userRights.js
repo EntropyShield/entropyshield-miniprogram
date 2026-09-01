@@ -130,7 +130,7 @@ function normalizeProductCode(rights) {
 
   const name = String(r.membershipName || '')
   if (name.includes('终身')) return 'LIFETIME'
-  if (name.includes('体验') || name.includes('3天') || name.includes('9.9')) return 'VIP_ONCE3'
+  if (name.includes('体验') || name.includes('7天') || name.includes('3天') || name.includes('9.9')) return 'VIP_ONCE3'
   if (name.includes('年卡') || name.includes('年度') || name.includes('年会员')) return 'VIP_YEAR'
   if (name.includes('季卡') || name.includes('季度') || name.includes('季会员')) return 'VIP_QUARTER'
   if (name.includes('月卡') || name.includes('月会员')) return 'VIP_MONTH'
@@ -156,7 +156,7 @@ function getMembershipTier(rights) {
 
   const name = String(r.membershipName || '')
   if (name.includes('终身')) return 'lifetime'
-  if (name.includes('体验') || name.includes('3天') || name.includes('9.9')) return 'trial3'
+  if (name.includes('体验') || name.includes('7天') || name.includes('3天') || name.includes('9.9')) return 'trial3'
   if (name.includes('年卡') || name.includes('年度') || name.includes('年会员')) return 'year'
   if (name.includes('季卡') || name.includes('季度') || name.includes('季会员')) return 'quarter'
   if (name.includes('月卡') || name.includes('月会员')) return 'month'
@@ -336,7 +336,7 @@ function setMembership(options) {
 }
 
 function getDefaultMembershipNameByTier(tier) {
-  if (tier === 'trial3') return '9.9体验·3天'
+  if (tier === 'trial3') return '9.9体验·7天'
   if (tier === 'month') return '控局者·月卡'
   if (tier === 'quarter') return '控局者·季卡'
   if (tier === 'year') return '控局者·年卡'

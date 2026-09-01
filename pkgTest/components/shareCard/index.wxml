@@ -1,0 +1,40 @@
+<!-- pkgTest/components/shareCard/index.wxml -->
+<!-- [V2.0-C4] 分享卡浮层：生成中 → 预览 → 保存相册 -->
+<view class="sc-root" wx:if="{{visible}}" catchtouchmove="true">
+
+  <!-- 画布：必须存在于渲染树（display:none 会取不到 node），故移出视口隐藏 -->
+  <canvas
+    type="2d"
+    id="shareCardCanvas"
+    class="sc-canvas"
+    style="width:{{canvasW}}px;height:{{canvasH}}px"
+  ></canvas>
+
+  <view class="sc-mask" bindtap="onClose"></view>
+
+  <view class="sc-panel">
+    <!-- 生成中 -->
+    <view class="sc-status" wx:if="{{generating}}">
+      <view class="sc-spinner"></view>
+      <text class="sc-status-txt">正在生成分享卡…</text>
+    </view>
+
+    <!-- 已生成 -->
+    <block wx:else>
+      <image
+        wx:if="{{imgPath}}"
+        class="sc-img"
+        src="{{imgPath}}"
+        mode="widthFix"
+        show-menu-by-longpress="{{true}}"
+      />
+      <view class="sc-tip">长按图片可直接发送给好友，或保存后分享</view>
+
+      <view class="sc-actions">
+        <button class="sc-btn sc-btn-ghost" bindtap="onClose">关闭</button>
+        <button class="sc-btn sc-btn-primary" bindtap="onSave">保存到相册</button>
+      </view>
+    </block>
+  </view>
+
+</view>

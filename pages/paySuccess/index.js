@@ -1,5 +1,5 @@
 const { syncServerRights } = require('../../utils/rightsSync');
-const { mergeUserRights } = require('../../utils/userRights');
+const { API_BASE } = require('../../config');
 
 const PAY_SUCCESS_CONTEXT_KEYS = [
   'lastPaySuccessInfo',
@@ -14,13 +14,45 @@ const PAY_SUCCESS_CONTEXT_KEYS = [
   'lastOrderInfo'
 ];
 
+function getApiBase() {
+  try {
+    const saved =
+      wx.getStorageSync('API_BASE') ||
+      wx.getStorageSync('apiBaseUrl') ||
+      '';
+
+    if (saved) {
+      return String(saved).replace(/\/+$/, '');
+    }
+  } catch (e) {}
+
+  return String(API_BASE || '').replace(/\/+$/, '');
+}
+
 function getPlanMeta(planKey, amountFen) {
   const map = {
-    times3: { title: '9.9元 / 3天体验购买成功', rights: '稳健版', desc: '已开通3天体验，可返回使用稳健版' },
-    month: { title: '月会员开通成功', rights: '稳健版', desc: '已开通月会员权益' },
-    quarter: { title: '季度会员开通成功', rights: '稳健版 + 加强版', desc: '已开通季度会员权益' },
-    year: { title: '年度会员开通成功', rights: '稳健版 + 加强版', desc: '已开通年度会员权益' }
+    times3: {
+      title: '9.9\u5143 / 7\u5929\u4f53\u9a8c\u652f\u4ed8\u5b8c\u6210',
+      rights: '\u7a33\u5065\u7248',
+      desc: '\u6b63\u5728\u7b49\u5f85\u670d\u52a1\u7aef\u786e\u8ba4\u6743\u76ca'
+    },
+    month: {
+      title: '\u6708\u4f1a\u5458\u652f\u4ed8\u5b8c\u6210',
+      rights: '\u7a33\u5065\u7248',
+      desc: '\u6b63\u5728\u7b49\u5f85\u670d\u52a1\u7aef\u786e\u8ba4\u6743\u76ca'
+    },
+    quarter: {
+      title: '\u5b63\u5ea6\u4f1a\u5458\u652f\u4ed8\u5b8c\u6210',
+      rights: '\u7a33\u5065\u7248 + \u52a0\u5f3a\u7248',
+      desc: '\u6b63\u5728\u7b49\u5f85\u670d\u52a1\u7aef\u786e\u8ba4\u6743\u76ca'
+    },
+    year: {
+      title: '\u5e74\u5ea6\u4f1a\u5458\u652f\u4ed8\u5b8c\u6210',
+      rights: '\u7a33\u5065\u7248 + \u52a0\u5f3a\u7248',
+      desc: '\u6b63\u5728\u7b49\u5f85\u670d\u52a1\u7aef\u786e\u8ba4\u6743\u76ca'
+    }
   };
+
   if (map[planKey]) return map[planKey];
 
   const amount = Number(amountFen || 0);
@@ -29,7 +61,11 @@ function getPlanMeta(planKey, amountFen) {
   if (amount === 299900) return map.quarter;
   if (amount === 999900) return map.year;
 
-  return { title: '购买成功', rights: '权益已开通', desc: '可返回使用风控计算器' };
+  return {
+    title: '\u652f\u4ed8\u5b8c\u6210',
+    rights: '\u6743\u76ca\u786e\u8ba4\u4e2d',
+    desc: '\u6b63\u5728\u7b49\u5f85\u670d\u52a1\u7aef\u786e\u8ba4\u6743\u76ca'
+  };
 }
 
 function toExpireMs(v) {
@@ -126,6 +162,7 @@ function normalizePlanKey(raw) {
     s === 'vip_once3' ||
     s === 'once3' ||
     s.includes('3天') ||
+    s.includes('7天') ||
     s.includes('体验') ||
     s.includes('9.9')
   ) return 'times3';
@@ -182,6 +219,7 @@ function resolvePayContext(options) {
 
   let planKey = '';
   let amountFen = 0;
+  let outTradeNo = '';
 
   for (let i = 0; i < candidates.length; i++) {
     const item = candidates[i] || {};
@@ -189,17 +227,10 @@ function resolvePayContext(options) {
     if (!planKey) {
       planKey = normalizePlanKey(
         item.planKey ||
-        item.type ||
         item.plan ||
-        item.membershipPlan ||
-        item.currentMembershipType ||
         item.productCode ||
-        item.membershipProductCode ||
         item.membershipLevel ||
         item.membershipName ||
-        item.goodsName ||
-        item.productName ||
-        item.title ||
         ''
       );
     }
@@ -208,7 +239,17 @@ function resolvePayContext(options) {
       amountFen = pickAmountFen(item);
     }
 
-    if (planKey && amountFen) break;
+    if (!outTradeNo) {
+      outTradeNo = String(
+        item.outTradeNo ||
+        item.out_trade_no ||
+        item.orderNo ||
+        item.order_no ||
+        ''
+      ).trim();
+    }
+
+    if (planKey && amountFen && outTradeNo) break;
   }
 
   if (!planKey) {
@@ -217,126 +258,11 @@ function resolvePayContext(options) {
 
   return {
     planKey,
-    amountFen
+    amountFen,
+    outTradeNo
   };
 }
 
-function buildLocalMembershipPatch(planKey, amountFen) {
-  const rights = wx.getStorageSync('userRights') || {};
-  const amount = Number(amountFen || 0) || 0;
-  const patch = {};
-
-  if (planKey === 'times3' || amount === 990) {
-    const expireAt = extendExpireMs(rights.membershipExpireAt || rights.trialExpireAt, 3);
-    Object.assign(patch, {
-      currentMembershipType: 'trial3',
-      currentMembershipName: '3天体验',
-      membershipName: '3天体验',
-      membershipPlan: 'trial3',
-      membershipLevel: 'TRIAL3',
-      productCode: 'VIP_ONCE3',
-      membershipProductCode: 'VIP_ONCE3',
-      membershipExpireAt: expireAt,
-      advancedEnabled: false,
-      isMemberActive: true,
-
-      // 兼容字段，仅兼容，不承担判权职责
-      trialPurchaseCount: (Number(rights.trialPurchaseCount || 0) || 0) + 1,
-      trialActive: true,
-      trialExpireAt: expireAt
-    });
-  }
-
-  if (planKey === 'month' || amount === 99900) {
-    const expireAt = extendExpireMs(rights.membershipExpireAt, 30);
-    Object.assign(patch, {
-      currentMembershipType: 'month',
-      currentMembershipName: '月会员',
-      membershipName: '月会员',
-      membershipPlan: 'month',
-      membershipLevel: 'MONTH',
-      productCode: 'VIP_MONTH',
-      membershipProductCode: 'VIP_MONTH',
-      membershipExpireAt: expireAt,
-      advancedEnabled: false,
-      isMemberActive: true
-    });
-  }
-
-  if (planKey === 'quarter' || amount === 299900) {
-    const expireAt = extendExpireMs(rights.membershipExpireAt, 90);
-    Object.assign(patch, {
-      currentMembershipType: 'quarter',
-      currentMembershipName: '季度会员',
-      membershipName: '季度会员',
-      membershipPlan: 'quarter',
-      membershipLevel: 'QUARTER',
-      productCode: 'VIP_QUARTER',
-      membershipProductCode: 'VIP_QUARTER',
-      membershipExpireAt: expireAt,
-      advancedEnabled: true,
-      isMemberActive: true
-    });
-  }
-
-  if (planKey === 'year' || amount === 999900) {
-    const expireAt = extendExpireMs(rights.membershipExpireAt, 365);
-    Object.assign(patch, {
-      currentMembershipType: 'year',
-      currentMembershipName: '年度会员',
-      membershipName: '年度会员',
-      membershipPlan: 'year',
-      membershipLevel: 'YEAR',
-      productCode: 'VIP_YEAR',
-      membershipProductCode: 'VIP_YEAR',
-      membershipExpireAt: expireAt,
-      advancedEnabled: true,
-      isMemberActive: true
-    });
-  }
-
-  return patch;
-}
-
-function syncLocalRightsAfterPaid(planKey, amountFen) {
-  const patch = buildLocalMembershipPatch(planKey, amountFen);
-  if (Object.keys(patch).length > 0) {
-    const merged = mergeUserRights(patch);
-    try {
-      wx.setStorageSync('lastPaySuccessResolved', {
-        planKey,
-        amountFen,
-        patch,
-        savedAt: Date.now()
-      });
-    } catch (e) {}
-    return { ok: true, patch, merged };
-  }
-
-  try {
-    wx.setStorageSync('lastPaySuccessResolved', {
-      planKey,
-      amountFen,
-      patch: null,
-      savedAt: Date.now()
-    });
-  } catch (e) {}
-
-  return { ok: false, patch: null, merged: null };
-}
-
-function hasEffectiveMembership(rights) {
-  const r = rights || {};
-  const hasType = !!(
-    r.membershipPlan ||
-    r.productCode ||
-    r.membershipProductCode ||
-    (r.membershipLevel && String(r.membershipLevel).toUpperCase() !== 'FREE')
-  );
-  const expireAt = toExpireMs(r.membershipExpireAt);
-  const notExpired = !expireAt || expireAt > Date.now();
-  return hasType && notExpired;
-}
 
 function getPaySuccessClientId() {
   let clientId = '';
@@ -383,86 +309,82 @@ function getPaySuccessClientId() {
   return String(clientId || '').trim();
 }
 
-function reconcileRightsAfterPaid(localPatch, resolved) {
+function reconcileRightsAfterPaid(page, resolved) {
   const clientId = getPaySuccessClientId();
+  const ctx = resolved || {};
+  const apiBase = getApiBase();
 
-  if (!clientId) {
-    try {
-      wx.setStorageSync('lastPaySuccessSyncResult', {
-        ok: false,
-        code: 'CLIENT_ID_EMPTY',
-        scene: 'pay_success',
-        savedAt: Date.now()
-      });
-    } catch (e) {}
+  if (!clientId || !ctx.outTradeNo || !apiBase) {
+    page.setData({
+      statusDesc: '\u8ba2\u5355\u4fe1\u606f\u4e0d\u5b8c\u6574\uff0c\u8bf7\u7a0d\u540e\u8fd4\u56de\u9996\u9875\u67e5\u770b\u6743\u76ca'
+    });
     return;
   }
 
-  const ctx = resolved || {};
   const delays = [0, 1200, 3000, 5200];
+  let confirmed = false;
 
-  delays.forEach((delay) => {
+  delays.forEach((delay, index) => {
     setTimeout(() => {
-      const beforeRights = wx.getStorageSync('userRights') || {};
-      const beforeHasMembership = hasEffectiveMembership(beforeRights);
+      if (confirmed) return;
 
-      syncServerRights({
-        clientId,
-        scene: delay === 0 ? 'pay_success_immediate' : 'pay_success_retry',
-        planKey: ctx.planKey || '',
-        amountFen: ctx.amountFen || 0
-      })
-        .then((res) => {
-          const afterRights = wx.getStorageSync('userRights') || {};
-          const afterHasMembership = hasEffectiveMembership(afterRights);
+      wx.request({
+        url:
+          apiBase +
+          '/api/virtual-pay/status?outTradeNo=' +
+          encodeURIComponent(ctx.outTradeNo) +
+          '&clientId=' +
+          encodeURIComponent(clientId),
 
-          try {
-            wx.setStorageSync('lastPaySuccessSyncResult', {
-              ok: !!(res && res.ok),
-              code: (res && res.code) || '',
-              scene: delay === 0 ? 'pay_success_immediate' : 'pay_success_retry',
-              delay,
-              clientId,
-              planKey: ctx.planKey || '',
-              amountFen: ctx.amountFen || 0,
-              effectiveRightsVersion:
-                res &&
-                res.effectiveRights &&
-                res.effectiveRights.version,
-              membershipName: afterRights.membershipName || '',
-              membershipExpireAt: afterRights.membershipExpireAt || 0,
-              savedAt: Date.now()
-            });
-          } catch (e) {}
+        method: 'GET',
 
-          if ((beforeHasMembership || localPatch) && !afterHasMembership && localPatch) {
-            mergeUserRights(localPatch);
+        success(resp) {
+          const data = (resp && resp.data) || {};
+
+          const fulfilled =
+            resp.statusCode === 200 &&
+            data.ok === true &&
+            data.fulfilled === true &&
+            String(data.outTradeNo || '') === ctx.outTradeNo &&
+            Number(data.amountFen || 0) === Number(ctx.amountFen || 0);
+
+          if (!fulfilled) {
+            if (index === delays.length - 1) {
+              page.setData({
+                statusDesc: '\u6743\u76ca\u4ecd\u5728\u786e\u8ba4\u4e2d\uff0c\u8bf7\u7a0d\u540e\u8fd4\u56de\u9996\u9875\u67e5\u770b'
+              });
+            }
+            return;
           }
-        })
-        .catch((err) => {
-          try {
-            wx.setStorageSync('lastPaySuccessSyncResult', {
-              ok: false,
-              code: 'SYNC_EXCEPTION',
-              message: String((err && err.message) || err || ''),
-              delay,
-              clientId,
-              planKey: ctx.planKey || '',
-              amountFen: ctx.amountFen || 0,
-              savedAt: Date.now()
-            });
-          } catch (e) {}
 
-          if (localPatch) {
-            mergeUserRights(localPatch);
-          }
-        });
+          syncServerRights({
+            clientId,
+            scene: 'pay_success_fulfilled',
+            planKey: ctx.planKey || '',
+            amountFen: ctx.amountFen || 0
+          }).then((result) => {
+            if (!result || result.ok !== true) return;
+
+            confirmed = true;
+
+            page.setData({
+              confirmed: true,
+              statusTitle: '\u6743\u76ca\u5df2\u5230\u8d26',
+              statusDesc: '\u670d\u52a1\u7aef\u5df2\u786e\u8ba4\u5e76\u540c\u6b65\u6743\u76ca\uff0c\u53ef\u4ee5\u5f00\u59cb\u4f7f\u7528',
+              desc: '\u6743\u76ca\u5df2\u5230\u8d26\uff0c\u53ef\u7acb\u5373\u4f7f\u7528'
+            });
+          });
+        }
+      });
     }, delay);
   });
 }
 
 Page({
   data: {
+    statusTitle: '支付完成',
+    statusDesc: '正在等待服务端确认权益',
+    confirmed: false,
     title: '',
     rights: '',
     desc: '',
@@ -471,29 +393,38 @@ Page({
 
   onLoad(options) {
     const resolved = resolvePayContext(options || {});
-    const meta = getPlanMeta(resolved.planKey, resolved.amountFen);
-
-    const applied = syncLocalRightsAfterPaid(resolved.planKey, resolved.amountFen);
-    reconcileRightsAfterPaid(applied && applied.patch ? applied.patch : null, resolved);
+    const meta = getPlanMeta(
+      resolved.planKey,
+      resolved.amountFen
+    );
 
     this.setData({
       title: meta.title,
       rights: meta.rights,
       desc: meta.desc,
-      amountText: resolved.amountFen ? (resolved.amountFen / 100).toFixed(2) : ''
+      amountText: resolved.amountFen
+        ? (resolved.amountFen / 100).toFixed(2)
+        : ''
     });
 
-    try {
-      console.log('[paySuccess] resolved context =>', resolved);
-      console.log('[paySuccess] local rights =>', wx.getStorageSync('userRights'));
-    } catch (e) {}
+    reconcileRightsAfterPaid(this, resolved);
   },
 
   goCalc() {
+    if (!this.data.confirmed) {
+      wx.showToast({
+        title: '\u6743\u76ca\u4ecd\u5728\u786e\u8ba4\u4e2d',
+        icon: 'none'
+      });
+      return;
+    }
+
     wx.redirectTo({
       url: '/pages/riskCalculator/index',
       fail() {
-        wx.navigateTo({ url: '/pages/riskCalculator/index' });
+        wx.navigateTo({
+          url: '/pages/riskCalculator/index'
+        });
       }
     });
   },

@@ -13,7 +13,7 @@ function reportRiskCalculatorUsage() {
   });
 }
 
-// 示例：用户报名了控局者沙龙
+// 示例：用户报名了守护者沙龙
 function reportClubActivityJoin(activityName) {
   wx.reportAnalytics('club_activity_join', {
     activity_name: activityName,

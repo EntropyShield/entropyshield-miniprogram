@@ -1,0 +1,192 @@
+﻿<view class="page">
+  <view class="audit-card">
+    <view class="audit-title">统计口径</view>
+    <view class="audit-desc">
+      仅统计正式邀请关系与正式成长记录；ST/TEST 临时记录不纳入。
+    </view>
+
+    <view wx:if="{{auditLoading}}" class="audit-loading">统计口径加载中...</view>
+
+    <view wx:if="{{!auditLoading && auditSummary}}" class="audit-grid">
+      <view class="audit-item">
+        <view class="audit-item-label">正式关系</view>
+        <view class="audit-item-value">{{auditSummary.official_scope.official_invite_total}}</view>
+      </view>
+      <view class="audit-item">
+        <view class="audit-item-label">待转化</view>
+        <view class="audit-item-value">{{auditSummary.official_scope.official_pending_total}}</view>
+      </view>
+      <view class="audit-item">
+        <view class="audit-item-label">已付费</view>
+        <view class="audit-item-value">{{auditSummary.official_scope.official_paid_total}}</view>
+      </view>
+      <view class="audit-item">
+        <view class="audit-item-label">成长记录</view>
+        <view class="audit-item-value">{{auditSummary.official_scope.commission_total}}</view>
+      </view>
+    </view>
+
+    <view wx:if="{{!auditLoading && auditSummary}}" class="audit-foot">
+      已排除 ST/TEST 历史候选：{{auditSummary.excluded_scope.excluded_candidate_total}}
+    </view>
+  </view>
+
+  <view class="audit-card">
+    <view class="audit-title">我的账户</view>
+    <view class="audit-desc">
+      下面口径全部来自正式成长记录与当前账号身份信息；成长分口径与个人中心、裂变任务页保持一致。
+    </view>
+
+    <view class="audit-grid">
+      <view class="audit-item">
+        <view class="audit-item-label">我的邀请码</view>
+        <view class="audit-item-value">{{currentUser.inviteCode || '未识别'}}</view>
+      </view>
+      <view class="audit-item">
+        <view class="audit-item-label">我的上级</view>
+        <view class="audit-item-value">{{currentUser.invitedByCode || '暂无'}}</view>
+      </view>
+      <view class="audit-item">
+        <view class="audit-item-label">成长分</view>
+        <view class="audit-item-value">{{currentUser.totalRewardTimes || 0}}</view>
+      </view>
+      <view class="audit-item">
+        <view class="audit-item-label">累计结算分</view>
+        <view class="audit-item-value">{{detailSummary.total_commission_fen || 0}}</view>
+      </view>
+      <view class="audit-item">
+        <view class="audit-item-label">待结算分</view>
+        <view class="audit-item-value">{{detailSummary.unsettled_commission_fen || 0}}</view>
+      </view>
+    </view>
+
+    <view class="audit-foot">
+      已结算分：{{detailSummary.settled_commission_fen || 0}} ｜ 已冲回分：{{detailSummary.reversed_commission_fen || 0}} ｜ 总记录：{{detailSummary.commission_count || 0}}
+    </view>
+
+    <!-- [V2.0-A5] 结算与税务说明：12 号合规报告要求，佣金/权益页必须可见 -->
+    <view class="tax-note">
+      <view class="tax-note-title">结算与税务说明</view>
+      <view class="tax-note-text">
+        成长分仅可用于站内权益抵扣，不支持提现、转账或转赠。
+        如相关权益涉及个人所得税等法定纳税义务，由权益受益人依照国家税收法律法规自行申报缴纳。
+      </view>
+    </view>
+  </view>
+
+  <view class="top-tabs">
+    <view class="top-tab {{activeTab==='detail' ? 'active' : ''}}" data-tab="detail" bindtap="switchTab">成长记录</view>
+    <view class="top-tab {{activeTab==='ranking' ? 'active' : ''}}" data-tab="ranking" bindtap="switchTab">成长排行</view>
+  </view>
+
+  <block wx:if="{{activeTab==='detail'}}">
+    <view class="panel">
+      <view class="section-title">筛选状态</view>
+      <view class="chips">
+        <block wx:for="{{statusOptions}}" wx:key="value">
+          <view class="chip {{detailStatus===item.value ? 'chip-active' : ''}}" data-value="{{item.value}}" bindtap="switchStatus">
+            {{item.label}}
+          </view>
+        </block>
+      </view>
+
+      <view class="section-title">搜索</view>
+      <view class="search-row">
+        <input class="search-input" placeholder="邀请码 / 手机号 / openid / 订单号" value="{{detailKeyword}}" bindinput="onKeywordInput" />
+        <view class="search-btn" bindtap="onSearchTap">查询</view>
+        <view class="search-btn ghost" bindtap="clearSearch">清空</view>
+      </view>
+    </view>
+
+    <view class="summary-card">
+      <view class="summary-title">当前筛选记录数</view>
+      <view class="summary-value">{{detailTotal}}</view>
+    </view>
+
+    <view wx:if="{{detailLoading}}" class="loading">加载中...</view>
+    <view wx:if="{{!detailLoading && detailList.length===0}}" class="empty">暂无关联记录</view>
+
+    <block wx:for="{{detailList}}" wx:key="id">
+      <view class="card">
+        <view class="card-head">
+          <view class="order-no">{{item.order_no}}</view>
+          <view class="status-tag">{{item.statusLabel}}</view>
+        </view>
+        <view class="row"><text class="label">关联账号</text><text class="value">{{item.inviter_invite_code || '-'}} / {{item.inviter_mobile || '-'}}</text></view>
+        <view class="row"><text class="label">关联用户</text><text class="value">{{item.invitee_mobile || item.invitee_openid || '-'}}</text></view>
+        <view class="row"><text class="label">支付分</text><text class="value strong">{{item.pay_amount * 1}}分</text></view>
+        <view class="row"><text class="label">结算分</text><text class="value strong">{{item.commission_amount * 1}}分</text></view>
+        <view class="row"><text class="label">关联时间</text><text class="value">{{item.first_paid_at || '-'}}</text></view>
+      </view>
+    </block>
+  </block>
+
+  <block wx:if="{{activeTab==='ranking'}}">
+    <view class="audit-card">
+      <view class="audit-title">我的排行位置</view>
+      <view wx:if="{{myRanking}}" class="audit-grid">
+        <view class="audit-item">
+          <view class="audit-item-label">当前排名</view>
+          <view class="audit-item-value">#{{myRanking.rank}}</view>
+        </view>
+        <view class="audit-item">
+          <view class="audit-item-label">我的邀请码</view>
+          <view class="audit-item-value">{{myRanking.invite_code || currentUser.inviteCode || '未识别'}}</view>
+        </view>
+        <view class="audit-item">
+          <view class="audit-item-label">成长分</view>
+          <view class="audit-item-value">{{myRanking.commission_amount * 1}}</view>
+        </view>
+        <view class="audit-item">
+          <view class="audit-item-label">记录笔数</view>
+          <view class="audit-item-value">{{myRanking.commission_count}}</view>
+        </view>
+      </view>
+      <view wx:else class="audit-desc">
+        当前未进入前 20 排行，可继续提升邀请转化与成长分。
+      </view>
+    </view>
+
+    <view class="panel">
+      <view class="section-title">排行维度</view>
+      <view class="chips">
+        <block wx:for="{{metricOptions}}" wx:key="value">
+          <view class="chip {{rankingMetric===item.value ? 'chip-active' : ''}}" data-value="{{item.value}}" bindtap="switchMetric">
+            {{item.label}}
+          </view>
+        </block>
+      </view>
+
+      <view class="section-title">时间范围</view>
+      <view class="chips">
+        <block wx:for="{{periodOptions}}" wx:key="value">
+          <view class="chip {{rankingPeriod===item.value ? 'chip-active' : ''}}" data-value="{{item.value}}" bindtap="switchPeriod">
+            {{item.label}}
+          </view>
+        </block>
+      </view>
+    </view>
+
+    <view wx:if="{{rankingLoading}}" class="loading">加载中...</view>
+    <view wx:if="{{!rankingLoading && rankingList.length===0}}" class="empty">暂无排行数据</view>
+
+    <block wx:for="{{rankingList}}" wx:key="inviter_user_id">
+      <view class="rank-card">
+        <view class="rank-left">
+          <view class="rank-no">#{{item.rank}}</view>
+          <view class="rank-info">
+            <view class="rank-name">
+              {{item.invite_code || '-'}} / {{item.mobile || '-'}}
+              <text wx:if="{{item.isMine}}">（我）</text>
+            </view>
+            <view class="rank-openid">{{item.openid || '-'}}</view>
+          </view>
+        </view>
+        <view class="rank-right">
+          <view class="rank-value">{{item.commission_amount * 1}}分</view>
+          <view class="rank-sub">{{item.commission_count}} 笔</view>
+        </view>
+      </view>
+    </block>
+  </block>
+</view>

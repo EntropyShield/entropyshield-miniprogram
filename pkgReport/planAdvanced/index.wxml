@@ -1,0 +1,212 @@
+<!-- pages/planAdvanced/index.wxml -->
+<view class="page pa-page">
+  <view class="pa-loading card" wx:if="{{isGenerating && !hasResult}}">
+    <text>正在生成加强版风控方案……</text>
+  </view>
+
+  <view class="pa-error card" wx:if="{{!isGenerating && !hasResult && loadError}}">
+    <text class="pa-error-title">方案生成失败</text>
+    <text class="pa-error-desc">{{loadError}}</text>
+    <button class="pa-edit-btn" bindtap="editParameters">返回修改基础参数</button>
+  </view>
+
+  <block wx:if="{{hasResult}}">
+  <view class="card pa-summary">
+    <view class="pa-summary-header">
+      <text class="pa-tag">加强版 · 风控方案</text>
+    </view>
+
+    <view class="pa-summary-row">
+      <text class="pa-label">账户资金</text>
+      <text class="pa-value">{{totalCapital}} 元</text>
+    </view>
+    <view class="pa-summary-row">
+      <text class="pa-label">标的代码／名称</text>
+      <text class="pa-value">{{code || '—'}}</text>
+    </view>
+    <view class="pa-summary-row">
+      <text class="pa-label">执行价</text>
+      <text class="pa-value">{{firstPrice}} 元</text>
+    </view>
+    <view class="pa-summary-row">
+      <text class="pa-label">方案类型</text>
+      <text class="pa-value">加强版</text>
+    </view>
+    <view class="pa-summary-row">
+      <text class="pa-label">会员类型</text>
+      <text class="pa-value">{{membershipType}}</text>
+    </view>
+    <view class="pa-summary-row">
+      <text class="pa-label">仓位比例</text>
+      <text class="pa-value">{{deployRatioPct}}%</text>
+    </view>
+    <view class="pa-summary-row">
+      <text class="pa-label">分批进场模板</text>
+      <text class="pa-value">{{entryTemplateName}}</text>
+    </view>
+    <view class="pa-summary-row">
+      <text class="pa-label">止损策略</text>
+      <text class="pa-value">{{stopModeName}}</text>
+    </view>
+    <view class="pa-summary-row">
+      <text class="pa-label">本次计划使用资金</text>
+      <text class="pa-value">{{deployCapital}} 元</text>
+    </view>
+
+    <view class="pa-summary-split"></view>
+
+    <view class="pa-summary-row">
+      <text class="pa-label">适用权益</text>
+      <text class="pa-value pa-value-strong">月卡 / 季度会员 / 年卡 / 终生会员</text>
+    </view>
+    <view class="pa-summary-row">
+      <text class="pa-label">风险上限</text>
+      <text class="pa-value pa-value-warning">{{riskLimitAmount}} 元（{{riskLimitPct}}%）</text>
+    </view>
+    <view class="pa-summary-row">
+      <text class="pa-label">计划最大亏损</text>
+      <text class="pa-value pa-value-warning">{{planMaxRiskAmount}} 元（{{planMaxRiskPct}}%）</text>
+    </view>
+    <view class="pa-summary-row">
+      <text class="pa-label">最终累计股数</text>
+      <text class="pa-value">{{finalTotalQty}} 股</text>
+    </view>
+    <view class="pa-summary-row">
+      <text class="pa-label">最终累计投入</text>
+      <text class="pa-value">{{finalTotalCost}} 元</text>
+    </view>
+    <view class="pa-summary-row">
+      <text class="pa-label">最终平均成本</text>
+      <text class="pa-value">{{finalAvgCost}} 元</text>
+    </view>
+    <view class="pa-summary-row">
+      <text class="pa-label">最终动态止损</text>
+      <text class="pa-value pa-value-warning">{{finalDynamicStop}} 元</text>
+    </view>
+    <view class="pa-summary-row">
+      <text class="pa-label">{{finalStopResultLabel}}</text>
+      <text class="pa-value {{finalStopResultClass}}">{{finalStopPnlDisplay}} 元（{{finalStopPnlPctDisplay}}%）</text>
+    </view>
+    <view class="pa-summary-row">
+      <text class="pa-label">目标价格</text>
+      <text class="pa-value pa-value-strong">{{targetPrice}} 元</text>
+    </view>
+    <view class="pa-summary-row">
+      <text class="pa-label">目标利润</text>
+      <text class="pa-value pa-value-strong">{{targetProfitDisplay}} 元</text>
+    </view>
+
+    <view class="pa-summary-split"></view>
+
+    <view class="pa-summary-row">
+      <text class="pa-label">方案重点</text>
+      <text class="pa-value">分批进场 · 动态止损 · 风险约束</text>
+    </view>
+    <view class="pa-summary-row">
+      <text class="pa-label">执行要求</text>
+      <text class="pa-value">按阶段价格与止损规则执行</text>
+    </view>
+    <button class="pa-edit-btn" bindtap="editParameters">修改基础参数</button>
+  </view>
+
+  <view class="card pa-steps">
+    <view class="pa-section-title">分批进场步骤与止损明细</view>
+
+    <block wx:for="{{steps}}" wx:key="label">
+      <view class="pa-step-block">
+        <view class="pa-step-header">
+          <view class="pa-step-dot"></view>
+          <text class="pa-step-title">{{item.label}}</text>
+        </view>
+
+        <view class="pa-step-grid">
+          <view class="pa-step-item">
+            <text class="pa-label">资金分配比例</text>
+            <text class="pa-value">{{item.entryWeightRatioPct}}%</text>
+          </view>
+          <view class="pa-step-item">
+            <text class="pa-label">本档计划资金</text>
+            <text class="pa-value">{{item.plannedCash}} 元</text>
+          </view>
+          <view class="pa-step-item">
+            <text class="pa-label">进场价格</text>
+            <text class="pa-value">{{item.buyPrice}} 元</text>
+          </view>
+          <view class="pa-step-item">
+            <text class="pa-label">理论股数</text>
+            <text class="pa-value">{{item.theoreticalShares}} 股</text>
+          </view>
+          <view class="pa-step-item">
+            <text class="pa-label">实际股数</text>
+            <text class="pa-value">{{item.buyShares}} 股</text>
+          </view>
+          <view class="pa-step-item">
+            <text class="pa-label">实际投入金额</text>
+            <text class="pa-value">{{item.buyAmount}} 元</text>
+          </view>
+          <view class="pa-step-item">
+            <text class="pa-label">累计股数</text>
+            <text class="pa-value">{{item.cumQty}} 股</text>
+          </view>
+          <view class="pa-step-item">
+            <text class="pa-label">累计投入金额</text>
+            <text class="pa-value">{{item.cumCost}} 元</text>
+          </view>
+          <view class="pa-step-item">
+            <text class="pa-label">累计平均成本</text>
+            <text class="pa-value">{{item.avgCost}} 元</text>
+          </view>
+          <view class="pa-step-item">
+            <text class="pa-label">动态止损价格</text>
+            <text class="pa-value pa-value-warning">{{item.stopPrice}} 元</text>
+          </view>
+          <view class="pa-step-item">
+            <text class="pa-label">当前阶段风险额度占用</text>
+            <text class="pa-value pa-value-warning">{{item.riskUsageAmount}} 元（{{item.riskUsagePct}}%）</text>
+          </view>
+          <view class="pa-step-item">
+            <text class="pa-label">{{item.stopResultLabel}}</text>
+            <text class="pa-value {{item.stopResultClass}}">{{item.stopExitPnlDisplay}} 元（{{item.stopExitPnlPctDisplay}}%）</text>
+          </view>
+          <view class="pa-step-item">
+            <text class="pa-label">当前阶段10R目标</text>
+            <text class="pa-value">{{item.target10RStage}} 元</text>
+          </view>
+          <view class="pa-step-item">
+            <text class="pa-label">目标利润估算</text>
+            <text class="pa-value">{{item.targetProfitDisplay}} 元</text>
+          </view>
+        </view>
+      </view>
+    </block>
+  </view>
+
+  <view class="pa-tip">
+    * 本页为加强版风险测算结果，用于风险识别、规则执行与复盘，不构成买卖建议或收益承诺。
+  </view>
+
+  <view class="pa-bottom">
+    <view class="pa-bottom-btn" bindtap="goPayIntro">
+      <text>查看会员权益</text>
+    </view>
+
+    <view class="result-entry-card">
+      <view class="result-entry-title">查看后续记录</view>
+      <view class="result-entry-desc">从当前方案查看交易记录、风控报告、长期档案与主链总览</view>
+
+      <view class="result-entry-grid">
+        <view class="result-entry-btn" bindtap="openTradeRecordEntry">交易记录</view>
+        <view class="result-entry-btn" bindtap="openRiskReportEntry">风控报告</view>
+        <view class="result-entry-btn" bindtap="openLongArchiveEntry">长期档案</view>
+        <view class="result-entry-btn result-entry-btn--primary" bindtap="openMainchainOverviewEntry">主链总览</view>
+      </view>
+    </view>
+
+    <view class="pa-bottom-btn" bindtap="goHome">
+      <text>返回首页</text>
+    </view>
+  </view>
+  </block>
+
+    <disclaimer />
+</view>

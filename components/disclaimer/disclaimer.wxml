@@ -1,0 +1,3 @@
+<view class="disc {{compact ? 'disc-compact' : ''}}">
+  <text class="disc-text">{{text || '本内容仅供风控训练与信息展示，不构成投资建议或收益承诺；交易决策由您独立判断、自担风险。'}}</text>
+</view>

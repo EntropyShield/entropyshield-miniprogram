@@ -1,0 +1,42 @@
+<!-- pages/message/index.wxml · [V2.0-A] 消息中心 -->
+<view class="page">
+
+  <view class="topbar">
+    <text class="title">消息中心</text>
+    <text class="mark-all" bindtap="onMarkAll" wx:if="{{list.length}}">全部已读</text>
+  </view>
+
+  <view class="list" wx:if="{{list.length}}">
+    <view class="msg {{item.read ? '' : 'unread'}}"
+          wx:for="{{list}}" wx:key="id"
+          bindtap="onTap"
+          data-id="{{item.id}}"
+          data-target="{{item.target}}"
+          data-tab="{{item.tab}}">
+      <view class="dot dot-{{item.type}}"></view>
+      <view class="body">
+        <view class="row1">
+          <text class="msg-title">{{item.title}}</text>
+          <text class="time">{{item.timeText}}</text>
+        </view>
+        <text class="snippet">{{item.snippet}}</text>
+      </view>
+      <view class="unread-dot" wx:if="{{!item.read}}"></view>
+    </view>
+  </view>
+
+  <view class="empty" wx:else>
+    <text class="empty-txt">暂无消息</text>
+    <text class="empty-sub">风险温度、打卡、持仓提醒会在这里出现</text>
+  </view>
+
+  <view class="notice">
+    <text class="notice-txt">熵盾提醒仅作风险提示与纪律辅助，不构成投资建议，不替代你的独立判断与自主决策。</text>
+  </view>
+
+  <view class="settings-entry" bindtap="onOpenSettings">
+    <text class="se-label">强提醒设置（短信 / 语音）</text>
+    <text class="se-arrow">›</text>
+  </view>
+
+</view>

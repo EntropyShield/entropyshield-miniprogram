@@ -1,0 +1,135 @@
+/* pages/fissionTask/index.wxss - EntropyShield Dark Theme (NO BOM) */
+
+/* 关键：彻底消灭顶部白色横条 */
+page{ background:var(--es-bg-deep, #0D0D0D); }
+
+.page{
+  min-height:100vh;
+  background:var(--es-bg-deep, #0D0D0D);
+  padding:24rpx;
+  box-sizing:border-box;
+  color:var(--es-txt-4, #EDEDED);
+}
+
+/* card */
+.card{
+  background:var(--es-bg-deep, #111111);
+  border-radius:18rpx;
+  padding:22rpx;
+  box-sizing:border-box;
+  border:1px solid rgba(0, 229, 160,0.18);
+  box-shadow:0 0 24rpx rgba(0, 229, 160,0.10);
+  margin-bottom:18rpx;
+}
+.card-title{
+  font-size:28rpx;
+  font-weight:800;
+  color:#F2F2F2;
+  text-align:center;
+}
+.card-sub{
+  margin-top:8rpx;
+  font-size:24rpx;
+  line-height:1.65;
+  color:rgba(255,255,255,0.58);
+}
+
+/* QR */
+.qr-wrap{
+  margin-top:18rpx;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+.qr-img{
+  width:560rpx;
+  border-radius:16rpx;
+  background:var(--es-on-green, #0B0B0B);
+  border:1px solid rgba(0, 229, 160,0.18);
+}
+.qr-tip{
+  margin-top:10rpx;
+  font-size:22rpx;
+  color:rgba(255,255,255,0.50);
+}
+
+/* Metrics grid */
+.grid{ display:flex; gap:16rpx; }
+.metric{
+  flex:1;
+  background:var(--es-on-green, #0B0B0B);
+  border-radius:14rpx;
+  padding:18rpx;
+  border:1px solid rgba(255,255,255,0.08);
+}
+
+/* 关键：框内整体居中（水平+垂直） */
+.metric-center{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  min-height:132rpx; /* 保证上下居中有空间 */
+  text-align:center;
+}
+
+.m-label{
+  font-size:22rpx;
+  color:rgba(255,255,255,0.55);
+}
+.m-value{
+  margin-top:10rpx;
+  font-size:30rpx;
+  font-weight:900;
+  color:var(--es-green, #00E5A0);
+  word-break:break-all;
+}
+
+/* Buttons */
+.btn-row,.footer{
+  margin-top:18rpx;
+  display:flex;
+  gap:16rpx;
+}
+.btn{
+  flex:1;
+  border-radius:14rpx;
+  font-size:26rpx;
+  font-weight:700;
+  line-height:1;
+  padding:22rpx 0;
+}
+button::after{ border:none; }
+
+.btn-primary{
+  background:var(--es-green, #00E5A0);
+  color:var(--es-bg-deep, #0D0D0D);
+  box-shadow:0 0 22rpx rgba(0, 229, 160,0.25);
+}
+.btn-ghost{
+  background:transparent;
+  color:var(--es-txt-4, #EDEDED);
+  border:1px solid rgba(0, 229, 160,0.35);
+}
+/* [ADD] commission center entry */
+.commission-entry-link {
+  display: block;
+  margin-top: 20rpx;
+}
+.commission-entry-card {
+  background: var(--es-card-2, #16181d);
+  border-radius: 24rpx;
+  padding: 24rpx;
+  box-sizing: border-box;
+  border: 1rpx solid rgba(0, 229, 160,0.18);
+}
+.commission-entry-title {
+  font-size: 30rpx;
+  color: var(--es-white, #ffffff);
+  font-weight: 700;
+}
+.commission-entry-desc {
+  margin-top: 10rpx;
+  font-size: 24rpx;
+  color: var(--es-txt-2, #8a8d93);
+}

@@ -1,0 +1,97 @@
+.pipl-mask {
+  position: fixed;
+  left: 0; top: 0; right: 0; bottom: 0;
+  background: rgba(10, 14, 20, 0.96);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9998;
+  padding: 48rpx;
+  box-sizing: border-box;
+}
+.pipl-card {
+  width: 100%;
+  max-width: 640rpx;
+  background: var(--es-card, #121A26);
+  border: 1rpx solid var(--es-line, #1E2A3A);
+  border-radius: var(--radius-lg, 28rpx);
+  padding: 48rpx 40rpx 36rpx;
+  box-sizing: border-box;
+}
+.pipl-title {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: var(--es-txt-1, #E8EDF5);
+  margin-bottom: 16rpx;
+}
+.pipl-desc {
+  font-size: 26rpx;
+  line-height: 40rpx;
+  color: var(--es-txt-2, #8A94A6);
+  margin-bottom: 32rpx;
+}
+.pipl-agree {
+  display: flex;
+  align-items: flex-start;
+  padding: 20rpx;
+  border-radius: var(--radius-sm, 12rpx);
+  background: var(--es-elevated, #1A2434);
+  margin-bottom: 32rpx;
+}
+.pipl-box {
+  width: 38rpx;
+  height: 38rpx;
+  border-radius: 10rpx;
+  border: 2rpx solid var(--es-line, #2A3340);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 16rpx;
+  flex-shrink: 0;
+  color: var(--es-on-green, #04140E);
+  font-weight: 800;
+}
+.pipl-box.on {
+  background: var(--es-green, #00E5A0);
+  border-color: var(--es-green, #00E5A0);
+}
+.pipl-text {
+  font-size: 26rpx;
+  line-height: 38rpx;
+  color: var(--es-txt-1, #E8EDF5);
+}
+.pipl-actions {
+  display: flex;
+  gap: 20rpx;
+}
+.pipl-btn {
+  flex: 1;
+  height: 88rpx;
+  line-height: 88rpx;
+  border-radius: 44rpx;
+  font-size: 30rpx;
+  font-weight: 600;
+  padding: 0;
+  margin: 0;
+  border: none;
+}
+.pipl-btn::after { border: none; }
+.pipl-ghost {
+  background: transparent;
+  color: var(--es-txt-2, #8A94A6);
+  border: 1rpx solid var(--es-line, #2A3340);
+}
+.pipl-primary {
+  background: linear-gradient(135deg, var(--es-green, #00E5A0), var(--es-green-deep, #0F6E56));
+  color: var(--es-on-green, #04140E);
+}
+.pipl-primary.dis {
+  background: var(--es-line, #2A3340);
+  color: #6B7682;
+}
+.pipl-foot {
+  font-size: 22rpx;
+  line-height: 34rpx;
+  color: var(--es-txt-3, #5A6577);
+  margin-top: 24rpx;
+}

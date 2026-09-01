@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "稳健版风控方案",
+  "usingComponents": {
+    "disclaimer": "/components/disclaimer/disclaimer"
+  }
+}

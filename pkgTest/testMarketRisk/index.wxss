@@ -1,0 +1,140 @@
+/* 整体页面 */
+.page {
+  min-height: 100vh;
+  background-color: var(--es-ink, #000000);
+  padding: 32rpx 24rpx 40rpx;
+  box-sizing: border-box;
+  color: var(--es-white, #ffffff);
+}
+
+/* 通用卡片 */
+.card {
+  background-color: var(--es-bg-deep, #050505);
+  border-radius: 24rpx;
+  padding: 24rpx 24rpx 28rpx;
+  margin-bottom: 28rpx;
+  border: 1px solid #1a2a1a;
+  box-shadow: 0 0 24rpx rgba(0, 0, 0, 0.6);
+}
+
+/* 顶部说明卡 */
+.intro-card {
+  border-color: var(--es-green-20, #00E5A033);
+}
+
+.intro-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: var(--es-white, #ffffff);
+  margin-bottom: 8rpx;
+}
+
+.intro-sub {
+  font-size: 24rpx;
+  color: var(--es-txt-2, #9aa0a6);
+  line-height: 1.6;
+  margin-bottom: 8rpx;
+}
+
+.intro-meta {
+  font-size: 22rpx;
+  color: var(--es-txt-3, #5f6368);
+}
+
+/* 题目卡片 */
+.question-card {
+  margin-top: 8rpx;
+}
+
+.question-title {
+  font-size: 26rpx;
+  font-weight: 500;
+  color: var(--es-white, #ffffff);
+  margin-bottom: 16rpx;
+}
+
+/* 选项列表 */
+.options {
+  margin-top: 8rpx;
+}
+
+.option-item {
+  margin-top: 12rpx;
+  padding: 16rpx 20rpx;
+  border-radius: 999rpx;
+  border: 1px solid var(--es-green, #00E5A0);
+  display: flex;
+  align-items: center;
+  background-color: var(--es-bg-deep, #050505);
+}
+
+.option-dot {
+  width: 24rpx;
+  height: 24rpx;
+  border-radius: 50%;
+  border: 2rpx solid var(--es-green, #00E5A0);
+  margin-right: 18rpx;
+}
+
+.option-text {
+  flex: 1;
+}
+
+/* 选项文字 —— 默认白色 */
+.option-title {
+  font-size: 26rpx;
+  color: var(--es-white, #ffffff);
+}
+
+/* 选中态 */
+.option-item.active {
+  background: linear-gradient(90deg, var(--es-green-surface, #0b2f10), #0f4f1b);
+  border-color: var(--es-green, #00E5A0);
+  box-shadow: 0 0 18rpx rgba(0, 229, 160, 0.4);
+}
+
+.option-item.active .option-dot {
+  background-color: var(--es-green, #00E5A0);
+  border-color: var(--es-green, #00E5A0);
+}
+
+.option-item.active .option-title {
+  color: var(--es-ink, #000000);
+  font-weight: 600;
+}
+
+/* 底部按钮 */
+.footer-bar {
+  margin-top: 12rpx;
+}
+
+.btn-submit {
+  width: 100%;
+  height: 88rpx;
+  border-radius: 999rpx;
+  background-color: var(--es-green, #00E5A0);
+  color: var(--es-ink, #000000);
+  font-size: 30rpx;
+  font-weight: 600;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-submit[disabled] {
+  opacity: 0.35;
+}
+
+/* 进度文字 */
+.footer-progress {
+  margin-top: 10rpx;
+  font-size: 22rpx;
+  color: var(--es-txt-2, #9aa0a6);
+  text-align: center;
+}
+
+/* 防止其他样式把 text 颜色搞没 */
+text {
+  color: inherit;
+}

@@ -1,0 +1,30 @@
+<view class="gate-mask">
+  <view class="gate-card">
+    <view class="gate-brand">
+      <view class="gate-logo">熵</view>
+      <view class="gate-brand-name">熵盾 · 每日风控仪表盘</view>
+    </view>
+
+    <view class="gate-title">欢迎使用，请先确认协议</view>
+    <view class="gate-desc">为保障你的数据安全与合法权益，使用前请阅读并同意以下协议：</view>
+
+    <view class="gate-links">
+      <view class="gate-link" bindtap="openService">《用户服务协议》</view>
+      <view class="gate-link" bindtap="openPrivacy">《隐私政策》</view>
+    </view>
+
+    <view class="gate-agree" bindtap="toggleAgree">
+      <view class="gate-checkbox {{checked ? 'checked' : ''}}">
+        <text wx:if="{{checked}}" class="gate-check">✓</text>
+      </view>
+      <text class="gate-agree-text">我已阅读并同意上述协议</text>
+    </view>
+
+    <view class="gate-actions">
+      <button class="gate-btn gate-btn-ghost" bindtap="onDecline">暂不使用</button>
+      <button class="gate-btn gate-btn-primary {{checked ? '' : 'disabled'}}" disabled="{{!checked}}" bindtap="onAgree">同意并继续</button>
+    </view>
+
+    <view class="gate-foot">点击"同意并继续"即表示你已理解并自愿接受全部条款</view>
+  </view>
+</view>

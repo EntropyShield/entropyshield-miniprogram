@@ -1,0 +1,119 @@
+<!-- pkgService/settings/recall/index.wxml · [V2.0-J3] 强提醒设置 -->
+<view class="page">
+
+  <view class="topbar">
+    <text class="title">强提醒设置</text>
+  </view>
+
+  <!-- 微信订阅消息（Layer2 主召回） -->
+  <view class="card">
+    <view class="card-h">
+      <text class="card-t">微信订阅消息</text>
+      <text class="badge badge-sub">主召回</text>
+    </view>
+    <text class="desc">用户授权后，不打开小程序也能在微信「服务通知」收到风险温度、打卡等提醒。额度需在关键动作（打卡/支付）后授权累积。</text>
+    <button class="btn-ghost" bindtap="onAuthSub">重新授权订阅推送</button>
+    <text class="hint">5 个自定义模板 ID 待你在 MP 后台申请并填进代码（见 34 号操作手册）。</text>
+  </view>
+
+  <!-- 服务号订阅通知（Layer3 主召回通道） -->
+  <view class="card">
+    <view class="card-h">
+      <text class="card-t">服务号订阅通知</text>
+      <text class="badge badge-oa">主召回 · 免费</text>
+    </view>
+    <text class="desc">关注并设置后，关键提醒（止损预警 / 等级升级 / 监控信号）将经微信服务号直接送达——免手机号、免运营商审核、免费。这是比短信更稳的主提醒通道。</text>
+
+    <!-- 官方关注组件（仅扫码等特定场景值显示，下同主体/关联主体才生效） -->
+    <official-account bindload="onOAComponentLoad" binderror="onOAComponentError"></official-account>
+
+    <view class="oa-fallback">
+      <text class="oa-fb-t">若上方未出现关注卡片，请任选一种：</text>
+      <view class="oa-step"><text class="oa-idx">1</text><text>微信搜索公众号「{{oa.name}}」并关注</text></view>
+      <view class="oa-step"><text class="oa-idx">2</text><text>关注后，在公众号菜单点击「提醒订阅」完成授权</text></view>
+      <view class="oa-step" bindtap="onToggleQR"><text class="oa-idx">3</text><text class="oa-link">长按识别服务号二维码（点此{{oa.showQR ? '收起' : '查看'}}）</text></view>
+      <view class="oa-qr-box" wx:if="{{oa.showQR}}">
+        <image class="oa-qr" src="oa-qr.png" mode="aspectFit" binderror="onOAComponentError"></image>
+        <text class="oa-qr-tip">二维码请从 MP 后台「公众号设置→二维码」下载后放入 pkgService/settings/recall/oa-qr.png</text>
+      </view>
+    </view>
+
+    <button wx:if="{{!oa.followed}}" class="btn-oa" bindtap="onConfirmFollow">我已关注服务号</button>
+    <view wx:else class="oa-done">✅ 已记录：关键提醒将优先经服务号送达（兜底仍走短信/语音）</view>
+
+    <text class="hint" wx:if="{{!oa.configured}}">🟡 服务号 AppID 与订阅模板 ID 待你提供并填进 utils/oaRecall.js，填好前不影响本页操作，后端联调后再生效。</text>
+  </view>
+
+  <!-- 外部强召回（Layer3 手机级兜底） -->
+  <view class="card">
+    <view class="card-h">
+      <text class="card-t">外部强召回（短信 / 语音）</text>
+      <text class="badge badge-ext">Layer3</text>
+    </view>
+    <text class="desc">手机号级兜底：没授权订阅、没打开 app 也能勾回你。仅用于关键提醒，且受频次护栏保护（单用户单日≤2 次，22:00–08:00 不打语音）。</text>
+
+    <view class="row">
+      <text class="row-label">短信提醒</text>
+      <switch checked="{{pref.sms}}" bindchange="onToggleSms" color="#00E5A0" />
+    </view>
+    <view class="row">
+      <text class="row-label">语音播报（自动拨打，念三遍）</text>
+      <switch checked="{{pref.voice}}" bindchange="onToggleVoice" color="#00E5A0" />
+    </view>
+
+    <view class="divider"></view>
+
+    <view class="row">
+      <text class="row-label">单独同意（PIPL 敏感信息）</text>
+      <switch checked="{{pref.consent}}" bindchange="onConsent" color="#00E5A0" />
+    </view>
+    <text class="hint">手机号属敏感个人信息，须单独同意用于发送风险提醒；可随时关闭并撤回。</text>
+
+    <view class="phone-box" wx:if="{{pref.sms || pref.voice}}">
+      <block wx:if="{{pref.phoneBound}}">
+        <text class="phone">{{pref.phoneMask || '已绑定'}}</text>
+        <text class="link" bindtap="onUnbind">解除</text>
+        <text class="status" wx:if="{{pref.status === 'pending'}}">（后端未联调，已本地记录）</text>
+      </block>
+      <button wx:elif="{{pref.consent && canGetPhone}}" class="btn-primary" open-type="getPhoneNumber" bindgetphonenumber="onGetPhone">绑定手机号</button>
+      <text wx:else class="hint">请先开启「单独同意」再绑定手机号。</text>
+    </view>
+  </view>
+
+  <!-- 外部召回范围 -->
+  <view class="card">
+    <view class="card-h"><text class="card-t">各通道覆盖的提醒</text></view>
+    <text class="desc">三层召回分工（受频次护栏保护，单用户单日外部 ≤2 次，22:00–08:00 不打语音）：</text>
+    <view class="split">
+      <view class="split-col">
+        <text class="split-h ok">服务号 / 小程序订阅（主）</text>
+        <text class="split-i">• 持仓止损预警</text>
+        <text class="split-i">• 会员等级升级</text>
+        <text class="split-i">• 监控池新信号</text>
+      </view>
+      <view class="split-col">
+        <text class="split-h mid">站内 + 订阅（日频）</text>
+        <text class="split-i">• 今日风险温度</text>
+        <text class="split-i">• 晚间打卡提醒</text>
+        <text class="split-i">（高频，不占外部额度）</text>
+      </view>
+    </view>
+    <text class="hint">若你同时开启下方短信/语音兜底，则在不关注服务号、又未小程序订阅的极少数人上，5 类都可能走短信/语音（受频次护栏）。</text>
+  </view>
+
+  <!-- 人工协助（客服辅助层，非下发通道） -->
+  <view class="card">
+    <view class="card-h">
+      <text class="card-t">人工协助 / 联系客服</text>
+      <text class="badge badge-cs">辅助引导</text>
+    </view>
+    <text class="desc">关注服务号、设置提醒遇到问题？可联系客服，我们会人工引导你开启强提醒（关注服务号 / 订阅提醒）。注：客服消息仅在「你主动咨询后 48 小时内」可回复，<b>不能主动推送提醒</b>，故它只作辅助、不下发提醒。</text>
+    <button class="btn-ghost" open-type="contact" session-from="recall_settings" bindcontact="onContact">联系客服</button>
+    <text class="hint">合规提示：客服不诱导、不骚扰；仅在你真实咨询时，借机引导你到主提醒通道（服务号订阅通知）。</text>
+  </view>
+
+  <view class="notice">
+    <text class="notice-txt">熵盾提醒仅作风险提示与纪律辅助，不构成投资建议，不替代你的独立判断。外部通道由第三方供应商下发，最终以下发成功为准。</text>
+  </view>
+
+</view>

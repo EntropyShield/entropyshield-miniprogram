@@ -1,7 +1,7 @@
 <view class="page">
   <view class="card">
-    <view class="title">购买成功</view>
-    <view class="desc">你的风控计算器权益已开通，可立即返回使用。</view>
+    <view class="title">{{statusTitle}}</view>
+    <view class="desc">{{statusDesc}}</view>
   </view>
 
   <view class="card">
@@ -23,6 +23,6 @@
     </view>
   </view>
 
-  <button class="btn-primary" bindtap="goCalc">去使用风控计算器</button>
+  <button class="btn-primary" bindtap="goCalc" disabled="{{!confirmed}}">{{confirmed ? "去使用风控计算器" : "权益确认中"}}</button>
   <button class="btn-ghost" bindtap="goHome">返回首页</button>
 </view>

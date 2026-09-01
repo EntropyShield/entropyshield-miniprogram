@@ -3,7 +3,7 @@
 /**
  * 单日风控打卡分析引擎
  * - 输入：某一天的打卡文本
- * - 输出：0~100 执行分 + 标签 + 建议
+ * - 输出：0~100 执行分 + 标签 + 改进方向
  */
 function analyzeDailyLog(log) {
   const {
@@ -37,7 +37,7 @@ function analyzeDailyLog(log) {
   if (hasHeavyPosition) {
     score -= 15;
     tags.push('仓位偏激进');
-    advices.push('你有使用「满仓 / 重仓 / 梭哈」的倾向，建议单笔不超过总资金 20%。');
+    advices.push('你有使用「满仓 / 重仓 / 梭哈」的倾向，单笔仓位控制在总资金 20% 以内更稳妥。');
   }
 
   const noStopLoss =
@@ -59,7 +59,7 @@ function analyzeDailyLog(log) {
   if (hasChasing) {
     score -= 10;
     tags.push('情绪驱动决策');
-    advices.push('建议在下单前强制等待 3 分钟，再确认仓位与止损是否合理。');
+    advices.push('不妨在下单前强制等待 3 分钟，再确认仓位与止损是否合理。');
   }
 
   const hasReview =
@@ -68,7 +68,7 @@ function analyzeDailyLog(log) {
     score += 5;
     tags.push('有复盘意识');
   } else if (filledCount > 0) {
-    advices.push('建议每天至少写下 3 行交易复盘，帮助你看清自己的行为模式。');
+    advices.push('不妨每天至少写下 3 行交易复盘，帮助你看清自己的行为模式。');
   }
 
   const hasRiskWord =
@@ -83,7 +83,7 @@ function analyzeDailyLog(log) {
   }
 
   if (day === 'D7' && filledCount > 0) {
-    advices.push('建议把本周最重要的 3 条风控铁律，誊写到纸上贴在屏幕旁边。');
+    advices.push('不妨把本周最重要的 3 条风控铁律，誊写到纸上贴在屏幕旁边。');
   }
 
   // 分数边界
@@ -94,7 +94,7 @@ function analyzeDailyLog(log) {
   if (!filledCount) {
     score = 0;
     tags = ['未填写记录'];
-    advices = ['建议至少记录一条今日关键行为，长期坚持才能看到自己的变化。'];
+    advices = ['不妨至少记录一条今日关键行为，长期坚持才能看到自己的变化。'];
   }
 
   return {
@@ -176,12 +176,12 @@ function buildCampReport() {
   if (!finishedCount) {
     levelText = '未启动';
     badgeName = '观望者';
-    badgeDesc = '建议先完成至少 1 天打卡，体验完整的风控执行流程。';
+    badgeDesc = '不妨先完成至少 1 天打卡，体验完整的风控执行流程。';
     levelClass = 'badge-gray';
   } else if (avgScore < 40) {
     levelText = '高风险区';
     badgeName = '漂流型交易者';
-    badgeDesc = '执行分偏低，说明风控规则还没有真正落地，建议从 D1-D3 重练。';
+    badgeDesc = '执行分偏低，说明风控规则还没有真正落地，不妨从 D1-D3 重练。';
     levelClass = 'badge-danger';
   } else if (avgScore < 60) {
     levelText = '起步阶段';
@@ -204,7 +204,7 @@ function buildCampReport() {
     title: '7 日风控执行总评',
     subtitle: finishedCount
       ? `已完成 ${finishedCount} / ${order.length} 天打卡，平均执行分 ${avgScore} 分。`
-      : '还没有任何打卡记录，建议先从 D1 开始完成第一天训练。',
+      : '还没有任何打卡记录，不妨先从 D1 开始完成第一天训练。',
     score: avgScore,
     levelText,
     levelClass,
@@ -224,7 +224,7 @@ function buildCampReport() {
     {
       label: '平均执行分',
       value: `${avgScore} 分`,
-      hint: '建议长期保持在 60 分以上。',
+      hint: '长期保持在 60 分以上更理想。',
       type: 'primary'
     },
     {
@@ -239,12 +239,12 @@ function buildCampReport() {
         minScore <= 100 && minScore >= 0 && finishedCount
           ? `${minDay || ''} · ${minScore} 分`
           : '暂无',
-      hint: '建议对分数最低的一天重新写一份打卡与复盘。',
+      hint: '不妨对分数最低的一天重新写一份打卡与复盘。',
       type: 'normal'
     }
   ];
 
-  // 汇总标签 & 建议
+  // 汇总标签 & 改进方向
   const tagSet = Array.from(new Set(allTags.filter(Boolean)));
 
   const advices = [];
@@ -252,14 +252,14 @@ function buildCampReport() {
   if (!finishedCount) {
     advices.push(
       '先完成 D1「止亏觉醒」和 D2「账户体检」两天任务，再来看报告会更有意义。',
-      '建议每天抽 10～20 分钟，用小仓位 + 严止损完成训练任务。'
+      '不妨每天抽 10～20 分钟，用小仓位 + 严止损完成训练任务。'
     );
   } else {
     if (tagSet.includes('缺乏止损纪律')) {
-      advices.push('在所有问题中，「止损」优先级最高。建议为每一笔交易写在纸上的止损价。');
+      advices.push('在所有问题中，「止损」优先级最高。不妨为每一笔交易写在纸上的止损价。');
     }
     if (tagSet.includes('情绪驱动决策')) {
-      advices.push('建议给自己设定「看盘次数上限」，并在下单前强制等待 3 分钟再操作。');
+      advices.push('不妨给自己设定「看盘次数上限」，并在下单前强制等待 3 分钟再操作。');
     }
     if (tagSet.includes('有复盘意识')) {
       advices.push('保持每天写 3 行复盘文字，你会在 1～3 个月内看见明显变化。');
@@ -269,7 +269,7 @@ function buildCampReport() {
     }
   }
 
-  // 再附加一条与等级相关的建议
+  // 再附加一条与等级相关的改进方向
   advices.push(badgeDesc);
 
   return {

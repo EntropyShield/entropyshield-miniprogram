@@ -1,7 +1,7 @@
 Component({
   properties:{
     size: { type: Number, value: 44 },     // 画布宽高（像素）
-    green: { type: String, value: "#2AFF2A" },
+    green: { type: String, value: "#00E5A0" },
     blue:  { type: String, value: "#1E90FF" }
   },
   lifetimes:{
@@ -35,7 +35,7 @@ Component({
         ctx.strokeStyle = this.data.green;
         ctx.lineWidth = Math.max(2, cssW*0.06);
         ctx.lineJoin = 'round';
-        ctx.shadowColor = 'rgba(42,255,42,0.6)';
+        ctx.shadowColor = 'rgba(0, 229, 160,0.6)';
         ctx.shadowBlur  = Math.max(6, cssW*0.12);
 
         ctx.beginPath();

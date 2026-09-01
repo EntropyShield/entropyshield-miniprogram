@@ -1,0 +1,11 @@
+{
+  "navigationBarTitleText": "测试结果 · 风控诊断",
+  "backgroundTextStyle": "dark",
+  "navigationBarBackgroundColor": "#000000",
+  "navigationBarTextStyle": "white",
+  "backgroundColor": "#000000",
+  "usingComponents": {
+    "disclaimer": "/components/disclaimer/disclaimer",
+    "share-card": "/pkgTest/components/shareCard/index"
+  }
+}

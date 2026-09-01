@@ -1,0 +1,15 @@
+<view class="pipl-mask" wx:if="{{show}}">
+  <view class="pipl-card">
+    <view class="pipl-title">{{title}}</view>
+    <view class="pipl-desc">{{desc}}</view>
+    <view class="pipl-agree" bindtap="toggle">
+      <view class="pipl-box {{checked ? 'on' : ''}}">{{checked ? '✓' : ''}}</view>
+      <text class="pipl-text">我已阅读并同意《隐私政策》中关于持仓 / 交易数据的收集与使用条款</text>
+    </view>
+    <view class="pipl-actions">
+      <button class="pipl-btn pipl-ghost" bindtap="onDecline">暂不使用</button>
+      <button class="pipl-btn pipl-primary {{checked ? '' : 'dis'}}" disabled="{{!checked}}" bindtap="onAgree">同意并继续</button>
+    </view>
+    <view class="pipl-foot">你可在「个人中心」随时撤回授权；撤回后新数据不再写入，已存数据按隐私政策管理。</view>
+  </view>
+</view>
