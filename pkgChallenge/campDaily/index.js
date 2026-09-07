@@ -1,4 +1,4 @@
-﻿// pages/campDaily/index.js
+// pages/campDaily/index.js
 // MOD: STABILIZE_APP_INSTANCE_20260103
 
 const { API_BASE } = require('../../config');  // 确保从 config.js 中导入 API_BASE

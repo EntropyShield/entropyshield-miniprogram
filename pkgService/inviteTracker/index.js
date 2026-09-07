@@ -1,4 +1,4 @@
-﻿const { API_BASE } = require('../../config')
+const { API_BASE } = require('../../config')
 
 function getBaseUrl() {
   return String(API_BASE || '').replace(/\/$/, '')

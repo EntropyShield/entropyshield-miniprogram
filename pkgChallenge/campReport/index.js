@@ -1,4 +1,4 @@
-﻿// pages/campReport/index.js
+// pages/campReport/index.js
 
 Page({
   data: {

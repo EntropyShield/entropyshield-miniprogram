@@ -1,4 +1,4 @@
-﻿const fs = require('fs');
+const fs = require('fs');
 const path = require('path');
 
 const app = JSON.parse(fs.readFileSync('app.json','utf8'));

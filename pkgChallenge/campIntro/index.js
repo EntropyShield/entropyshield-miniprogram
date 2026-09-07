@@ -1,4 +1,4 @@
-﻿// [CHANGE] unify userRights writes
+// [CHANGE] unify userRights writes
 const { mergeUserRights } = require('../../utils/userRights')
 
 // pages/campIntro/index.js

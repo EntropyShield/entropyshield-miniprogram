@@ -1,4 +1,4 @@
-﻿// pages/membership/index.js
+// pages/membership/index.js
 const { PLAN_LIST, getPlanByKey } = require('../../utils/plans');
 const { getUserRights, getMembershipLabel } = require('../../utils/userRights');
 

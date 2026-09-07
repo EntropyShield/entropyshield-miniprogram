@@ -26,6 +26,15 @@ while IFS= read -r f; do
 done < <(find . -name "*.json" -not -path "./.git/*")
 
 echo ""
+echo "-------- BOM 头拦截（JS 严禁 UTF-8 BOM）--------"
+bom=0
+while IFS= read -r f; do
+  head="$("$NODE" -e "const s=require('fs').readFileSync(process.argv[1]);process.stdout.write((s[0]===0xEF&&s[1]===0xBB&&s[2]===0xBF)?'BOM':'ok')" "$f" 2>/dev/null)"
+  if [ "$head" = "BOM" ]; then echo "BOM(JS)   $f  —— 微信开发者工具解析器会报 SyntaxError，需执行 node 脚本剥除"; bom=$((bom+1)); fi
+done < <(find . -name "*.js" -not -path "./.git/*")
+if [ "$bom" -eq 0 ]; then echo "OK   （全库零 BOM）"; fi
+
+echo ""
 echo "-------- 页面引用完整性（check-refs.js）--------"
 refrc=0
 if [ -f "check-refs.js" ]; then
@@ -39,11 +48,12 @@ echo ""
 echo "======== 结果汇总 ========"
 echo "JS   : OK=$jok   FAIL=$jfail"
 echo "JSON : OK=$kok   FAIL=$kfail"
+echo "BOM  : FAIL=$bom"
 if [ -f "check-refs.js" ]; then
   if [ "$refrc" -eq 0 ]; then echo "REFS : OK   （页面引用 0 悬挂 / tabBar 合规）"; else echo "REFS : FAIL （见上方 [ERROR]）"; fi
 fi
 
-if [ "$jfail" -eq 0 ] && [ "$kfail" -eq 0 ] && [ "$refrc" -eq 0 ]; then
+if [ "$jfail" -eq 0 ] && [ "$kfail" -eq 0 ] && [ "$bom" -eq 0 ] && [ "$refrc" -eq 0 ]; then
   echo "✅ 全部通过"
   exit 0
 else

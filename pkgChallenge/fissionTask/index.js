@@ -1,4 +1,4 @@
-﻿// pages/fissionTask/index.js
+// pages/fissionTask/index.js
 // MOD: P1_4_GROWTH_CENTER_LINKAGE_20260323
 // MOD: FIX_SHARE_TARGET_TO_RISK_CALCULATOR_20260324
 
