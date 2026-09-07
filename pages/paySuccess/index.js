@@ -443,12 +443,14 @@ function reconcileRightsAfterPaid(page, resolved) {
             )
           );
 
-          // 9/7 接入：权益到账（用户最高意愿点）→ 调起订单支付成功通知的订阅授权。
-          // 订阅消息是「一次性订阅」：本次调起若用户点了「允许」，后端 pay_notify_v4
-          // 在支付成功回调里才能通过 subscribeMessage.send 真正下发通知卡片。
+          // 9/7 接入：权益到账（用户最高意愿点）→ 调起订阅授权。
+          // - order_paid_success：订单支付成功通知（含金额、商品名、有效期至）
+          // - membership：会员到期提醒（刚买完会员，授权到期提醒的意愿最高）
+          // 订阅消息是「一次性订阅」：本次调起若用户点了「允许」，后端
+          // 才能在对应时机通过 subscribeMessage.send 真正下发通知卡片。
           // 任何失败/拒绝一律不阻断主流程——权益已到账才是这页的核心交付物。
           try {
-            sub.request('order_paid_success');
+            sub.request(['order_paid_success', 'membership']);
           } catch (e) {
             console.warn('[paySuccess] 订阅授权调起异常（已忽略）', e);
           }

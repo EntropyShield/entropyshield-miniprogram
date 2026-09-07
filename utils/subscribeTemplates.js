@@ -19,6 +19,20 @@
 // 4. 用户授权状态由 reportGranted() 上报到后端 recalled subscribedTemplates 白名单
 
 const SCENES = {
+  membership: {
+    name: '会员到期提醒',
+    desc: '会员到期前提醒（复用「卡券到期提醒」模板）',
+    // 公共模板「卡券到期提醒」字段（MP 后台显示为准，后端下发时按真实编号填）：
+    //   卡片名称 → thing  · 到期时间 → time · 使用规则 → thing · 状态 → thing · 温馨提示 → thing
+    fields: {
+      卡片名称: 'thing',
+      到期时间: 'time',
+      使用规则: 'thing',
+      状态: 'thing',
+      温馨提示: 'thing'
+    },
+    prompt: '开启会员到期提醒'
+  },
   daily_temperature: {
     name: '今日风险温度',
     desc: '订阅后每个交易日早间推送当日市场风险温度分值与提示',
@@ -91,13 +105,26 @@ function reportGranted(granted) {
 }
 
 module.exports = {
+  // 来源：本地 entropy-api/.env 的 WX_SUB_TPL_*（9/3 已配置）+ 9/7 新申请的支付成功模板。
+  // ⚠️ 前端场景键与后端 config.js SUB_TEMPLATE_KEYS 的对应关系：
+  //   order_paid_success ↔ （后端暂无，本次新增）
+  //   membership        ↔ membership
+  //   evening_checkin   ↔ checkin_remind
+  //   grade_upgrade     ↔ grade_upgrade   ★ 见下方 WARNING
+  //   daily_temperature ↔ risk_temperature（后端未配，等模板通过）
+  //   watchlist_signal  ↔ monitor_signal   （后端未配，等模板通过）
+  //   position_alert    ↔ （后端无此场景）
   TEMPLATE_ID: {
-    order_paid_success: 'Kmn7KwzQUq_sIwn7TUsnJmpl_Ofvk5MqcZz2xvKwpnU', // 场景0 · 订单支付成功通知（9/7 落库）
-    daily_temperature: '',  // 场景1 · 今日风险温度 9:15
-    evening_checkin: '',    // 场景2 · 收盘复盘/晚间打卡提醒
-    position_alert: '',     // 场景3 · 持仓止损预警
-    watchlist_signal: '',   // 场景4 · 监控池新信号
-    grade_upgrade: ''       // 场景5 · 风控等级升级
+    order_paid_success: 'Kmn7KwzQUq_sIwn7TUsnJmpl_Ofvk5MqcZz2xvKwpnU', // 订单支付成功通知（9/7 新增）
+    membership: 'KELsQGZzmd2kP78K6xywxQY7E_KH6sVmCSV_zHxsCg0',        // 会员到期提醒（卡券到期提醒模板）
+    evening_checkin: 'erlK1Qk50UZnMOQKRMgTKi1TD-B40TmkDaMAhzadvh0',   // 晚间打卡提醒（打卡通知模板）
+    // ★ WARNING：后端 .env 的 WX_SUB_TPL_GRADE_UPGRADE 实际配的是「打卡任务提醒」模板
+    //   （ID 中间段 PmnqmY80_Td8aVYxjpWGYEFvV 与打卡任务提醒一致），不是等级升级模板。
+    //   照抄会导致「等级升级通知」发出去显示打卡字段。故此处留空，等用户确认后再填。
+    grade_upgrade: '',
+    daily_temperature: '',  // 等「风险温度」模板通过审核
+    watchlist_signal: '',   // 等「监控信号」模板通过审核
+    position_alert: ''      // 后端无对应场景，暂未申请
   },
 
   SCENES,
