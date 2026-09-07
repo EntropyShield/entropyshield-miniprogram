@@ -1,30 +1,30 @@
 /* pages/fissionTask/index.wxss - EntropyShield Dark Theme (NO BOM) */
 
 /* 关键：彻底消灭顶部白色横条 */
-page{ background:var(--es-bg-deep, #0D0D0D); }
+page{ background:var(--es-bg-deep, #010407); }
 
 .page{
   min-height:100vh;
-  background:var(--es-bg-deep, #0D0D0D);
+  background:var(--es-bg-deep, #010407);
   padding:24rpx;
   box-sizing:border-box;
-  color:var(--es-txt-4, #EDEDED);
+  color:var(--es-txt-4, #7B8591);
 }
 
 /* card */
 .card{
-  background:var(--es-bg-deep, #111111);
+  background:var(--es-bg-deep, #010407);
   border-radius:18rpx;
   padding:22rpx;
   box-sizing:border-box;
-  border:1px solid rgba(0, 229, 160,0.18);
-  box-shadow:0 0 24rpx rgba(0, 229, 160,0.10);
+  border:1px solid rgba(0, 191, 255,0.18);
+  box-shadow:0 0 24rpx rgba(0, 191, 255,0.10);
   margin-bottom:18rpx;
 }
 .card-title{
   font-size:28rpx;
   font-weight:800;
-  color:#F2F2F2;
+  color:var(--es-txt-1, #F4F7FA);
   text-align:center;
 }
 .card-sub{
@@ -44,8 +44,8 @@ page{ background:var(--es-bg-deep, #0D0D0D); }
 .qr-img{
   width:560rpx;
   border-radius:16rpx;
-  background:var(--es-on-green, #0B0B0B);
-  border:1px solid rgba(0, 229, 160,0.18);
+  background:var(--es-on-green, #03060C);
+  border:1px solid rgba(0, 191, 255,0.18);
 }
 .qr-tip{
   margin-top:10rpx;
@@ -57,7 +57,7 @@ page{ background:var(--es-bg-deep, #0D0D0D); }
 .grid{ display:flex; gap:16rpx; }
 .metric{
   flex:1;
-  background:var(--es-on-green, #0B0B0B);
+  background:var(--es-on-green, #03060C);
   border-radius:14rpx;
   padding:18rpx;
   border:1px solid rgba(255,255,255,0.08);
@@ -81,7 +81,7 @@ page{ background:var(--es-bg-deep, #0D0D0D); }
   margin-top:10rpx;
   font-size:30rpx;
   font-weight:900;
-  color:var(--es-green, #00E5A0);
+  color:var(--es-green, #00BFFF);
   word-break:break-all;
 }
 
@@ -102,14 +102,14 @@ page{ background:var(--es-bg-deep, #0D0D0D); }
 button::after{ border:none; }
 
 .btn-primary{
-  background:var(--es-green, #00E5A0);
-  color:var(--es-bg-deep, #0D0D0D);
-  box-shadow:0 0 22rpx rgba(0, 229, 160,0.25);
+  background:var(--es-green, #00BFFF);
+  color:var(--es-bg-deep, #010407);
+  box-shadow:0 0 22rpx rgba(0, 191, 255,0.25);
 }
 .btn-ghost{
   background:transparent;
-  color:var(--es-txt-4, #EDEDED);
-  border:1px solid rgba(0, 229, 160,0.35);
+  color:var(--es-txt-4, #7B8591);
+  border:1px solid rgba(0, 191, 255,0.35);
 }
 /* [ADD] commission center entry */
 .commission-entry-link {
@@ -117,19 +117,19 @@ button::after{ border:none; }
   margin-top: 20rpx;
 }
 .commission-entry-card {
-  background: var(--es-card-2, #16181d);
+  background: var(--es-card-2, #0F1926);
   border-radius: 24rpx;
   padding: 24rpx;
   box-sizing: border-box;
-  border: 1rpx solid rgba(0, 229, 160,0.18);
+  border: 1rpx solid rgba(0, 191, 255,0.18);
 }
 .commission-entry-title {
   font-size: 30rpx;
-  color: var(--es-white, #ffffff);
+  color: var(--es-white, #F4F7FA);
   font-weight: 700;
 }
 .commission-entry-desc {
   margin-top: 10rpx;
   font-size: 24rpx;
-  color: var(--es-txt-2, #8a8d93);
+  color: var(--es-txt-2, #AAB4BE);
 }

@@ -24,9 +24,9 @@
   <view class="card">
     <view class="section-title">当前选择</view>
 
-    <view wx:if="{{upgradeMode}}" style="margin: 24rpx 0 0 0; padding: 24rpx; border: 1px solid #00E5A0; border-radius: 20rpx; background: rgba(0,229,160,0.06);">
-      <view style="font-size: 30rpx; font-weight: 600; color: #00E5A0;">{{upgradeTitle}}</view>
-      <view style="margin-top: 12rpx; font-size: 24rpx; line-height: 1.7; color: #d8d8d8;">{{upgradeContent}}</view>
+    <view wx:if="{{upgradeMode}}" style="margin: 24rpx 0 0 0; padding: 24rpx; border: 1px solid #00BFFF; border-radius: 20rpx; background: rgba(0,191,255,0.06);">
+      <view style="font-size: 30rpx; font-weight: 600; color: #00BFFF;">{{upgradeTitle}}</view>
+      <view style="margin-top: 12rpx; font-size: 24rpx; line-height: 1.7; color: var(--es-txt-1, #F4F7FA);">{{upgradeContent}}</view>
     </view>
 
     <block wx:for="{{plans}}" wx:key="key">

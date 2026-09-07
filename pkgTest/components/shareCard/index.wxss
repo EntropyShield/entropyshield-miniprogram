@@ -27,8 +27,8 @@
   transform: translate(-50%, -50%);
   width: 600rpx;
   padding: var(--sp-4, 32rpx);
-  background: var(--es-card, #121A26);
-  border: 2rpx solid var(--es-line, #1E2A3A);
+  background: var(--es-card, #07111E);
+  border: 2rpx solid var(--es-line, #4B5663);
   border-radius: var(--radius-lg, 28rpx);
   box-sizing: border-box;
 }
@@ -44,8 +44,8 @@
 .sc-spinner {
   width: 56rpx;
   height: 56rpx;
-  border: 6rpx solid var(--es-line, #1E2A3A);
-  border-top-color: var(--es-green, #00E5A0);
+  border: 6rpx solid var(--es-line, #4B5663);
+  border-top-color: var(--es-green, #00BFFF);
   border-radius: 50%;
   animation: sc-spin 0.8s linear infinite;
   margin-bottom: var(--sp-3, 24rpx);
@@ -57,7 +57,7 @@
 
 .sc-status-txt {
   font-size: var(--fs-base, 28rpx);
-  color: var(--es-txt-2, #8A94A6);
+  color: var(--es-txt-2, #AAB4BE);
 }
 
 .sc-img {
@@ -69,7 +69,7 @@
 .sc-tip {
   margin-top: var(--sp-2, 16rpx);
   font-size: var(--fs-sm, 24rpx);
-  color: var(--es-txt-3, #5A6577);
+  color: var(--es-txt-3, #8E98A3);
   text-align: center;
 }
 
@@ -91,12 +91,12 @@
 .sc-btn::after { border: none; }
 
 .sc-btn-ghost {
-  background: var(--es-elevated, #1A2434);
-  color: var(--es-txt-2, #8A94A6);
+  background: var(--es-elevated, #151F2C);
+  color: var(--es-txt-2, #AAB4BE);
 }
 
 .sc-btn-primary {
-  background: var(--es-green, #00E5A0);
-  color: var(--es-bg, #0A0E14);
+  background: var(--es-green, #00BFFF);
+  color: var(--es-bg, #03060C);
   font-weight: 700;
 }

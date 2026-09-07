@@ -2,8 +2,8 @@
   min-height: 100vh;
   padding: 28rpx 24rpx 48rpx;
   box-sizing: border-box;
-  background: var(--es-bg, #0A0E14);
-  color: var(--es-white, #ffffff);
+  background: var(--es-bg, #03060C);
+  color: var(--es-white, #F4F7FA);
 }
 
 .card {
@@ -12,11 +12,11 @@
   box-sizing: border-box;
   border: 1px solid var(--es-line, rgba(255, 255, 255, 0.06));
   border-radius: 24rpx;
-  background: var(--es-card, #11161E);
+  background: var(--es-card, #07111E);
 }
 
 .section-title {
-  color: var(--es-green, #00E5A0);
+  color: var(--es-green, #00BFFF);
   font-size: 29rpx;
   font-weight: 700;
   line-height: 1.45;
@@ -25,7 +25,7 @@
 
 .nav-arrow {
   flex-shrink: 0;
-  color: var(--es-green, #00E5A0);
+  color: var(--es-green, #00BFFF);
   font-size: 30rpx;
 }
 
@@ -33,8 +33,8 @@
 .badge-card {
   display: flex;
   align-items: center;
-  border-color: rgba(0, 229, 160, 0.24);
-  background: linear-gradient(180deg, rgba(0, 229, 160, 0.08) 0%, var(--es-card, #11161E) 100%);
+  border-color: rgba(0, 191, 255, 0.24);
+  background: linear-gradient(180deg, rgba(0, 191, 255, 0.08) 0%, var(--es-card, #07111E) 100%);
 }
 
 .avatar-btn {
@@ -47,9 +47,9 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  border: 1px solid rgba(0, 229, 160, 0.25);
+  border: 1px solid rgba(0, 191, 255, 0.25);
   border-radius: 50%;
-  background: var(--es-card-2, #0E131A);
+  background: var(--es-card-2, #0F1926);
   line-height: 1;
 }
 
@@ -63,7 +63,7 @@
 }
 
 .avatar-placeholder {
-  color: var(--es-green, #00E5A0);
+  color: var(--es-green, #00BFFF);
   font-size: 38rpx;
   font-weight: 700;
 }
@@ -74,7 +74,7 @@
 }
 
 .nick-input {
-  color: var(--es-white, #ffffff);
+  color: var(--es-white, #F4F7FA);
   font-size: 32rpx;
   font-weight: 700;
   line-height: 1.45;
@@ -82,7 +82,7 @@
 }
 
 .nick-ph {
-  color: var(--es-txt-2, #8A96A6);
+  color: var(--es-txt-2, #AAB4BE);
   font-weight: 400;
 }
 
@@ -96,15 +96,15 @@
 
 .badge-level {
   padding: 5rpx 14rpx;
-  border: 1px solid rgba(0, 229, 160, 0.4);
+  border: 1px solid rgba(0, 191, 255, 0.4);
   border-radius: 999rpx;
-  color: var(--es-green, #00E5A0);
+  color: var(--es-green, #00BFFF);
   font-size: 21rpx;
   font-weight: 700;
 }
 
 .badge-streak {
-  color: var(--es-txt-2, #8A96A6);
+  color: var(--es-txt-2, #AAB4BE);
   font-size: 22rpx;
 }
 
@@ -117,14 +117,14 @@
   justify-content: center;
   margin-left: 12rpx;
   border-radius: 50%;
-  color: var(--es-txt-2, #8A96A6);
+  color: var(--es-txt-2, #AAB4BE);
   font-size: 34rpx;
-  background: var(--es-card-2, #0E131A);
+  background: var(--es-card-2, #0F1926);
 }
 
 /* ===== L2 资产账本层 ===== */
 .ledger-card {
-  border-color: rgba(0, 229, 160, 0.18);
+  border-color: rgba(0, 191, 255, 0.18);
 }
 
 .ledger-head {
@@ -135,13 +135,13 @@
 }
 
 .ledger-title {
-  color: var(--es-white, #ffffff);
+  color: var(--es-white, #F4F7FA);
   font-size: 30rpx;
   font-weight: 700;
 }
 
 .ledger-name {
-  color: var(--es-green, #00E5A0);
+  color: var(--es-green, #00BFFF);
   font-size: 24rpx;
   font-weight: 600;
 }
@@ -159,17 +159,17 @@
   flex-direction: column;
   border: 1px solid var(--es-line, rgba(255, 255, 255, 0.08));
   border-radius: 16rpx;
-  background: var(--es-card-2, #0E131A);
+  background: var(--es-card-2, #0F1926);
 }
 
 .li-label {
-  color: var(--es-txt-2, #8A96A6);
+  color: var(--es-txt-2, #AAB4BE);
   font-size: 20rpx;
 }
 
 .li-value {
   margin-top: 6rpx;
-  color: var(--es-txt-4, #E6EDF3);
+  color: var(--es-txt-4, #7B8591);
   font-size: 24rpx;
   font-weight: 700;
   line-height: 1.45;
@@ -181,8 +181,8 @@
   padding: 18rpx 0;
   text-align: center;
   border-radius: 999rpx;
-  background: var(--es-green, #00E5A0);
-  color: #061007;
+  background: var(--es-green, #00BFFF);
+  color: var(--es-on-green, #03060C);
   font-size: 26rpx;
   font-weight: 700;
 }
@@ -203,7 +203,7 @@
 
 .battle-name {
   display: block;
-  color: var(--es-txt-4, #E6EDF3);
+  color: var(--es-txt-4, #7B8591);
   font-size: 26rpx;
   font-weight: 600;
   line-height: 1.45;
@@ -212,7 +212,7 @@
 .battle-desc {
   display: block;
   margin-top: 6rpx;
-  color: var(--es-txt-2, #8A96A6);
+  color: var(--es-txt-2, #AAB4BE);
   font-size: 21rpx;
   line-height: 1.7;
 }
@@ -220,9 +220,9 @@
 .invite-box {
   margin-top: 18rpx;
   padding: 18rpx 16rpx;
-  border: 1px solid rgba(0, 229, 160, 0.3);
+  border: 1px solid rgba(0, 191, 255, 0.3);
   border-radius: 16rpx;
-  background: var(--es-card-2, #0E131A);
+  background: var(--es-card-2, #0F1926);
 }
 
 .invite-code-row {
@@ -232,7 +232,7 @@
 }
 
 .invite-code {
-  color: var(--es-green, #00E5A0);
+  color: var(--es-green, #00BFFF);
   font-size: 32rpx;
   font-weight: 700;
   letter-spacing: 2rpx;
@@ -240,9 +240,9 @@
 
 .invite-copy {
   padding: 8rpx 24rpx;
-  border: 1px solid var(--es-green, #00E5A0);
+  border: 1px solid var(--es-green, #00BFFF);
   border-radius: 999rpx;
-  color: var(--es-green, #00E5A0);
+  color: var(--es-green, #00BFFF);
   font-size: 22rpx;
   font-weight: 600;
 }
@@ -250,7 +250,7 @@
 .invite-sub {
   display: block;
   margin-top: 10rpx;
-  color: var(--es-txt-2, #8A96A6);
+  color: var(--es-txt-2, #AAB4BE);
   font-size: 21rpx;
 }
 
@@ -274,7 +274,7 @@
 }
 
 .archive-text {
-  color: var(--es-txt-4, #E6EDF3);
+  color: var(--es-txt-4, #7B8591);
   font-size: 24rpx;
   font-weight: 600;
 }
@@ -302,7 +302,7 @@
 }
 
 .svc-name {
-  color: var(--es-txt-4, #E6EDF3);
+  color: var(--es-txt-4, #7B8591);
   font-size: 26rpx;
   font-weight: 600;
   line-height: 1.45;
@@ -311,7 +311,7 @@
 .svc-desc {
   display: block;
   margin-top: 6rpx;
-  color: var(--es-txt-2, #8A96A6);
+  color: var(--es-txt-2, #AAB4BE);
   font-size: 21rpx;
   line-height: 1.7;
 }
@@ -323,7 +323,63 @@
 }
 
 .notice-text {
-  color: var(--es-txt-2, #8A96A6);
+  color: var(--es-txt-2, #AAB4BE);
   font-size: 21rpx;
   line-height: 1.75;
+}
+
+/* ===== L1.5 熵盾积分 + 控局者等级 ===== */
+.es-points-card {
+  border-color: rgba(0, 191, 255, 0.22);
+  background: linear-gradient(180deg, rgba(0, 191, 255, 0.06) 0%, var(--es-card, #07111E) 100%);
+}
+.es-points-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 16rpx;
+}
+.es-points-title {
+  color: var(--es-white, #F4F7FA);
+  font-size: 28rpx;
+  font-weight: 700;
+}
+.es-points-level {
+  color: var(--es-green, #00BFFF);
+  font-size: 22rpx;
+  font-weight: 600;
+}
+.es-points-grid {
+  display: flex;
+  gap: 12rpx;
+}
+.es-pitem {
+  flex: 1;
+  min-width: 0;
+  padding: 16rpx 14rpx;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--es-line, rgba(255, 255, 255, 0.08));
+  border-radius: 16rpx;
+  background: var(--es-card-2, #0F1926);
+}
+.es-pk { color: var(--es-txt-2, #AAB4BE); font-size: 20rpx; }
+.es-pv { margin-top: 6rpx; color: var(--es-txt-4, #7B8591); font-size: 26rpx; font-weight: 700; }
+.es-rewards {
+  margin-top: 14rpx;
+  padding-top: 14rpx;
+  border-top: 1px dashed var(--es-line, rgba(255, 255, 255, 0.12));
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10rpx;
+}
+.es-rewards-k { color: var(--es-txt-2, #AAB4BE); font-size: 21rpx; }
+.es-reward {
+  padding: 6rpx 16rpx;
+  border-radius: 999rpx;
+  background: rgba(0, 191, 255, 0.12);
+  color: var(--es-green, #00BFFF);
+  font-size: 20rpx;
+  font-weight: 600;
 }

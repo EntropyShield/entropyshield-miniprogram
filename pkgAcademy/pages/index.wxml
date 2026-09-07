@@ -1,0 +1,42 @@
+<!-- pkgAcademy/pages/index.wxml · 控局者学院列表 -->
+<view class="page">
+  <view class="head">
+    <view class="title">控局者学院</view>
+    <view class="sub">用 AI 生成的生动好课，把风控纪律变成习惯</view>
+    <view class="progress">
+      <text class="pg-num">{{doneCount}}</text>
+      <text class="pg-tot">/ {{totalCount}} 节已学完</text>
+    </view>
+  </view>
+
+  <view class="ai-banner">🤖 {{aiBadge}} · 无真人讲师 · 每节均经人工审核留痕</view>
+
+  <block wx:for="{{modules}}" wx:key="id" wx:for-item="mod">
+    <view class="mod">
+      <view class="mod-head">
+        <view class="mod-l">
+          <text class="mod-name">{{mod.name}}</text>
+          <text class="mod-level">{{mod.level}}</text>
+        </view>
+        <text class="mod-pg">{{mod.doneInModule}}/{{mod.totalInModule}}</text>
+      </view>
+      <view class="mod-desc">{{mod.desc}}</view>
+
+      <view class="lesson" wx:for="{{mod.lessons}}" wx:key="id" wx:for-item="les"
+            bindtap="onLessonTap" data-id="{{les.id}}">
+        <view class="les-main">
+          <text class="les-title {{les.done ? 'done' : ''}}">{{les.title}}</text>
+          <text class="les-sub">{{les.subtitle}}</text>
+        </view>
+        <view class="les-right">
+          <text class="les-dur">{{les.duration}}′</text>
+          <text class="les-unlock u-{{les.unlock}}">{{les.unlockLabel}}</text>
+          <text class="les-state" wx:if="{{les.done}}">✓ 已学</text>
+          <text class="les-state making" wx:elif="{{!les.ready}}">制作中</text>
+        </view>
+      </view>
+    </view>
+  </block>
+
+  <view class="foot">免费课观看 0 积分；学完、分享得积分，积分可兑会员/解锁券</view>
+</view>

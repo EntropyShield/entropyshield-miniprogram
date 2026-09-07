@@ -63,8 +63,11 @@ Page({
     wbTotalCount: 0,
     wbStreak: 0,         // 连续守纪天数（本地打卡推导）
     wbWeekCells: [],     // 本周 7 格打卡状态
-    wbRateReady: false,  // 周执行率是否有后端数据（当前无，诚实占位）
-    wbRate: 0,           // 周执行率百分比（后端 /api/discipline/weekly 就绪后填充）
+    wbRateReady: false,  // 后端 /api/discipline/weekly 已返事实计数后置 true
+    wbRate: 0,           // 兼容旧字段（保留，不再使用百分比）
+    wbCheckedCount: 0,   // 本周打卡天数
+    wbTotalDays: 0,      // 累计打卡天数
+    wbMaxStreak: 0,      // 最长连续
     todoList: [],        // 今日执行清单
     wbPlans: [],         // 存续方案（本地 tradeRecords 推导）
     wbRecords: [],       // 执行记录
@@ -339,26 +342,13 @@ Page({
 
   // [P1-ROUTE-FINAL-FIX-20251215]
   goToCourseList() {
-    console.log('[controller] goToCourseList tap');
-
+    console.log('[controller] goToCourseList tap -> pkgAcademy');
+    // 控局者学院（数据驱动，见 utils/courseManifest.js）：合并原 course/courses，沙龙留空接口待后续加
     wx.navigateTo({
-      url: '/pkgService/course/index?from=controller',
-      success() {
-        console.log('[controller] navigateTo /pkgService/course/index success');
-      },
-      fail(err1) {
-        console.warn('[controller] /pkgService/course/index fail, fallback to /pkgService/courses/index', err1);
-
-        wx.navigateTo({
-          url: '/pkgService/courses/index?from=controller',
-          success() {
-            console.log('[controller] fallback navigateTo /pkgService/courses/index success');
-          },
-          fail(err2) {
-            console.error('[controller] fallback navigateTo /pkgService/courses/index fail:', err2);
-            wx.showToast({ title: '暂时无法打开课程与训练', icon: 'none' });
-          }
-        });
+      url: '/pkgAcademy/pages/index?from=controller',
+      fail(err) {
+        console.error('[controller] navigateTo /pkgAcademy/pages/index fail:', err);
+        wx.showToast({ title: '暂时无法打开控局者学院', icon: 'none' });
       }
     });
   },

@@ -3,15 +3,15 @@
 /* 页面整体 */
 .page {
   min-height: 100vh;
-  background-color: var(--es-ink, #000000);
+  background-color: var(--es-ink, #03060C);
   padding: 24rpx 24rpx 40rpx;
   box-sizing: border-box;
-  color: var(--es-white, #ffffff);
+  color: var(--es-white, #F4F7FA);
 }
 
 /* 通用卡片 */
 .card {
-  background-color: var(--es-bg-deep, #050505);
+  background-color: var(--es-bg-deep, #010407);
   border-radius: 24rpx;
   padding: 20rpx 22rpx 24rpx;
   margin-bottom: 20rpx;
@@ -21,16 +21,16 @@
 
 /* 顶部介绍卡片 */
 .intro-card {
-  border-color: rgba(0, 229, 160, 0.25);
+  border-color: rgba(0, 191, 255, 0.25);
 }
 
 .badge {
   display: inline-block;
   padding: 4rpx 18rpx;
   border-radius: 999rpx;
-  border: 1px solid rgba(0, 229, 160, 0.4);
+  border: 1px solid rgba(0, 191, 255, 0.4);
   font-size: 22rpx;
-  color: var(--es-green, #00E5A0);
+  color: var(--es-green, #00BFFF);
   margin-bottom: 10rpx;
 }
 
@@ -42,7 +42,7 @@
 
 .intro-sub {
   font-size: 24rpx;
-  color: var(--es-txt-2, #9aa0a6);
+  color: var(--es-txt-2, #AAB4BE);
   line-height: 1.5;
   margin-bottom: 12rpx;
 }
@@ -57,7 +57,7 @@
   font-size: 22rpx;
   padding: 2rpx 14rpx;
   border-radius: 999rpx;
-  border: 1px solid rgba(0, 229, 160, 0.2);
+  border: 1px solid rgba(0, 191, 255, 0.2);
   color: #c0ffc0;
   margin-right: 8rpx;
   margin-top: 4rpx;
@@ -66,17 +66,17 @@
 .intro-progress {
   margin-top: 2rpx;
   font-size: 24rpx;
-  color: var(--es-txt-2, #9aa0a6);
+  color: var(--es-txt-2, #AAB4BE);
 }
 
 .intro-progress .strong {
-  color: var(--es-green, #00E5A0);
+  color: var(--es-green, #00BFFF);
   font-weight: 600;
 }
 
 /* 控局者等级卡片：统一一套样式 */
 .grade-card {
-  border-color: rgba(0, 229, 160, 0.18);
+  border-color: rgba(0, 191, 255, 0.18);
   margin-top: 4rpx;
 }
 
@@ -124,13 +124,13 @@
   width: 160rpx;
   height: 160rpx;
   border-radius: 50%;
-  border: 2rpx solid var(--es-green, #00E5A0);
+  border: 2rpx solid var(--es-green, #00BFFF);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   margin-right: 24rpx;
-  background: radial-gradient(circle at 30% 30%, rgba(0, 229, 160, 0.18), var(--es-bg-deep, #050505));
+  background: radial-gradient(circle at 30% 30%, rgba(0, 191, 255, 0.18), var(--es-bg-deep, #010407));
 }
 
 .grade-badge-icon {
@@ -146,7 +146,7 @@
 
 .grade-score-label {
   font-size: 22rpx;
-  color: var(--es-txt-2, #9aa0a6);
+  color: var(--es-txt-2, #AAB4BE);
 }
 
 .grade-tags {
@@ -159,8 +159,8 @@
   font-size: 20rpx;
   padding: 4rpx 12rpx;
   border-radius: 999rpx;
-  border: 1px solid rgba(0, 229, 160, 0.25);
-  color: var(--es-txt-4, #c0c0c0);
+  border: 1px solid rgba(0, 191, 255, 0.25);
+  color: var(--es-txt-4, #7B8591);
   margin-right: 8rpx;
   margin-bottom: 6rpx;
 }
@@ -168,7 +168,7 @@
 .grade-desc {
   margin-top: 8rpx;
   font-size: 24rpx;
-  color: var(--es-txt-2, #9aa0a6);
+  color: var(--es-txt-2, #AAB4BE);
   line-height: 1.5;
 }
 
@@ -182,9 +182,9 @@
   min-width: 220rpx;
   height: 60rpx;
   border-radius: 999rpx;
-  border: 1px solid var(--es-green, #00E5A0);
+  border: 1px solid var(--es-green, #00BFFF);
   background-color: transparent;
-  color: var(--es-green, #00E5A0);
+  color: var(--es-green, #00BFFF);
   font-size: 24rpx;
   display: flex;
   align-items: center;
@@ -197,13 +197,13 @@
 
 .grade-empty-title {
   font-size: 24rpx;
-  color: var(--es-txt-2, #9aa0a6);
+  color: var(--es-txt-2, #AAB4BE);
   margin-bottom: 4rpx;
 }
 
 .grade-empty-desc {
   font-size: 22rpx;
-  color: var(--es-txt-2, #9aa0a6);
+  color: var(--es-txt-2, #AAB4BE);
   line-height: 1.6;
 }
 
@@ -224,7 +224,7 @@
 .calendar-sub {
   margin-top: 4rpx;
   font-size: 24rpx;
-  color: var(--es-txt-2, #9aa0a6);
+  color: var(--es-txt-2, #AAB4BE);
 }
 
 .day-tabs {
@@ -241,12 +241,12 @@
   margin-right: 10rpx;
   border-radius: 20rpx;
   border: 1px solid #1a2a1a;
-  background-color: var(--es-bg-deep, #050505);
+  background-color: var(--es-bg-deep, #010407);
   position: relative;
 }
 
 .day-tab.active {
-  border-color: var(--es-green, #00E5A0);
+  border-color: var(--es-green, #00BFFF);
 }
 
 .day-tab.finished {
@@ -261,7 +261,7 @@
 .day-name {
   margin-top: 2rpx;
   font-size: 20rpx;
-  color: var(--es-txt-2, #9aa0a6);
+  color: var(--es-txt-2, #AAB4BE);
 }
 
 .dot-finished {
@@ -271,7 +271,7 @@
   width: 10rpx;
   height: 10rpx;
   border-radius: 50%;
-  background-color: var(--es-green, #00E5A0);
+  background-color: var(--es-safe, #00E5A0);
 }
 
 /* 任务详情卡片 */
@@ -285,7 +285,7 @@
 
 .detail-day {
   font-size: 24rpx;
-  color: var(--es-green, #00E5A0);
+  color: var(--es-green, #00BFFF);
 }
 
 .detail-title {
@@ -297,7 +297,7 @@
 .detail-sub {
   margin-top: 4rpx;
   font-size: 24rpx;
-  color: var(--es-txt-2, #9aa0a6);
+  color: var(--es-txt-2, #AAB4BE);
   line-height: 1.6;
 }
 
@@ -328,7 +328,7 @@
   width: 16rpx;
   height: 16rpx;
   border-radius: 50%;
-  background-color: var(--es-green, #00E5A0);
+  background-color: var(--es-green, #00BFFF);
   margin-right: 10rpx;
   margin-top: 8rpx;
 }
@@ -336,7 +336,7 @@
 .bullet-text {
   flex: 1;
   font-size: 22rpx;
-  color: #d0d0d0;
+  color: var(--es-txt-1, #F4F7FA);
   line-height: 1.6;
 }
 
@@ -350,11 +350,11 @@
   width: 100%;
   height: 84rpx;
   border-radius: 999rpx;
-  background-color: var(--es-green, #00E5A0);
+  background-color: var(--es-green, #00BFFF);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--es-ink, #000000);
+  color: var(--es-ink, #03060C);
   font-size: 30rpx;
   font-weight: 600;
   border: none;
@@ -365,9 +365,9 @@
   width: 100%;
   height: 78rpx;
   border-radius: 999rpx;
-  border: 1px solid var(--es-green, #00E5A0);
+  border: 1px solid var(--es-green, #00BFFF);
   background-color: transparent;
-  color: var(--es-green, #00E5A0);
+  color: var(--es-green, #00BFFF);
   font-size: 26rpx;
   display: flex;
   align-items: center;
@@ -379,9 +379,9 @@
   width: 100%;
   height: 76rpx;
   border-radius: 999rpx;
-  border: 1px dashed #555555;
+  border: 1px dashed var(--es-line, #4B5663);
   background-color: transparent;
-  color: var(--es-txt-2, #9aa0a6);
+  color: var(--es-txt-2, #AAB4BE);
   font-size: 24rpx;
   display: flex;
   align-items: center;
@@ -391,13 +391,13 @@
 /* 说明文字 */
 .notice-title {
   font-size: 24rpx;
-  color: var(--es-txt-2, #9aa0a6);
+  color: var(--es-txt-2, #AAB4BE);
   margin-bottom: 6rpx;
 }
 
 .notice-text text {
   display: block;
   font-size: 22rpx;
-  color: var(--es-txt-3, #5f6368);
+  color: var(--es-txt-3, #8E98A3);
   line-height: 1.6;
 }

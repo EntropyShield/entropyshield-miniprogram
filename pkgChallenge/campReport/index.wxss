@@ -3,15 +3,15 @@
 /* 整页背景 */
 .page {
   min-height: 100vh;
-  background-color: var(--es-ink, #000000);
+  background-color: var(--es-ink, #03060C);
   padding: 32rpx 24rpx 40rpx;
   box-sizing: border-box;
-  color: var(--es-white, #ffffff);
+  color: var(--es-white, #F4F7FA);
 }
 
 /* 通用卡片 */
 .card {
-  background-color: var(--es-bg-deep, #050505);
+  background-color: var(--es-bg-deep, #010407);
   border-radius: 24rpx;
   padding: 24rpx 22rpx 28rpx;
   margin-bottom: 24rpx;
@@ -21,7 +21,7 @@
 
 /* 顶部结果卡片 */
 .card-result {
-  border-color: rgba(0, 229, 160, 0.35);
+  border-color: rgba(0, 191, 255, 0.35);
 }
 
 .result-header {
@@ -38,7 +38,7 @@
 .result-sub {
   margin-top: 6rpx;
   font-size: 22rpx;
-  color: var(--es-txt-2, #9aa0a6);
+  color: var(--es-txt-2, #AAB4BE);
 }
 
 /* 顶部徽章 */
@@ -47,8 +47,8 @@
   align-items: center;
   padding: 4rpx 16rpx;
   border-radius: 999rpx;
-  border: 1px solid rgba(0, 229, 160, 0.4);
-  color: var(--es-green, #00E5A0);
+  border: 1px solid rgba(0, 191, 255, 0.4);
+  color: var(--es-green, #00BFFF);
   font-size: 22rpx;
 }
 
@@ -63,13 +63,13 @@
   width: 120rpx;
   height: 120rpx;
   border-radius: 50%;
-  border: 2rpx solid var(--es-green, #00E5A0);
+  border: 2rpx solid var(--es-green, #00BFFF);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   margin-right: 24rpx;
-  background: radial-gradient(circle at 30% 30%, rgba(0, 229, 160, 0.18), var(--es-bg-deep, #050505));
+  background: radial-gradient(circle at 30% 30%, rgba(0, 191, 255, 0.18), var(--es-bg-deep, #010407));
 }
 
 .score-value {
@@ -80,7 +80,7 @@
 .score-label {
   margin-top: 2rpx;
   font-size: 22rpx;
-  color: var(--es-txt-2, #9aa0a6);
+  color: var(--es-txt-2, #AAB4BE);
 }
 
 .score-tags {
@@ -93,8 +93,8 @@
   font-size: 20rpx;
   padding: 4rpx 12rpx;
   border-radius: 999rpx;
-  border: 1px solid rgba(0, 229, 160, 0.25);
-  color: var(--es-txt-4, #c0c0c0);
+  border: 1px solid rgba(0, 191, 255, 0.25);
+  color: var(--es-txt-4, #7B8591);
   margin-right: 8rpx;
   margin-bottom: 6rpx;
 }
@@ -103,7 +103,7 @@
 .meta-row {
   margin-top: 12rpx;
   font-size: 22rpx;
-  color: var(--es-txt-2, #9aa0a6);
+  color: var(--es-txt-2, #AAB4BE);
 }
 
 .meta-row + .meta-row {
@@ -111,7 +111,7 @@
 }
 
 .meta-strong {
-  color: var(--es-green, #00E5A0);
+  color: var(--es-green, #00BFFF);
 }
 
 /* 小圆点说明列表 */
@@ -129,7 +129,7 @@
   width: 10rpx;
   height: 10rpx;
   border-radius: 50%;
-  background-color: var(--es-green, #00E5A0);
+  background-color: var(--es-green, #00BFFF);
   margin-right: 8rpx;
   margin-top: 10rpx;
 }
@@ -137,7 +137,7 @@
 .list-dot-text {
   flex: 1;
   font-size: 22rpx;
-  color: #d0d0d0;
+  color: var(--es-txt-1, #F4F7FA);
   line-height: 1.6;
 }
 
@@ -170,23 +170,23 @@
 
 .day-name {
   font-size: 24rpx;
-  color: var(--es-txt-4, #e0e0e0);
+  color: var(--es-txt-4, #7B8591);
 }
 
 .day-score {
   font-size: 22rpx;
-  color: var(--es-green, #00E5A0);
+  color: var(--es-green, #00BFFF);
 }
 
 .day-desc {
   margin-top: 2rpx;
   font-size: 22rpx;
-  color: var(--es-txt-2, #9aa0a6);
+  color: var(--es-txt-2, #AAB4BE);
 }
 
 /* 提示信 / 下一步卡片 */
 .card-advice {
-  border-color: rgba(0, 229, 160, 0.18);
+  border-color: rgba(0, 191, 255, 0.18);
 }
 
 .section-title {
@@ -197,7 +197,7 @@
 
 .section-text {
   font-size: 22rpx;
-  color: #d0d0d0;
+  color: var(--es-txt-1, #F4F7FA);
   line-height: 1.6;
   margin-top: 4rpx;
 }
@@ -222,34 +222,34 @@
 }
 
 .btn-primary {
-  background-color: var(--es-green, #00E5A0);
-  color: var(--es-ink, #000000);
+  background-color: var(--es-green, #00BFFF);
+  color: var(--es-ink, #03060C);
   border: none;
   font-weight: 600;
 }
 
 .btn-secondary {
   background-color: transparent;
-  border: 1px solid var(--es-green, #00E5A0);
-  color: var(--es-green, #00E5A0);
+  border: 1px solid var(--es-green, #00BFFF);
+  color: var(--es-green, #00BFFF);
 }
 
 .btn-ghost {
   background-color: transparent;
-  border: 1px dashed #555555;
-  color: var(--es-txt-2, #9aa0a6);
+  border: 1px dashed var(--es-line, #4B5663);
+  color: var(--es-txt-2, #AAB4BE);
 }
 
 /* 说明文字 */
 .notice-title {
   font-size: 24rpx;
-  color: var(--es-txt-2, #9aa0a6);
+  color: var(--es-txt-2, #AAB4BE);
   margin-bottom: 8rpx;
 }
 
 .notice-text text {
   display: block;
   font-size: 22rpx;
-  color: var(--es-txt-3, #5f6368);
+  color: var(--es-txt-3, #8E98A3);
   line-height: 1.6;
 }

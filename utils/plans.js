@@ -1,6 +1,15 @@
 // utils/plans.js
 // 会员套餐单一真相源：membership 展示页与 pay 支付页共用，避免两处维护不同步。
-// 注意：virtualProductId 必须与微信「虚拟支付」后台预置的商品 ID 完全一致。
+//
+// ⚠️ 字段分工铁律（线上 /var/www/my-app/index.js 实测，勿互换）：
+//   key              = 后端产品码，必须 ∈ 线上三处白名单：
+//                      行323 __officialAmountMap（定价）/ 行338 allowlist / 行855 computeGrant（发权益）
+//                      当前合法值：times3 | month | quarter | year
+//                      改 key 或新增套餐前，必须先让后端在三处同步加码，否则用户付款后权益发不出。
+//   virtualProductId = 微信「虚拟支付」后台预置商品 ID，只用于虚拟支付通道，后端不认。
+//   amountFen        = 单位「分」，必须与后端 __officialAmountMap 中该 key 的定价一致。
+// 支付页 pages/pay/index.js 的 onPayPhysical 传 productCode 时用 plan.key，不是 virtualProductId。
+// [熵盾 V2.1 · 技能:双通道支付] goodsType 区分虚拟(走虚拟支付)/实物(走常规微信支付)
 
 const PLAN_LIST = [
   {
@@ -64,8 +73,19 @@ function buildOrderTitle(plan, options = {}) {
   return `风控计算器-${plan.title}`;
 }
 
+// 双通道：实物商品走常规微信支付，其余走微信虚拟支付
+function getPayChannel(plan) {
+  return plan && plan.goodsType === 'physical' ? 'physical' : 'virtual';
+}
+
+// 双通道归一：未显式标 physical 的套餐一律按虚拟（走微信虚拟支付）
+PLAN_LIST.forEach((p) => {
+  if (!p.goodsType) p.goodsType = 'virtual';
+});
+
 module.exports = {
   PLAN_LIST,
   getPlanByKey,
-  buildOrderTitle
+  buildOrderTitle,
+  getPayChannel
 };

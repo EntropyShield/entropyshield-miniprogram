@@ -4,7 +4,7 @@
   height: 100vh;
   box-sizing: border-box;
   padding: 24rpx 24rpx 32rpx;
-  background-color: var(--es-bg-deep, #050608);
+  background-color: var(--es-bg-deep, #010407);
 }
 
 .header {
@@ -14,19 +14,19 @@
 .header-title {
   font-size: 32rpx;
   font-weight: 600;
-  color: var(--es-white, #ffffff);
+  color: var(--es-white, #F4F7FA);
 }
 
 .header-sub {
   margin-top: 6rpx;
   font-size: 24rpx;
-  color: #8b8f9c;
+  color: var(--es-txt-2, #AAB4BE);
 }
 
 .filter-bar {
   display: flex;
   align-items: center;
-  background-color: #111319;
+  background-color: var(--es-card-2, #0F1926);
   border-radius: 999rpx;
   padding: 6rpx;
   margin-bottom: 16rpx;
@@ -37,13 +37,13 @@
   text-align: center;
   padding: 12rpx 0;
   font-size: 24rpx;
-  color: #8b8f9c;
+  color: var(--es-txt-2, #AAB4BE);
   border-radius: 999rpx;
 }
 
 .tab.active {
-  background-color: var(--es-green-bright, #19ff5f);
-  color: var(--es-bg-deep, #020305);
+  background-color: var(--es-green-bright, #00E8FF);
+  color: var(--es-bg-deep, #010407);
   font-weight: 600;
 }
 
@@ -63,7 +63,7 @@
 }
 
 .card {
-  background-color: #111319;
+  background-color: var(--es-card-2, #0F1926);
   border-radius: 24rpx;
   padding: 20rpx 24rpx;
   margin-bottom: 20rpx;
@@ -76,7 +76,7 @@
 .card-title {
   font-size: 28rpx;
   font-weight: 600;
-  color: var(--es-white, #ffffff);
+  color: var(--es-white, #F4F7FA);
 }
 
 .card-time {
@@ -100,7 +100,7 @@
 
 .status-progress {
   background-color: rgba(25, 255, 95, 0.18);
-  color: var(--es-green-bright, #19ff5f);
+  color: var(--es-green-bright, #00E8FF);
 }
 
 .status-finished {
@@ -110,7 +110,7 @@
 
 .progress-text {
   font-size: 24rpx;
-  color: var(--es-white, #ffffff);
+  color: var(--es-white, #F4F7FA);
 }
 
 .progress-bar {
@@ -124,14 +124,14 @@
 .progress-inner {
   height: 12rpx;
   border-radius: 999rpx;
-  background-color: var(--es-green-bright, #19ff5f);
+  background-color: var(--es-green-bright, #00E8FF);
 }
 
 .card-last,
 .card-updated {
   margin-top: 6rpx;
   font-size: 22rpx;
-  color: #8b8f9c;
+  color: var(--es-txt-2, #AAB4BE);
 }
 
 .card-actions {
@@ -142,15 +142,15 @@
 }
 
 .btn-primary {
-  background-color: var(--es-green-bright, #19ff5f);
-  color: var(--es-bg-deep, #020305);
+  background-color: var(--es-green-bright, #00E8FF);
+  color: var(--es-bg-deep, #010407);
   border-radius: 999rpx;
   font-size: 24rpx;
 }
 
 .btn-secondary {
   background-color: rgba(255, 255, 255, 0.06);
-  color: var(--es-white, #ffffff);
+  color: var(--es-white, #F4F7FA);
   border-radius: 999rpx;
   font-size: 24rpx;
 }

@@ -1,10 +1,10 @@
 page {
-  background: var(--es-ink, #000000);
+  background: var(--es-ink, #03060C);
 }
 
 .page {
   min-height: 100vh;
-  background: var(--es-ink, #000000);
+  background: var(--es-ink, #03060C);
 }
 
 .admin-header {
@@ -13,20 +13,20 @@ page {
 
 .admin-title {
   font-size: 32rpx;
-  color: var(--es-white, #ffffff);
+  color: var(--es-white, #F4F7FA);
   font-weight: 600;
   margin-bottom: 6rpx;
 }
 
 .admin-subtitle {
   font-size: 22rpx;
-  color: var(--es-txt-2, #8a8d93);
+  color: var(--es-txt-2, #AAB4BE);
 }
 
 .status-tabs {
   display: flex;
   align-items: center;
-  background: var(--es-card-2, #16181d);
+  background: var(--es-card-2, #0F1926);
   border-radius: 9999rpx;
   padding: 4rpx;
   margin-bottom: 18rpx;
@@ -44,7 +44,7 @@ page {
 
 .status-tab-label {
   font-size: 22rpx;
-  color: var(--es-txt-2, #8a8d93);
+  color: var(--es-txt-2, #AAB4BE);
 }
 
 .status-tab-count {
@@ -54,12 +54,12 @@ page {
 }
 
 .status-tab.active {
-  background: linear-gradient(90deg, #18b74b, var(--es-green, #00E5A0));
+  background: linear-gradient(90deg, #18b74b, var(--es-green, #00BFFF));
 }
 
 .status-tab.active .status-tab-label,
 .status-tab.active .status-tab-count {
-  color: var(--es-bg-deep, #020305);
+  color: var(--es-bg-deep, #010407);
   font-weight: 600;
 }
 
@@ -68,7 +68,7 @@ page {
 }
 
 .visit-card {
-  background: var(--es-card-2, #16181d);
+  background: var(--es-card-2, #0F1926);
   border-radius: 24rpx;
   padding: 20rpx 20rpx 16rpx;
   margin-bottom: 16rpx;
@@ -85,7 +85,7 @@ page {
   display: flex;
   align-items: center;
   font-size: 24rpx;
-  color: var(--es-white, #ffffff);
+  color: var(--es-white, #F4F7FA);
 }
 
 .visit-date {
@@ -94,12 +94,12 @@ page {
 
 .visit-dot {
   margin: 0 6rpx;
-  color: var(--es-txt-2, #8a8d93);
+  color: var(--es-txt-2, #AAB4BE);
 }
 
 .visit-time {
   font-size: 24rpx;
-  color: var(--es-txt-4, #c4c7ce);
+  color: var(--es-txt-4, #7B8591);
 }
 
 .status-pill {
@@ -120,8 +120,8 @@ page {
 }
 
 .status-pill-done {
-  background: rgba(0, 229, 160, 0.18);
-  color: var(--es-green, #00E5A0);
+  background: rgba(0, 191, 255, 0.18);
+  color: var(--es-safe, #00E5A0);
 }
 
 .status-pill-cancel {
@@ -138,13 +138,13 @@ page {
 .visit-label {
   width: 140rpx;
   font-size: 22rpx;
-  color: var(--es-txt-2, #8a8d93);
+  color: var(--es-txt-2, #AAB4BE);
 }
 
 .visit-value {
   flex: 1;
   font-size: 22rpx;
-  color: var(--es-white, #ffffff);
+  color: var(--es-white, #F4F7FA);
 }
 
 .visit-meta .visit-label {
@@ -181,8 +181,8 @@ page {
 }
 
 .btn-done {
-  background: rgba(0, 229, 160, 0.2);
-  color: var(--es-green, #00E5A0);
+  background: rgba(0, 191, 255, 0.2);
+  color: var(--es-safe, #00E5A0);
 }
 
 .btn-cancel {
@@ -205,13 +205,13 @@ page {
   display: block;
   margin-bottom: 10rpx;
   font-size: 30rpx;
-  color: var(--es-white, #ffffff);
+  color: var(--es-white, #F4F7FA);
   font-weight: 600;
 }
 
 .empty-text {
   display: block;
   font-size: 24rpx;
-  color: var(--es-txt-2, #8a8d93);
+  color: var(--es-txt-2, #AAB4BE);
   line-height: 1.6;
 }

@@ -15,15 +15,15 @@
   ],
   "window": {
     "navigationBarTitleText": "熵盾研究院",
-    "navigationBarBackgroundColor": "#0D0D0D",
+    "navigationBarBackgroundColor": "#03060C",
     "navigationBarTextStyle": "white",
-    "backgroundColor": "#0D0D0D",
-    "backgroundTextStyle": "dark"
+    "backgroundColor": "#03060C",
+    "backgroundTextStyle": "light"
   },
   "tabBar": {
-    "color": "#9ea0a4",
-    "selectedColor": "#00E5A0",
-    "backgroundColor": "#0D0D0D",
+    "color": "#7B8591",
+    "selectedColor": "#00BFFF",
+    "backgroundColor": "#03060C",
     "borderStyle": "black",
     "list": [
       {
@@ -95,6 +95,13 @@
         "upsell/index",
         "mainchainOverview/index",
         "settings/recall/index"
+      ]
+    },
+    {
+      "root": "pkgAcademy",
+      "pages": [
+        "pages/index",
+        "pages/lesson"
       ]
     }
   ]

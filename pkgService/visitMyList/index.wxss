@@ -1,27 +1,27 @@
 page {
-  background: var(--es-ink, #000000);
+  background: var(--es-ink, #03060C);
 }
 .page {
   min-height: 100vh;
-  background: var(--es-ink, #000000);
+  background: var(--es-ink, #03060C);
 }
 
 
 .loading-text {
   margin-top: 80rpx;
   text-align: center;
-  color: var(--es-txt-2, #9ca3af);
+  color: var(--es-txt-2, #AAB4BE);
 }
 
 .empty {
   margin-top: 120rpx;
   text-align: center;
-  color: var(--es-txt-2, #9ca3af);
+  color: var(--es-txt-2, #AAB4BE);
 }
 
 .empty-title {
   font-size: 32rpx;
-  color: #e5e7eb;
+  color: var(--es-txt-1, #F4F7FA);
   margin-bottom: 12rpx;
 }
 
@@ -33,7 +33,7 @@ page {
 .primary-btn {
   margin: 0 80rpx;
   border-radius: 999rpx;
-  background: linear-gradient(135deg, #22c55e, var(--es-green, #00E5A0));
+  background: linear-gradient(135deg, #22c55e, var(--es-green, #00BFFF));
   color: #020617;
   font-size: 30rpx;
   font-weight: 600;
@@ -60,7 +60,7 @@ page {
 
 .date {
   font-size: 28rpx;
-  color: #e5e7eb;
+  color: var(--es-txt-1, #F4F7FA);
 }
 
 .status {
@@ -80,7 +80,7 @@ page {
 }
 
 .status-done {
-  background-color: #111827;
+  background-color: var(--es-card, #07111E);
   color: #a5b4fc;
 }
 
@@ -96,11 +96,11 @@ page {
 }
 
 .label {
-  color: var(--es-txt-2, #9ca3af);
+  color: var(--es-txt-2, #AAB4BE);
 }
 
 .value {
-  color: #e5e7eb;
+  color: var(--es-txt-1, #F4F7FA);
 }
 
 .created-at {

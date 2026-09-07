@@ -31,7 +31,7 @@
 }
 // ====== [MOD:ENSURE_CLIENTID] END ======
 // app.js - 稳定版启动（不重写 wx.getStorageSync / wx.setStorageSync，避免递归爆栈）
-const { API_BASE, ENV, runtime } = require('./config');
+const { API_BASE, ENV, runtime, PROD_API_BASE } = require('./config');
 // ====== [MOD:APP_DEBUG_SILENT_20260330] START ======
 const __APP_DEBUG__ = false;
 function appDebug() {
@@ -681,17 +681,47 @@ App({
      appDebug('[BOOT][INVITE] parse failed:', e);
    }
 
-   try {
-     wx.request({
-       url: resolvedBase + '/api/health',
-       method: 'GET',
-       timeout: 10000,
-       success: (res) => appDebug('[BOOT] /api/health ok:', res && res.data),
-       fail: (err) => appDebug('[BOOT] /api/health fail:', err)
-     });
-   } catch (e) {
-     appDebug('[BOOT] health request exception:', e);
-   }
+  // [V2.1-P0] 后端可达性守卫。
+  // 背景：config.js 在非 release 环境默认指向本地后端(127.0.0.1:3001)，但本地 entropy-api
+  // 并未实现全部接口（/api/fission/profile 等仅生产端有，实测生产 HTTP 200、本地 404）。
+  // 旧逻辑 health 探测只打印不处理，且上面已把地址写回 Storage 固化 —— 结果每次启动都 404。
+  // 现在：探测失败/非 2xx 即回落到生产地址，并同步清掉 Storage 固化值，下次启动直接走生产。
+  try {
+    const __self = this;
+    const __prodBase = String(PROD_API_BASE || 'https://api.entropyshield.com').trim().replace(/\/$/, '');
+    const __fallbackToProd = (reason) => {
+      if (resolvedBase === __prodBase) return;
+      appDebug('[BOOT][FALLBACK] ' + reason + ' —— 回落生产后端:', __prodBase);
+      resolvedBase = __prodBase;
+      try {
+        __self.globalData = __self.globalData || {};
+        __self.globalData.API_BASE = __prodBase;
+        __self.globalData.baseUrl = __prodBase;
+      } catch (e) {}
+      try {
+        wx.setStorageSync('API_BASE', __prodBase);
+        wx.setStorageSync('apiBaseUrl', __prodBase);
+      } catch (e) {}
+    };
+
+    wx.request({
+      url: resolvedBase + '/api/health',
+      method: 'GET',
+      timeout: 5000,
+      success: (res) => {
+        const code = res && res.statusCode;
+        const ok = code >= 200 && code < 300;
+        appDebug('[BOOT] /api/health ' + (ok ? 'ok' : 'HTTP ' + code));
+        if (!ok) __fallbackToProd('health 返回 HTTP ' + code);
+      },
+      fail: (err) => {
+        appDebug('[BOOT] /api/health fail:', err && err.errMsg);
+        __fallbackToProd('health 请求失败(' + String((err && err.errMsg) || 'unknown') + ')');
+      }
+    });
+  } catch (e) {
+    appDebug('[BOOT] health request exception:', e);
+  }
 
    try {
      if (!wx.__finishNavHookInstalled) {

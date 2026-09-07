@@ -24,6 +24,23 @@
     <view class="badge-setting" bindtap="goSettings">⚙</view>
   </view>
 
+  <!-- L1.5 熵盾积分 + 控局者等级 -->
+  <view class="card es-points-card">
+    <view class="es-points-head">
+      <text class="es-points-title">熵盾积分 · 控局者等级</text>
+      <text class="es-points-level">{{esLevelName}}</text>
+    </view>
+    <view class="es-points-grid">
+      <view class="es-pitem"><text class="es-pk">积分</text><text class="es-pv">{{esPoints}}</text></view>
+      <view class="es-pitem" wx:if="{{esNextLevelAt > 0}}"><text class="es-pk">距下一级</text><text class="es-pv">{{esNextLevelAt}} 天</text></view>
+      <view class="es-pitem" wx:else><text class="es-pk">等级</text><text class="es-pv">已满级</text></view>
+    </view>
+    <view class="es-rewards" wx:if="{{esPendingRewards.length}}">
+      <text class="es-rewards-k">待领奖励：</text>
+      <text class="es-reward" wx:for="{{esPendingRewards}}" wx:key="id" bindtap="onClaimReward" data-id="{{item.id}}">{{item.label}} · 点击领取</text>
+    </view>
+  </view>
+
   <!-- L2 资产账本层 -->
   <view class="card ledger-card" bindtap="goMembership">
     <view class="ledger-head">

@@ -1,8 +1,10 @@
 Component({
   properties:{
     size: { type: Number, value: 44 },     // 画布宽高（像素）
-    green: { type: String, value: "#00E5A0" },
-    blue:  { type: String, value: "#1E90FF" }
+    // [VI V1.0 2026-09-07] 品牌主色归位 Electric Blue #00BFFF
+    // 注意：属性名 green/blue 是历史命名，实际值已按 VI 换成品牌蓝系，勿按字面理解。
+    green: { type: String, value: "#00BFFF" },  // 外六边形：Electric Blue（原 #00E5A0）
+    blue:  { type: String, value: "#006CFF" }   // 内部符号：Deep Energy Blue（原 #1E90FF）
   },
   lifetimes:{
     ready(){ this.drawLogo(); }
@@ -35,7 +37,7 @@ Component({
         ctx.strokeStyle = this.data.green;
         ctx.lineWidth = Math.max(2, cssW*0.06);
         ctx.lineJoin = 'round';
-        ctx.shadowColor = 'rgba(0, 229, 160,0.6)';
+        ctx.shadowColor = 'rgba(0, 191, 255,0.6)';
         ctx.shadowBlur  = Math.max(6, cssW*0.12);
 
         ctx.beginPath();
@@ -57,7 +59,7 @@ Component({
         ctx.save();
         ctx.strokeStyle = this.data.blue;
         ctx.lineWidth   = lw;
-        ctx.shadowColor = 'rgba(30,144,255,0.65)';
+        ctx.shadowColor = 'rgba(0, 108, 255,0.65)';
         ctx.shadowBlur  = Math.max(6, cssW*0.14);
 
         // 左环

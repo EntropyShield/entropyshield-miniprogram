@@ -1,5 +1,5 @@
 .page {
-  background-color: var(--es-bg-deep, #050608);
+  background-color: var(--es-bg-deep, #010407);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -12,7 +12,7 @@
 }
 
 .tip-text {
-  color: #aaaaaa;
+  color: var(--es-txt-2, #AAB4BE);
   font-size: 26rpx;
   text-align: center;
   margin-top: 80rpx;
@@ -35,7 +35,7 @@
   padding: 0 26rpx;
   border: 1rpx solid rgba(255, 255, 255, 0.14);
   background: rgba(255, 255, 255, 0.06);
-  color: var(--es-white, #ffffff);
+  color: var(--es-white, #F4F7FA);
   font-size: 26rpx;
 }
 .retry-btn::after {
@@ -51,7 +51,7 @@
 }
 
 .course-title {
-  color: var(--es-white, #ffffff);
+  color: var(--es-white, #F4F7FA);
   font-size: 32rpx;
   font-weight: 700;
   line-height: 1.4;
@@ -72,13 +72,13 @@
   font-size: 22rpx;
   border: 1rpx solid rgba(255, 255, 255, 0.10);
   background: rgba(255, 255, 255, 0.06);
-  color: var(--es-txt-4, #c0c6d2);
+  color: var(--es-txt-4, #7B8591);
 }
 
 .tag-public {
-  border-color: rgba(0, 229, 160, 0.45);
-  background-color: rgba(0, 229, 160, 0.12);
-  color: var(--es-green, #00E5A0);
+  border-color: rgba(0, 191, 255, 0.45);
+  background-color: rgba(0, 191, 255, 0.12);
+  color: var(--es-green, #00BFFF);
 }
 
 .tag-experience {
@@ -108,13 +108,13 @@
 .tag-controller {
   border-color: rgba(255, 255, 255, 0.20);
   background-color: rgba(255, 255, 255, 0.08);
-  color: var(--es-white, #ffffff);
+  color: var(--es-white, #F4F7FA);
 }
 
 .tag-default {
   border-color: rgba(255, 255, 255, 0.10);
   background-color: rgba(255, 255, 255, 0.06);
-  color: var(--es-txt-4, #c0c6d2);
+  color: var(--es-txt-4, #7B8591);
 }
 
 .price-tag {
@@ -136,16 +136,16 @@
 }
 
 .status-published {
-  border-color: rgba(0, 229, 160, 0.35);
-  background: rgba(0, 229, 160, 0.12);
-  color: var(--es-green, #00E5A0);
+  border-color: rgba(0, 191, 255, 0.35);
+  background: rgba(0, 191, 255, 0.12);
+  color: var(--es-green, #00BFFF);
 }
 
 .status-closed,
 .status-finished {
   border-color: rgba(120, 120, 120, 0.25);
   background: rgba(120, 120, 120, 0.06);
-  color: var(--es-txt-2, #8a8f99);
+  color: var(--es-txt-2, #AAB4BE);
 }
 
 .status-default {
@@ -167,7 +167,7 @@
 }
 
 .meta-value {
-  color: var(--es-white, #ffffff);
+  color: var(--es-white, #F4F7FA);
   font-size: 24rpx;
   text-align: right;
   max-width: 480rpx;
@@ -177,9 +177,9 @@
   margin-top: 16rpx;
   padding: 14rpx 16rpx;
   border-radius: 18rpx;
-  border: 1rpx solid rgba(0, 229, 160, 0.18);
-  background: rgba(0, 229, 160, 0.08);
-  color: rgba(0, 229, 160, 0.95);
+  border: 1rpx solid rgba(0, 191, 255, 0.18);
+  background: rgba(0, 191, 255, 0.08);
+  color: rgba(0, 191, 255, 0.95);
   font-size: 22rpx;
 }
 
@@ -206,7 +206,7 @@
 
 .path-title {
   font-size: 24rpx;
-  color: var(--es-white, #ffffff);
+  color: var(--es-white, #F4F7FA);
   font-weight: 700;
   margin-bottom: 10rpx;
 }
@@ -220,7 +220,7 @@
 
 .path-next {
   font-size: 22rpx;
-  color: rgba(0, 229, 160, 0.90);
+  color: rgba(0, 191, 255, 0.90);
   line-height: 1.6;
 }
 
@@ -231,7 +231,7 @@
   bottom: 0;
   padding: 16rpx 32rpx calc(32rpx + env(safe-area-inset-bottom));
   box-sizing: border-box;
-  background: linear-gradient(to top, var(--es-bg-deep, #050608), rgba(5, 6, 8, 0.9), transparent);
+  background: linear-gradient(to top, var(--es-bg-deep, #010407), rgba(5, 6, 8, 0.9), transparent);
   display: flex;
   flex-direction: row;
   gap: 20rpx;
@@ -247,21 +247,21 @@
 }
 
 .btn-primary {
-  background-color: var(--es-green, #00E5A0);
-  color: var(--es-ink, #000000);
+  background-color: var(--es-green, #00BFFF);
+  color: var(--es-ink, #03060C);
   font-weight: 700;
   border: none;
 }
 
 .btn-primary.btn-disabled {
-  background-color: rgba(0, 229, 160, 0.30);
+  background-color: rgba(0, 191, 255, 0.30);
   color: rgba(0, 0, 0, 0.65);
 }
 
 .btn-secondary {
   background-color: transparent;
-  color: var(--es-green, #00E5A0);
-  border: 2rpx solid var(--es-green, #00E5A0);
+  color: var(--es-green, #00BFFF);
+  border: 2rpx solid var(--es-green, #00BFFF);
 }
 
 .btn-primary::after,

@@ -33,7 +33,7 @@
     </view>
 
     <view class="rate-note">
-      连续守纪 <text class="rate-em">{{wbStreak}}</text> 天 · 逐日执行率待后端统计接口就绪后自动填充
+      连续守纪 <text class="rate-em">{{wbStreak}}</text> 天 · 坚持打卡，控局者等级越走越高
     </view>
   </view>
 

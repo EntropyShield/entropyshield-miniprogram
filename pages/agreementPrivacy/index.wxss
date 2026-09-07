@@ -1,12 +1,12 @@
 .page {
   min-height: 100vh;
-  background: var(--es-bg-deep, #0d0d0d);
+  background: var(--es-bg-deep, #010407);
   padding: 24rpx;
   box-sizing: border-box;
 }
 
 .card {
-  background: var(--es-card-2, #16181d);
+  background: var(--es-card-2, #0F1926);
   border-radius: 24rpx;
   padding: 28rpx 24rpx 40rpx;
 }
@@ -14,13 +14,13 @@
 .title {
   font-size: 34rpx;
   font-weight: 700;
-  color: var(--es-white, #ffffff);
+  color: var(--es-white, #F4F7FA);
 }
 
 .update-time {
   margin-top: 8rpx;
   font-size: 22rpx;
-  color: var(--es-txt-2, #8a8d93);
+  color: var(--es-txt-2, #AAB4BE);
 }
 
 .section {
@@ -30,12 +30,12 @@
 .section-title {
   font-size: 26rpx;
   font-weight: 600;
-  color: var(--es-green, #00E5A0);
+  color: var(--es-green, #00BFFF);
   margin-bottom: 10rpx;
 }
 
 .paragraph {
   font-size: 24rpx;
   line-height: 1.8;
-  color: var(--es-txt-4, #c4c7ce);
+  color: var(--es-txt-4, #7B8591);
 }

@@ -1,18 +1,18 @@
 page {
-  background: var(--es-bg-deep, #0d0d0d);
+  background: var(--es-bg-deep, #010407);
 }
 
 .page {
   min-height: 100vh;
   padding: 24rpx;
-  background: var(--es-bg-deep, #0d0d0d);
+  background: var(--es-bg-deep, #010407);
   box-sizing: border-box;
 }
 
 .summary-card,
 .card {
   margin-bottom: 12rpx;
-  background: linear-gradient(180deg, #131927 0%, #101620 100%);
+  background: linear-gradient(180deg, var(--es-card, #07111E) 0%, var(--es-card, #07111E) 100%);
   border: 1rpx solid rgba(255, 255, 255, 0.05);
   border-radius: 22rpx;
   padding: 22rpx;
@@ -20,8 +20,8 @@ page {
 
 .summary-card {
   margin-bottom: 20rpx;
-  background: linear-gradient(180deg, #121826 0%, #0f1520 100%);
-  border: 1rpx solid rgba(0, 229, 160, 0.10);
+  background: linear-gradient(180deg, var(--es-card, #07111E) 0%, var(--es-card, #07111E) 100%);
+  border: 1rpx solid rgba(0, 191, 255, 0.10);
   border-radius: 24rpx;
   padding: 24rpx;
   box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.18);
@@ -36,13 +36,13 @@ page {
 
 .summary-title {
   font-size: 32rpx;
-  color: var(--es-white, #ffffff);
+  color: var(--es-white, #F4F7FA);
   font-weight: 600;
 }
 
 .refresh-btn {
-  background: linear-gradient(90deg, #18b74b, var(--es-green, #00E5A0));
-  color: var(--es-bg-deep, #020305);
+  background: linear-gradient(90deg, #18b74b, var(--es-green, #00BFFF));
+  color: var(--es-bg-deep, #010407);
   border-radius: 9999rpx;
   font-size: 22rpx;
 }
@@ -66,7 +66,7 @@ page {
   display: block;
   margin-top: 8rpx;
   font-size: 24rpx;
-  color: var(--es-white, #ffffff);
+  color: var(--es-white, #F4F7FA);
   font-weight: 600;
   word-break: break-all;
   line-height: 1.6;
@@ -97,7 +97,7 @@ page {
   display: block;
   margin-top: 8rpx;
   font-size: 34rpx;
-  color: var(--es-green, #00E5A0);
+  color: var(--es-green, #00BFFF);
   font-weight: 600;
 }
 
@@ -108,7 +108,7 @@ page {
 .section-title {
   margin-bottom: 12rpx;
   font-size: 28rpx;
-  color: var(--es-white, #ffffff);
+  color: var(--es-white, #F4F7FA);
   font-weight: 600;
 }
 
@@ -118,7 +118,7 @@ page {
 
 .name {
   font-size: 30rpx;
-  color: var(--es-white, #ffffff);
+  color: var(--es-white, #F4F7FA);
   font-weight: 700;
   margin-bottom: 8rpx;
   line-height: 1.5;
@@ -138,7 +138,7 @@ page {
   text-align: center;
   color: #c3ced9;
   font-size: 24rpx;
-  background: linear-gradient(180deg, #131927 0%, #101620 100%);
+  background: linear-gradient(180deg, var(--es-card, #07111E) 0%, var(--es-card, #07111E) 100%);
   border: 1rpx solid rgba(255, 255, 255, 0.05);
   border-radius: 22rpx;
   line-height: 1.7;
@@ -147,8 +147,8 @@ page {
 
 /* ====== INVITETRACKER FINAL READABILITY OVERRIDE START ====== */
 .summary-card {
-  background: linear-gradient(180deg, #121826 0%, #0f1520 100%) !important;
-  border: 1rpx solid rgba(0, 229, 160, 0.12) !important;
+  background: linear-gradient(180deg, var(--es-card, #07111E) 0%, var(--es-card, #07111E) 100%) !important;
+  border: 1rpx solid rgba(0, 191, 255, 0.12) !important;
 }
 
 .current-id-row {
@@ -157,7 +157,7 @@ page {
 }
 
 .card {
-  background: linear-gradient(180deg, #152033 0%, #111a2a 100%) !important;
+  background: linear-gradient(180deg, var(--es-elevated, #151F2C) 0%, var(--es-elevated, #151F2C) 100%) !important;
   border: 1rpx solid rgba(255, 255, 255, 0.06) !important;
   box-shadow: 0 8rpx 20rpx rgba(0, 0, 0, 0.16) !important;
 }
@@ -171,7 +171,7 @@ page {
 }
 
 .card .name {
-  color: var(--es-white, #ffffff) !important;
+  color: var(--es-white, #F4F7FA) !important;
   font-size: 30rpx !important;
   font-weight: 700 !important;
   line-height: 1.5 !important;
@@ -180,7 +180,7 @@ page {
 .card .sub-id {
   display: block !important;
   margin-top: 8rpx !important;
-  color: #d7e3ef !important;
+  color: var(--es-txt-1, #F4F7FA) !important;
   font-size: 22rpx !important;
   line-height: 1.7 !important;
   word-break: break-all !important;
@@ -196,9 +196,9 @@ page {
 }
 
 .card .identity-pill-real {
-  color: var(--es-green, #00E5A0) !important;
-  background: rgba(0, 229, 160, 0.14) !important;
-  border: 1rpx solid rgba(0, 229, 160, 0.18) !important;
+  color: var(--es-green, #00BFFF) !important;
+  background: rgba(0, 191, 255, 0.14) !important;
+  border: 1rpx solid rgba(0, 191, 255, 0.18) !important;
 }
 
 .card .identity-pill-temp {
@@ -208,8 +208,8 @@ page {
 }
 
 .empty {
-  color: #d7e3ef !important;
-  background: linear-gradient(180deg, #152033 0%, #111a2a 100%) !important;
+  color: var(--es-txt-1, #F4F7FA) !important;
+  background: linear-gradient(180deg, var(--es-elevated, #151F2C) 0%, var(--es-elevated, #151F2C) 100%) !important;
   border: 1rpx solid rgba(255, 255, 255, 0.06) !important;
 }
 /* ====== INVITETRACKER FINAL READABILITY OVERRIDE END ====== */
@@ -229,7 +229,7 @@ page {
 }
 
 .current-id-value {
-  color: var(--es-white, #FFFFFF) !important;
+  color: var(--es-white, #F4F7FA) !important;
   font-size: 24rpx !important;
   font-weight: 600 !important;
   line-height: 1.6 !important;

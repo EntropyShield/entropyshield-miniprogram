@@ -4,6 +4,10 @@
     <text class="sub-title">一次填写完整参数，直接生成稳健版或加强版风控方案。</text>
   </view>
 
+  <view class="compliance-banner">
+    <text class="compliance-text">熵盾只做风控测算，不替你做买卖决策；是否执行、何时执行、是否调整，全部由你本人决定。</text>
+  </view>
+
   <view class="quick-tip-card">
     <text class="quick-tip-title">填写基础参数</text>
     <text class="quick-tip-text">依次填写标的、资金和买入执行价，再选择仓位比例、分批进场模板与止损策略。</text>
@@ -128,30 +132,56 @@
       </picker>
     </view>
 
-    <view class="risk-rule-card">
-      <view class="risk-rule-row">
-        <text class="risk-rule-label">固定最大风险</text>
-        <text class="risk-rule-value">2%</text>
+    <view class="input-field">
+      <view class="label-row">
+        <text class="input-label">单笔最大可承受亏损</text>
+        <text class="label-tag required-tag">必选</text>
       </view>
-      <text class="risk-rule-desc">单笔计划最大风险不得超过账户可用资金的2%</text>
+      <view class="risk-budget-row">
+        <slider class="risk-budget-slider" min="0.5" max="3" step="0.5" value="{{riskBudgetPct}}" bindchange="onRiskBudgetChange" activeColor="#00BFFF" block-color="#00BFFF" />
+        <text class="risk-budget-value">{{riskBudgetPct}}%</text>
+      </view>
+      <text class="field-tip">你愿意为这一笔交易承担的最大亏损占账户可用资金的比例，由你本人设定，熵盾据此反推各批止损价。</text>
+    </view>
+
+    <view class="input-field">
+      <view class="label-row">
+        <text class="input-label">已有持仓（股，可选）</text>
+        <text class="label-tag optional-tag">可选</text>
+      </view>
+      <input class="input" type="digit" placeholder="例如：1000（仅用于总风险测算）" bindinput="onHeldSharesInput" value="{{heldShares}}" />
+      <text class="field-tip">若已持有该标的，填写后方案会一并测算总风险；不填则只算本次新建仓。</text>
+    </view>
+
+    <view class="input-field" wx:if="{{versionTab === 'advanced'}}">
+      <view class="label-row">
+        <text class="input-label">逐批进场价（可选）</text>
+        <text class="label-tag optional-tag">可选</text>
+      </view>
+      <view class="manual-toggle">
+        <text class="manual-toggle-text">手动设定每批买价（默认按模板梯度自动递增）</text>
+        <switch checked="{{manualPrices}}" bindchange="onManualPricesToggle" color="#00BFFF" />
+      </view>
+      <view wx:if="{{manualPrices}}" class="batch-price-list">
+        <view class="batch-price-item" wx:for="{{batchLabels}}" wx:key="index" wx:for-index="bidx">
+          <text class="batch-price-label">{{item}}</text>
+          <input class="input batch-price-input" type="digit" placeholder="买价" value="{{batchPrices[bidx]}}" data-idx="{{bidx}}" bindinput="onBatchPriceInput" />
+        </view>
+      </view>
     </view>
   </view>
 
   <view class="button-container">
-    <text class="cta-tip">所选模板必须与方案版本一致；点击后直接计算并进入完整结果页。</text>
+    <text class="cta-tip">所选版本与模板一致；点击后直接计算并进入完整结果页。所有参数由你本人决定，熵盾不替你下单。</text>
 
-    <view class="btn-primary" bindtap="onClickSteady">
-      <text class="btn-text">先算稳健版（推荐）</text>
+    <view class="btn-primary rc-plan-btn-unified rc-plan-btn-primary-unified" bindtap="onClickGenerate">
+      <text class="btn-text">生成我的风控方案</text>
       <text class="btn-icon">→</text>
     </view>
 
-    <view class="btn-secondary" bindtap="onClickAdvanced">
-      <text class="btn-text btn-text-secondary">再看加强版</text>
-      <text class="btn-icon btn-icon-secondary">→</text>
-    </view>
-
-    <text class="advanced-note" wx:if="{{advancedEnabled}}">当前会员权益可直接使用加强版。</text>
-    <text class="advanced-note" wx:else>加强版仅对季度会员、年度会员和终身权益开放。</text>
+    <text class="advanced-note" wx:if="{{versionTab === 'advanced' && advancedEnabled}}">当前会员权益可直接使用加强版。</text>
+    <text class="advanced-note" wx:if="{{versionTab === 'advanced' && !advancedEnabled}}">加强版仅对季度会员、年度会员和终身权益开放。</text>
+    <text class="advanced-note" wx:if="{{versionTab === 'steady'}}">稳健版对所有可用用户开放。</text>
   </view>
 
   <view class="btn-back" bindtap="goHome">返回首页</view>

@@ -22,27 +22,32 @@ const DESIGN_H = 400;
 
 // 设计令牌的 Canvas 版（Canvas 读不到 CSS 变量，需在此镜像；改主色时两处同改）
 const T = {
-  bg: '#0A0E14',
-  card: '#121A26',
-  line: '#1E2A3A',
-  green: '#00E5A0',
-  greenDeep: '#0F6E56',
-  red: '#FF4D5E',
-  amber: '#FFB020',
-  blue: '#1E90FF',
-  txt1: '#E8EDF5',
-  txt2: '#8A94A6',
-  txt3: '#5A6577'
+  // [VI V1.0 2026-09-07] 同步设计令牌新值。canvas 不支持 var()，只能写死；
+  // 改动 app.wxss 令牌时这里必须同步，否则分享卡会与 App 内配色脱节。
+  bg: '#03060C',      // --es-bg（原 #0A0E14）
+  card: '#07111E',    // --es-card（原 #121A26）
+  line: '#4B5663',    // --es-line（原 #1E2A3A）
+  green: '#00BFFF',   // Electric Blue 品牌主色，作卡片 accent（原 #00E5A0）
+  greenDeep: '#006CFF', // Deep Energy Blue，作卡片 accent（原 #0F6E56）
+  red: '#FF4D5E',     // --es-red 不变
+  amber: '#FFB020',   // --es-amber 不变
+  blue: '#006CFF',    // --es-blue（原 #1E90FF）
+  txt1: '#F4F7FA',    // --es-txt-1（原 #E8EDF5）
+  txt2: '#AAB4BE',    // --es-txt-2（原 #8A94A6）
+  txt3: '#8E98A3',    // --es-txt-3（原 #5A6577）
 };
 
 // 三套模板
 const TEMPLATES = {
   // 分数卡：五种测试结果共用（loss/market/danger/emotion/ability）
-  score: { accent: T.green, label: '风控诊断结果', cta: '扫码测测你的风控画像' },
+  // accentSoft = accent 的淡化版，用于渐变终点与标签底。
+  // [VI V1.0 2026-09-07] 原先这两处硬编码绿 rgba(0,229,160)，导致琥珀色的温度卡配了绿底，
+  //   且主色归蓝后仍是绿 —— 现改为跟随各卡 accent。
+  score: { accent: T.green, accentSoft: 'rgba(0,191,255,0.15)', accentSoftBg: 'rgba(0,191,255,0.12)', label: '风控诊断结果', cta: '扫码测测你的风控画像' },
   // 温度卡：每日风险温度
-  temperature: { accent: T.amber, label: '今日风险温度', cta: '扫码查看今天的温度' },
+  temperature: { accent: T.amber, accentSoft: 'rgba(255,176,32,0.15)', accentSoftBg: 'rgba(255,176,32,0.12)', label: '今日风险温度', cta: '扫码查看今天的温度' },
   // 挑战卡：挑战赛 / 守纪天数
-  challenge: { accent: T.greenDeep, label: '风控纪律挑战', cta: '扫码加入 7 天训练营' }
+  challenge: { accent: T.greenDeep, accentSoft: 'rgba(0,108,255,0.15)', accentSoftBg: 'rgba(0,108,255,0.12)', label: '风控纪律挑战', cta: '扫码加入 7 天训练营' }
 };
 
 Component({
@@ -174,7 +179,7 @@ Component({
       // 3) 顶部主色渐变条
       const grad = ctx.createLinearGradient(pad, pad, W - pad, pad);
       grad.addColorStop(0, tpl.accent);
-      grad.addColorStop(1, 'rgba(0,229,160,0.15)');
+      grad.addColorStop(1, tpl.accentSoft);
       this._roundRect(ctx, pad, pad, W - pad * 2, 4, 2);
       ctx.fillStyle = grad;
       ctx.fill();
@@ -205,7 +210,7 @@ Component({
         ctx.font = 'bold 15px sans-serif';
         const tw = ctx.measureText(tagText).width + 24;
         this._roundRect(ctx, W / 2 - tw / 2, pad + 104, tw, 26, 13);
-        ctx.fillStyle = 'rgba(0,229,160,0.12)';
+        ctx.fillStyle = tpl.accentSoftBg;
         ctx.fill();
         ctx.fillStyle = tpl.accent;
         ctx.font = 'bold 15px sans-serif';

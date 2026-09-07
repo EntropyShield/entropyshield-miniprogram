@@ -1,0 +1,56 @@
+<!-- pkgAcademy/pages/lesson.wxml · 课程详情渲染 -->
+<view class="page" wx:if="{{!notReady}}">
+
+  <view class="ai-banner">🤖 {{aiBadge}}</view>
+
+  <view class="lesson-head">
+    <text class="mod-tag">{{moduleName}}</text>
+    <text class="les-title">{{title}}</text>
+    <text class="unlock-tag u-{{unlock}}">{{unlockLabel}}</text>
+  </view>
+  <view class="unlock-note" wx:if="{{unlockNote}}">{{unlockNote}}</view>
+
+  <block wx:for="{{blocks}}" wx:key="t" wx:for-item="b" wx:for-index="i">
+    <view class="blk b-hero" wx:if="{{b.t === 'hero'}}">{{b.text}}</view>
+    <view class="blk b-hook" wx:elif="{{b.t === 'hook'}}">{{b.text}}</view>
+
+    <view class="blk b-card" wx:elif="{{b.t === 'card'}}">
+      <text class="card-title">{{b.title}}</text>
+      <text class="card-body">{{b.body}}</text>
+    </view>
+
+    <view class="blk b-story" wx:elif="{{b.t === 'story'}}">
+      <text class="story-title">📖 {{b.title}}</text>
+      <text class="story-body">{{b.body}}</text>
+    </view>
+
+    <view class="blk b-quiz" wx:elif="{{b.t === 'quiz'}}">
+      <text class="quiz-q">❓ {{b.q}}</text>
+      <text class="quiz-a">💡 {{b.a}}</text>
+    </view>
+
+    <view class="blk b-mnemonic" wx:elif="{{b.t === 'mnemonic'}}">
+      <text class="mnemonic-label">记忆口诀</text>
+      <text class="mnemonic-text">{{b.text}}</text>
+    </view>
+
+    <view class="blk b-action" wx:elif="{{b.t === 'action'}}">
+      <text class="action-label">✅ 今天行动</text>
+      <text class="action-text">{{b.text}}</text>
+    </view>
+
+    <view class="blk b-disclaimer" wx:elif="{{b.t === 'disclaimer'}}">{{b.text}}</view>
+  </block>
+
+  <view class="done-bar" wx:if="{{!done}}">
+    <button class="done-btn" bindtap="onMarkDone">标记学完 · 得积分</button>
+  </view>
+  <view class="done-bar" wx:else>
+    <view class="done-flag">✓ 已完成本节</view>
+  </view>
+
+</view>
+
+<view class="page empty" wx:else>
+  <view class="empty-text">本节由熵盾 AI 教研制作中，敬请期待 🤖</view>
+</view>

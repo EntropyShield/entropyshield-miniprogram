@@ -1,6 +1,6 @@
 // pages/pay/index.js
 const { API_BASE } = require('../../config');
-const { PLAN_LIST, getPlanByKey, buildOrderTitle } = require('../../utils/plans');
+const { PLAN_LIST, getPlanByKey, buildOrderTitle, getPayChannel } = require('../../utils/plans'); // [熵盾 V2.1 · 技能:双通道支付]
 
 function getApiBase() {
   try {
@@ -73,6 +73,17 @@ function requestJson(method, url, data) {
       fail: (err) => reject(err)
     });
   });
+}
+
+// 动态获取当前小程序 appId（release/develop 自动对应，避免硬编码）
+// 老代码 v3 JSAPI 返回 wx.requestPayment 参数时未带 appId，前端需自行补
+function getAppId() {
+  try {
+    const info = (typeof wx !== 'undefined' && wx.getAccountInfoSync) ? wx.getAccountInfoSync() : null;
+    return (info && info.miniProgram && info.miniProgram.appId) || '';
+  } catch (e) {
+    return '';
+  }
 }
 
 function loginCode() {
@@ -151,6 +162,37 @@ function getErrMsg(err) {
   return String(
     (err && (err.errMsg || err.message || err.error)) || '支付失败'
   ).trim();
+}
+
+// [熵盾 V2.1 · 技能:双通道支付] 虚拟支付失败时，判断是否可自动降级到常规微信支付（JSAPI）。
+// 必须排除三类「降级也解决不了 / 降级会造成错付」的情况：
+//   ① 用户主动取消 —— 用户自己放弃，不该再拉起第二种支付
+//   ② 业务规则拦截（如 9.9 元体验资格已用完）—— 降级绕过了业务限制，属违规
+//   ③ 商品/金额校验失败 —— 前后端数据不一致，降级可能按错误金额扣款
+// 其余（虚拟支付未配置、后端下单失败、参数不全等）一律降级，确保收钱链路不中断。
+function canDegradeToJsapi(err) {
+  const msg = getErrMsg(err);
+  if (!msg) return false;
+  if (/cancel/i.test(msg)) return false;
+  // 业务规则拦截：体验套餐购买次数达上限。
+  // 口径（2026-09-03 定稿）：9.9元/7天 每 ID 仅 1 次，不可复购（曾议 3 次，已否决）。
+  // 这里**禁止写死次数**：上限历史上变过（1→3→1），写死会随口径调整而失效，
+  // 故改为匹配错误码 + 次数无关的中文模式，避免已被业务拦截的用户又被拉起一次 JSAPI、
+  // 连吃两次失败弹窗。
+  if (/TRIAL_PURCHASE_LIMIT_REACHED|trial_purchase_limit_reached/i.test(msg)) return false;
+  if (/购买\s*[0-9]+\s*次|购买次数|限购|次数上限|max_allowed/i.test(msg)) return false;
+  if (/校验失败/.test(msg)) return false;
+  return true;
+}
+
+// [熵盾 V2.1] 是否为「体验套餐购买次数达上限」的业务拦截（非故障）。
+// 与 canDegradeToJsapi 共用同一套**次数无关**匹配，上限口径再变（1次/3次）也不用改这里。
+function isTrialLimitError(err) {
+  const msg = getErrMsg(err);
+  if (!msg) return false;
+  if (/trial_?purchase_?limit_?reached/i.test(msg)) return true;
+  if (/购买\s*[0-9]+\s*次|购买次数|限购|次数上限|max_allowed/i.test(msg)) return true;
+  return false;
 }
 
 Page({
@@ -296,6 +338,12 @@ Page({
     const base = getApiBase();
     const plan = getPlanByKey(this.data.selectedPlanKey);
 
+    // [熵盾 V2.1 · 技能:双通道支付] 实物商品走常规微信支付，虚拟商品走微信虚拟支付
+    if (getPayChannel(plan) === 'physical') {
+      this.onPayPhysical(plan);
+      return;
+    }
+
     if (!base) {
       wx.showToast({
         title: 'API_BASE 未配置',
@@ -323,12 +371,12 @@ Page({
       return;
     }
 
+    // [熵盾 V2.1 · 技能:双通道支付] 基础库不支持虚拟支付时，不再弹窗阻断，
+    // 直接降级到常规微信支付（JSAPI），保证低版本微信用户也能完成付款。
     if (typeof wx.requestVirtualPayment !== 'function') {
-      wx.showModal({
-        title: '无法发起支付',
-        content: '当前微信版本不支持虚拟支付，请升级微信后重试。',
-        showCancel: false
-      });
+      console.warn('[pay][virtual] requestVirtualPayment unavailable → degrade to JSAPI');
+      this.setData({ paying: false });
+      this.onPayPhysical(plan);
       return;
     }
 
@@ -377,9 +425,9 @@ Page({
           '支付下单失败'
         );
 
-        const isTrialLimit =
-          errorCode === 'TRIAL_PURCHASE_LIMIT_REACHED' ||
-          /每个ID只能购买1次9\.9元\/7天体验/.test(rawMsg);
+        // 用次数无关的通用判定：口径若从 1 次放宽为 N 次，这里无需改动
+        // （原实现写死 'TRIAL_PURCHASE_LIMIT_REACHED' + '只能购买1次' 文案，口径一变即失效）
+        const isTrialLimit = isTrialLimitError({ message: rawMsg, error: errorCode });
 
         if (isTrialLimit) {
           const nextPlanKey =
@@ -492,6 +540,33 @@ Page({
         return;
       }
 
+      // [熵盾 V2.1 · 技能:双通道支付] 虚拟支付失败但非用户取消、非业务拦截
+      // → 自动降级常规微信支付（JSAPI），不把用户卡在报错弹窗里（收钱链路不中断）。
+      if (canDegradeToJsapi(err)) {
+        console.warn('[pay][virtual] degrade to JSAPI, reason =', msg);
+
+        try {
+          wx.setStorageSync(
+            'pay_debug_last_degrade',
+            JSON.stringify({
+              time: new Date().toISOString(),
+              planKey: plan.key,
+              virtualProductId: plan.virtualProductId,
+              reason: msg
+            })
+          );
+        } catch (e) {}
+
+        wx.showToast({
+          title: '正在切换支付方式',
+          icon: 'none',
+          duration: 1200
+        });
+
+        this.onPayPhysical(plan);
+        return;
+      }
+
       try {
         wx.setStorageSync(
           'pay_debug_last_error',
@@ -504,11 +579,141 @@ Page({
         );
       } catch (e) {}
 
+      // [熵盾 V2.1] 体验限购属业务规则，不是故障——不弹「支付失败」，改为引导升正式会员
+      if (isTrialLimitError(err)) {
+        this.enterUpgradeFlow(this.data.type === 'advanced' ? 'quarter' : 'month');
+        return;
+      }
+
       wx.showModal({
         title: '支付失败',
         content:
           msg ||
           '支付过程中出现异常，请重试',
+        showCancel: false
+      });
+    }
+  },
+
+  // [熵盾 V2.1 · 技能:双通道支付] 实物商品 → 常规微信支付（wx.requestPayment）
+  async onPayPhysical(plan) {
+    if (this.data.paying) return;
+    const base = getApiBase();
+
+    if (!base) {
+      wx.showToast({ title: 'API_BASE 未配置', icon: 'none' });
+      return;
+    }
+
+    if (typeof wx.requestPayment !== 'function') {
+      wx.showModal({
+        title: '无法发起支付',
+        content: '当前微信版本不支持微信支付，请升级微信后重试。',
+        showCancel: false
+      });
+      return;
+    }
+
+    this.setData({ paying: true });
+
+    try {
+      const clientId = await ensureRealClientId(base);
+      if (!clientId || isTempClientId(clientId)) {
+        throw new Error('未获取到真实用户身份');
+      }
+
+      // [熵盾 V2.1 · 技能:双通道支付] 对接线上 v3 JSAPI 实物支付（/api/pay/jsapi）
+      // 线上 /api/wx/login 返回的 clientId 即微信 openid 明文，可直接作 openid 传；
+      // 老代码 v3 返回参数未带 appId，前端用 getAppId() 兜底补。
+      const res = await requestJson(
+        'POST',
+        `${base}/api/pay/jsapi`,
+        {
+          openid: clientId,
+          amount: plan.amountFen,
+          description: buildOrderTitle(plan, { type: this.data.type }),
+          // 必须传 plan.key（times3/month/quarter/year），不可传 virtualProductId。
+          // 原因（线上 index.js 实测，非推测）：老代码三处白名单均按产品码校验——
+          //   行 323 __officialAmountMap 定价表 / 行 338 allowlist /
+          //   行 855 computeGrant 发权益映射
+          // 这三者只认 times3|month|quarter|year|VIP_ONCE3|VIP_MONTH|VIP_QUARTER|VIP_YEAR。
+          // 若传 es_month_31d_single 这类 virtualProductId：金额查不到且权益发不出，
+          // 用户付款后 status 卡在 PAID 拿不到会员（资损事故）。
+          productCode: plan.key
+        }
+      );
+      const data = res && res.data ? res.data : {};
+
+      if (!data || !data.ok) {
+        throw new Error(data.message || data.error || '支付下单失败');
+      }
+
+      const payParams = {
+        appId: data.appId || getAppId(),
+        timeStamp: data.timeStamp,
+        nonceStr: data.nonceStr,
+        package: data.package,
+        signType: data.signType || 'RSA',
+        paySign: data.paySign
+      };
+
+      const payResult = await new Promise((resolve, reject) => {
+        wx.requestPayment({
+          ...payParams,
+          success: (r) => resolve(r || {}),
+          fail: (err) => {
+            const message = getErrMsg(err);
+            if (/cancel/i.test(message)) {
+              resolve({ cancelled: true, errMsg: message });
+              return;
+            }
+            reject(err);
+          }
+        });
+      });
+
+      if (payResult && payResult.cancelled) {
+        this.setData({ paying: false });
+        wx.showToast({ title: '已取消支付', icon: 'none', duration: 1500 });
+        return;
+      }
+
+      this.setData({ paying: false });
+      wx.redirectTo({
+        url:
+          '/pages/paySuccess/index' +
+          `?planKey=${encodeURIComponent(plan.key)}` +
+          `&amountFen=${encodeURIComponent(String(plan.amountFen))}` +
+          `&outTradeNo=${encodeURIComponent(data.outTradeNo)}`
+      });
+    } catch (err) {
+      this.setData({ paying: false });
+      const msg = getErrMsg(err);
+      if (/cancel/i.test(msg)) {
+        wx.showToast({ title: '已取消支付', icon: 'none', duration: 1500 });
+        return;
+      }
+      try {
+        wx.setStorageSync(
+          'pay_debug_last_error',
+          JSON.stringify({
+            time: new Date().toISOString(),
+            planKey: plan.key,
+            channel: 'wxpay',
+            message: msg
+          })
+        );
+      } catch (e) {}
+
+      // [熵盾 V2.1] 体验限购属业务规则，不是故障——不弹「支付失败」，改为引导升正式会员
+      if (isTrialLimitError(err)) {
+        this.enterUpgradeFlow(this.data.type === 'advanced' ? 'quarter' : 'month');
+        return;
+      }
+
+      wx.showModal({
+        title: '支付失败',
+        content: msg || '支付过程中出现异常，请重试',
         showCancel: false
       });
     }

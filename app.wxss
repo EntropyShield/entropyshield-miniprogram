@@ -3,46 +3,89 @@
    ------------------------------------------------------------
    为什么重写：原令牌定义在 :root 上，而小程序的根节点是 page 不是 html，
    :root 选择器不生效 → var() 全部落空 → 开发者只能到处硬编码，
-   最终形成"全库 327 处 #00E5A0、20 种黑灰、14 档字号"的失控局面。
+   最终形成"全库 286 处 #00E5A0、20 种黑灰、14 档字号"的失控局面。
    修复方式：令牌改挂 page，并为每个 var() 补 fallback，确保任何环境都能渲染。
 
+   [VI-ALIGN 阶段一 2026-09-03] 依据《ES-BRAND-VISUAL-01 熵盾品牌视觉识别
+   与设计系统 V1.0 FINAL/FROZEN》对齐背景/结构/文字三层的色值。
+   本阶段只做"同语义换值"，不动主色语义：
+     · 母背景  Entropy Black  #03060C  ← 原 #0A0E14（自造深灰，非品牌色）
+     · 卡片层  Core Navy      #07111E  ← 原 #121A26
+     · 边框    Titanium       #4B5663  ← 原 #1E2A3A
+     · 正文    Text White     #F4F7FA  ← 原 #E8EDF5
+     · 次文字  Steel Highlight #AAB4BE ← 原 #8A94A6
+     · 品牌蓝  Deep Energy Blue #006CFF ← 原 #1E90FF（自造科技蓝）
+     · 辅助金  Warm Metal     #9A7D5A  ← 原 #D4AF37（自造亮金）
+   【重要】按 VI §6.1/§6.3：#00E5A0 已降级为"功能色 Stable Green"，
+   仅表正常/通过/安全，不再是主色；母品牌第一识别色为 Electric Blue #00BFFF。
+   本阶段不动 286 处绿（需按用途分流，属阶段二）。
+
+   派生值说明（VI 未直接给出、按手册两色线性插值所得，均可复算）：
+     --es-bg-deep   = Entropy Black 再暗一档（弹层背板），手工取 #010407
+     --es-card-2    = Core Navy → Titanium 12% → (7,17,30)+12%*(68,69,69) = #0F1926
+     --es-elevated  = Core Navy → Titanium 20% → (7,17,30)+20%*(68,69,69) = #151F2C
+     --es-txt-3     = Steel Highlight → Titanium 30% → (170,180,190)-30%*(95,94,91) = #8E98A3
+     --es-txt-4     = Steel Highlight → Titanium 50% → (170,180,190)-50%*(95,94,91) = #7B8591
+   对比度（相对 #03060C 母背景，WCAG AA 正文需 ≥4.5）：
+     Text White 18.9 : 1  Steel Highlight 9.6 : 1  txt-3 6.9 : 1  txt-4 5.4 : 1
+     Titanium 边框 2.7 : 1（非文字，仅作结构线，达标）
+
    使用约定（进 9/29 Gate 验收）：
-   1. 新增样式一律用 var()，且必须带 fallback：color: var(--es-green, #00E5A0);
+   1. 新增样式一律用 var()，且必须带 fallback：color: var(--es-txt-1, #F4F7FA);
    2. 裸色值仅允许出现在 app.wxss 的令牌定义区，页面 wxss 中出现即为不合格；
    3. 旧令牌名（--Primary-Green 等）保留映射，避免存量 11 处引用断裂。
    ============================================================ */
 
 page {
-  /* ---- 品牌与语义色 ---- */
-  --es-green: #00E5A0;          /* 电光绿：主色，替代原荧光绿 #00E5A0 */
-  --es-green-deep: #0F6E56;     /* 深绿：渐变末端、按下态 */
-  --es-green-bg: rgba(0, 229, 160, .12);   /* 绿底：标签/徽章 */
-  --es-red: #FF4D5E;            /* 危险：破戒、止损触发 */
-  --es-amber: #FFB020;          /* 警示：关注、待确认 */
-  --es-blue: #1E90FF;           /* 科技蓝：链接、图表 */
+  /* ---- 品牌与语义色 ----
+     【阶段二 2026-09-07 重要变更，勿按字面理解令牌名】
+     --es-green* 系列令牌名沿用了历史命名，但按 VI V1.0 其语义已改为
+     「主识别色 Electric Blue」，值 = #00BFFF。名称保留是为避免 265 处
+     存量引用一次性重命名的高风险，新代码请统一使用 --es-brand 别名。
+     真正的「安全/通过/达标」绿色已拆到 --es-safe* 系列，见下方。 */
+  --es-brand: #00BFFF;          /* ★新代码用这个：主识别色 Electric Blue */
+  --es-green: #00BFFF;          /* = --es-brand，存量兼容，勿再用于新样式 */
+  --es-green-deep: #006CFF;     /* 主色深端 Deep Energy Blue（渐变末端/按下态） */
+  --es-green-bg: rgba(0, 191, 255, .12);   /* 主色 12% 底：标签/徽章 */
+  --es-red: #FF4D5E;            /* Risk Red：破戒、止损触发 */
+  --es-amber: #FFB020;          /* Warning Amber：关注、待确认 */
+  --es-blue: #006CFF;           /* Deep Energy Blue：链接、图表 */
 
-  /* ---- 背景三层（原 20 种黑灰收敛为 3 层）---- */
-  --es-bg: #0A0E14;             /* 页面底 */
-  --es-card: #121A26;           /* 卡片 */
-  --es-elevated: #1A2434;       /* 悬浮层/输入框 */
-  --es-line: #1E2A3A;           /* 分隔线、描边 */
+  /* ---- 背景三层（VI §6.1：母背景 / 层级背景 / 结构金属）---- */
+  --es-bg: #03060C;             /* Entropy Black 母背景：页面底 */
+  --es-card: #07111E;           /* Core Navy：卡片 */
+  --es-elevated: #151F2C;       /* 派生：Core Navy→Titanium 20%，悬浮层/输入框 */
+  --es-line: #4B5663;           /* Titanium：分隔线、描边 */
 
-  /* ---- 文字三级 ---- */
-  --es-txt-1: #E8EDF5;          /* 主文字 */
-  --es-txt-2: #8A94A6;          /* 次要 */
-  --es-txt-3: #5A6577;          /* 辅助/时间戳 */
+  /* ---- 文字三级（VI §6.1：Text White / Steel Highlight）---- */
+  --es-txt-1: #F4F7FA;          /* Text White 主文字 */
+  --es-txt-2: #AAB4BE;          /* Steel Highlight 次要 */
+  --es-txt-3: #8E98A3;          /* 派生 30%：辅助/时间戳 */
+  --es-txt-4: #7B8591;          /* 派生 50%：占位符/禁用 */
+
+  /* ---- 别名令牌（2026-09-07 补定义）----
+     这四个名字此前从未定义，存量 23 处引用全靠 fallback 兜底（值还不统一）。
+     这里补齐定义并统一到标准令牌，新代码请直接用标准名，勿再用别名。 */
+  --es-border: #4B5663;         /* = --es-line（Titanium 描边） */
+  --es-surface: #0F1926;        /* = --es-card-2（次级区块底） */
+  --es-text: #F4F7FA;           /* = --es-txt-1（主文字） */
+  --es-sub: #AAB4BE;            /* = --es-txt-2（次要文字） */
 
   /* ---- G6 二期补充令牌（页面唯一语义色收敛为 --es-*）---- */
-  --es-white: #FFFFFF;          /* 卡片内纯白文字/图标描边 */
-  --es-ink: #000000;            /* 通用纯黑（多作 fallback） */
-  --es-on-green: #04140E;       /* 绿按钮/绿底上的深色字 */
-  --es-txt-4: #C0C6D2;          /* 浅灰：占位符/禁用/辅助说明 */
-  --es-bg-deep: #050505;        /* 比 --es-bg 更暗的纯黑底（弹层背板） */
-  --es-card-2: #16181D;         /* 次级区块/内嵌卡片底 */
-  --es-green-surface: #0B2F10;  /* 品牌绿染暗底（进度环/选中态） */
-  --es-green-bright: #24FF5A;   /* 比主色更亮的激活/成功绿 */
-  --es-green-20: rgba(0, 229, 160, .2);  /* 主色 20% 透明（进度/选中） */
-  --es-green-40: rgba(0, 229, 160, .4);  /* 主色 40% 透明（描边/高亮） */
+  --es-white: #F4F7FA;          /* VI Text White：卡片内高亮文字/图标描边 */
+  --es-ink: #03060C;            /* VI Entropy Black：通用深底黑（多作 fallback） */
+  --es-on-green: #03060C;
+
+  /* ---- 安全/通过/达标 功能色（VI：Stable Green 仅用于此语义，勿挪作品牌色）---- */
+  --es-safe: #00E5A0;
+  --es-safe-bg: rgba(0, 229, 160, .12);
+  --es-safe-deep: #0F6E56;
+  --es-bg-deep: #010407;        /* 派生：比 --es-bg 更暗，弹层背板/遮罩底 */
+  --es-card-2: #0F1926;         /* 派生：次级区块/内嵌卡片底 */
+  --es-green-surface: #04263A;
+  --es-green-bright: #00E8FF;
+  --es-green-20: rgba(0, 191, 255, .2);  /* 主色 20% 透明（进度/选中） */
+  --es-green-40: rgba(0, 191, 255, .4);  /* 主色 40% 透明（描边/高亮） */
 
   /* ---- 字号六档（原 14 档收敛）---- */
   --fs-xs: 20rpx;               /* 10px 角标 */
@@ -63,15 +106,15 @@ page {
   --radius-md: 20rpx;
   --radius-lg: 28rpx;
 
-  /* ---- 兼容旧令牌名（存量 11 处 var() 引用不断裂，且统一到新主色）---- */
-  --Primary-Green: #00E5A0;
-  --Accent-Blue: #1E90FF;
-  --Gold: #D4AF37;
-  --Bg-Dark: #0A0E14;
-  --Card: #121A26;
-  --Line: #1E2A3A;
-  --Text-Main: #E8EDF5;
-  --Text-Secondary: #8A94A6;
+  /* ---- 兼容旧令牌名（存量 11 处 var() 引用不断裂，统一到 VI 色值）---- */
+  --Primary-Green: #00BFFF;     /* 阶段二按用途分流到 Electric Blue / Stable Green */
+  --Accent-Blue: #006CFF;       /* VI Deep Energy Blue */
+  --Gold: #9A7D5A;              /* VI Warm Metal */
+  --Bg-Dark: #03060C;           /* VI Entropy Black */
+  --Card: #07111E;              /* VI Core Navy */
+  --Line: #4B5663;              /* VI Titanium */
+  --Text-Main: #F4F7FA;         /* VI Text White */
+  --Text-Secondary: #AAB4BE;    /* VI Steel Highlight */
   --Radius-Card: 20rpx;
   --Radius-Btn: 16rpx;
   --Gutter: 24rpx;
@@ -79,33 +122,47 @@ page {
 
 /* 兼容 Web 预览环境（:root 在此生效，与 page 双写保证一致） */
 :root {
-  --es-green: #00E5A0;
-  --es-green-deep: #0F6E56;
+  --es-brand: #00BFFF;
+  --es-green: #00BFFF;
+  --es-green-deep: #006CFF;
+  --es-green-bg: rgba(0, 191, 255, .12);
   --es-red: #FF4D5E;
   --es-amber: #FFB020;
-  --es-bg: #0A0E14;
-  --es-card: #121A26;
-  --es-elevated: #1A2434;
-  --es-line: #1E2A3A;
-  --es-txt-1: #E8EDF5;
-  --es-txt-2: #8A94A6;
-  --es-txt-3: #5A6577;
-  --es-white: #FFFFFF;
-  --es-ink: #000000;
-  --es-on-green: #04140E;
-  --es-txt-4: #C0C6D2;
-  --es-bg-deep: #050505;
-  --es-card-2: #16181D;
-  --es-green-surface: #0B2F10;
-  --es-green-bright: #24FF5A;
-  --es-green-20: rgba(0, 229, 160, .2);
-  --es-green-40: rgba(0, 229, 160, .4);
-  --Primary-Green: #00E5A0;
-  --Bg-Dark: #0A0E14;
-  --Card: #121A26;
-  --Line: #1E2A3A;
-  --Text-Main: #E8EDF5;
-  --Text-Secondary: #8A94A6;
+  --es-blue: #006CFF;
+  --es-bg: #03060C;
+  --es-card: #07111E;
+  --es-elevated: #151F2C;
+  --es-line: #4B5663;
+  --es-txt-1: #F4F7FA;
+  --es-txt-2: #AAB4BE;
+  --es-txt-3: #8E98A3;
+  --es-txt-4: #7B8591;
+  /* 别名令牌（2026-09-07 补定义，与 page{} 保持一致） */
+  --es-border: #4B5663;
+  --es-surface: #0F1926;
+  --es-text: #F4F7FA;
+  --es-sub: #AAB4BE;
+  --es-white: #F4F7FA;
+  --es-ink: #03060C;
+  --es-on-green: #03060C;
+  --es-bg-deep: #010407;
+  --es-card-2: #0F1926;
+  --es-green-surface: #04263A;
+  --es-green-bright: #00E8FF;
+  --es-green-20: rgba(0, 191, 255, .2);
+  --es-green-40: rgba(0, 191, 255, .4);
+  /* 安全/通过/达标 功能色（VI：Stable Green 仅用于此语义） */
+  --es-safe: #00E5A0;
+  --es-safe-bg: rgba(0, 229, 160, .12);
+  --es-safe-deep: #0F6E56;
+  --Primary-Green: #00BFFF;
+  --Accent-Blue: #006CFF;
+  --Gold: #9A7D5A;
+  --Bg-Dark: #03060C;
+  --Card: #07111E;
+  --Line: #4B5663;
+  --Text-Main: #F4F7FA;
+  --Text-Secondary: #AAB4BE;
 }
 
 /* ============================================================
@@ -115,8 +172,8 @@ page {
 
 /* 1. 卡片 */
 .es-card {
-  background: var(--es-card, #121A26);
-  border: 1rpx solid var(--es-line, #1E2A3A);
+  background: var(--es-card, #07111E);
+  border: 1rpx solid var(--es-line, #4B5663);
   border-radius: var(--radius-md, 20rpx);
   padding: var(--sp-3, 24rpx);
   margin-bottom: var(--sp-2, 16rpx);
@@ -131,13 +188,13 @@ page {
   border-radius: var(--radius-sm, 12rpx);
   font-size: var(--fs-md, 32rpx);
   font-weight: 600;
-  background: linear-gradient(135deg, var(--es-green, #00E5A0), var(--es-green-deep, #0F6E56));
-  color: var(--es-on-green, #04140E);
+  background: linear-gradient(135deg, var(--es-green, #00BFFF), var(--es-green-deep, #006CFF));
+  color: var(--es-on-green, #03060C);
 }
 .es-btn--ghost {
   background: transparent;
-  border: 1rpx solid rgba(0, 229, 160, .4);
-  color: var(--es-green, #00E5A0);
+  border: 1rpx solid rgba(0, 191, 255, .4);
+  color: var(--es-green, #00BFFF);
 }
 .es-btn:active { opacity: .85; }
 
@@ -148,16 +205,16 @@ page {
   font-weight: 600;
   padding: 6rpx 16rpx;
   border-radius: 8rpx;
-  background: var(--es-green-bg, rgba(0, 229, 160, .12));
-  color: var(--es-green, #00E5A0);
+  background: var(--es-green-bg, rgba(0, 191, 255, .12));
+  color: var(--es-green, #00BFFF);
 }
 .es-tag--warn { background: rgba(255, 176, 32, .12); color: var(--es-amber, #FFB020); }
 .es-tag--danger { background: rgba(255, 77, 94, .12); color: var(--es-red, #FF4D5E); }
 
 /* 4. 列表 */
 .es-list {
-  background: var(--es-card, #121A26);
-  border: 1rpx solid var(--es-line, #1E2A3A);
+  background: var(--es-card, #07111E);
+  border: 1rpx solid var(--es-line, #4B5663);
   border-radius: var(--radius-md, 20rpx);
   overflow: hidden;
 }
@@ -166,7 +223,7 @@ page {
   align-items: center;
   justify-content: space-between;
   padding: var(--sp-3, 24rpx);
-  border-bottom: 1rpx solid var(--es-line, #1E2A3A);
+  border-bottom: 1rpx solid var(--es-line, #4B5663);
 }
 .es-item:last-child { border-bottom: none; }
 
@@ -174,14 +231,14 @@ page {
    全局基础（保留原有类名，确保存量页面不破坏）
    ============================================================ */
 page {
-  background: var(--es-bg, #0A0E14);
-  color: var(--es-txt-1, #E8EDF5);
+  background: var(--es-bg, #03060C);
+  color: var(--es-txt-1, #F4F7FA);
   font-family: "Noto Sans SC", "Source Han Sans CN", system-ui;
 }
 
-.text-secondary { color: var(--es-txt-2, #8A94A6); }
+.text-secondary { color: var(--es-txt-2, #AAB4BE); }
 .card {
-  background: var(--es-card, #121A26);
+  background: var(--es-card, #07111E);
   border-radius: var(--radius-md, 20rpx);
   padding: var(--sp-3, 24rpx);
 }
@@ -189,8 +246,8 @@ page {
 .h2 { font-size: var(--fs-md, 32rpx); font-weight: 600; }
 .p { font-size: var(--fs-base, 28rpx); line-height: 44rpx; }
 .btn-primary {
-  background: var(--es-green, #00E5A0);
-  color: var(--es-on-green, #0B0B0B);
+  background: var(--es-green, #00BFFF);
+  color: var(--es-on-green, #03060C);
   height: 88rpx;
   border-radius: var(--radius-sm, 12rpx);
   display: flex;
@@ -202,9 +259,9 @@ page {
 .input {
   height: 88rpx;
   border-radius: var(--radius-sm, 12rpx);
-  background: var(--es-elevated, #1A2434);
-  color: var(--es-txt-1, #E8EDF5);
-  border: 1rpx solid var(--es-line, #1E2A3A);
+  background: var(--es-elevated, #151F2C);
+  color: var(--es-txt-1, #F4F7FA);
+  border: 1rpx solid var(--es-line, #4B5663);
   padding: 0 var(--sp-2, 16rpx);
 }
 .row { display: flex; gap: var(--sp-3, 24rpx); }

@@ -1,15 +1,15 @@
 /* 整体页面 */
 .page {
   min-height: 100vh;
-  background-color: var(--es-ink, #000000);
+  background-color: var(--es-ink, #03060C);
   padding: 32rpx 24rpx 40rpx;
   box-sizing: border-box;
-  color: var(--es-white, #ffffff);
+  color: var(--es-white, #F4F7FA);
 }
 
 /* 通用卡片 */
 .card {
-  background-color: var(--es-bg-deep, #050505);
+  background-color: var(--es-bg-deep, #010407);
   border-radius: 24rpx;
   padding: 24rpx 24rpx 28rpx;
   margin-bottom: 28rpx;
@@ -19,7 +19,7 @@
 
 /* 顶部提示卡 */
 .header-card {
-  border-color: var(--es-green-20, #00E5A033);
+  border-color: var(--es-green-20, #00BFFF33);
 }
 
 .header-top {
@@ -31,25 +31,25 @@
 .day-pill {
   padding: 6rpx 22rpx;
   border-radius: 999rpx;
-  border: 1px solid var(--es-green, #00E5A0);
+  border: 1px solid var(--es-green, #00BFFF);
   margin-right: 16rpx;
 }
 
 .day-pill-text {
   font-size: 22rpx;
-  color: var(--es-green, #00E5A0);
+  color: var(--es-green, #00BFFF);
 }
 
 .header-tip {
   flex: 1;
   font-size: 24rpx;
-  color: var(--es-txt-4, #e0e0e0);
+  color: var(--es-txt-4, #7B8591);
   line-height: 1.5;
 }
 
 .header-sub {
   font-size: 22rpx;
-  color: var(--es-txt-2, #9aa0a6);
+  color: var(--es-txt-2, #AAB4BE);
   line-height: 1.5;
 }
 
@@ -65,13 +65,13 @@
 .section-title {
   font-size: 26rpx;
   font-weight: 600;
-  color: var(--es-white, #ffffff);
+  color: var(--es-white, #F4F7FA);
 }
 
 .section-sub {
   margin-top: 4rpx;
   font-size: 24rpx;
-  color: var(--es-txt-2, #9aa0a6);
+  color: var(--es-txt-2, #AAB4BE);
   line-height: 1.5;
 }
 
@@ -81,13 +81,13 @@
   margin-bottom: 12rpx;
   padding: 12rpx 16rpx;
   border-radius: 16rpx;
-  background-color: var(--es-on-green, #0b0b0b);
+  background-color: var(--es-on-green, #03060C);
   border: 1px solid #262626;
 }
 
 .example-label {
   font-size: 22rpx;
-  color: var(--es-green, #00E5A0);
+  color: var(--es-green, #00BFFF);
   margin-right: 8rpx;
 }
 
@@ -102,9 +102,9 @@
   min-height: 140rpx;
   padding: 16rpx 18rpx;
   border-radius: 18rpx;
-  background-color: var(--es-ink, #000000);
+  background-color: var(--es-ink, #03060C);
   border: 1px solid #1f1f1f;
-  color: var(--es-txt-4, #e0e0e0);
+  color: var(--es-txt-4, #7B8591);
   font-size: 24rpx;
   line-height: 1.6;
   box-sizing: border-box;
@@ -130,8 +130,8 @@
 
 /* 绿色主按钮 */
 .btn-primary {
-  background-color: var(--es-green, #00E5A0);
-  color: var(--es-ink, #000000);
+  background-color: var(--es-green, #00BFFF);
+  color: var(--es-ink, #03060C);
   font-weight: 600;
   border: none;
 }
@@ -139,33 +139,33 @@
 /* 边框按钮（浅绿） */
 .btn-secondary {
   background-color: transparent;
-  color: var(--es-green, #00E5A0);
-  border: 1px solid var(--es-green, #00E5A0);
+  color: var(--es-green, #00BFFF);
+  border: 1px solid var(--es-green, #00BFFF);
 }
 
 /* 暗灰幽灵按钮 */
 .btn-ghost {
   background-color: transparent;
-  color: var(--es-txt-4, #e0e0e0);
-  border: 1px solid #333333;
+  color: var(--es-txt-4, #7B8591);
+  border: 1px solid var(--es-line, #4B5663);
 }
 
 /* 底部说明 */
 .notice-card {
   border-style: dashed;
-  border-color: #333333;
-  background-color: var(--es-bg-deep, #050505);
+  border-color: var(--es-line, #4B5663);
+  background-color: var(--es-bg-deep, #010407);
 }
 
 .notice-title {
   font-size: 24rpx;
-  color: var(--es-txt-2, #9aa0a6);
+  color: var(--es-txt-2, #AAB4BE);
   margin-bottom: 8rpx;
 }
 
 .notice-text text {
   display: block;
   font-size: 22rpx;
-  color: var(--es-txt-3, #5f6368);
+  color: var(--es-txt-3, #8E98A3);
   line-height: 1.6;
 }

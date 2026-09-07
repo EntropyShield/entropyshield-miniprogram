@@ -41,6 +41,10 @@ const TEMPLATE_OPTIONS = [
   }
 ];
 
+// [熵盾 V2.1 · 技能:S01 风控精度闭环] 版本与模板分组，合并选择消除互报错摩擦
+const STEADY_TEMPLATES = TEMPLATE_OPTIONS.filter(o => o.planType === 'steady');
+const ADVANCED_TEMPLATES = TEMPLATE_OPTIONS.filter(o => o.planType === 'advanced');
+
 const STOP_MODE_OPTIONS = [
   {
     label: '标准风险控制',
@@ -82,7 +86,7 @@ function rcV41Normalize(v) {
 }
 
 function rcV41PickKeys(data) {
-  const allow = /(balance|amount|money|fund|price|buy|buyPrice|first|code|symbol|ticker|name|mode|type|risk|loss|profit|step|qty|count|deploy|ratio|template|stop|__btn)/i;
+  const allow = /(balance|amount|money|fund|price|buy|buyPrice|first|code|symbol|ticker|name|mode|type|risk|loss|profit|step|qty|count|deploy|ratio|template|stop|held|batch|version|__btn)/i;
   const deny = /(^_|loading|disabled|plan|result|rights|freeCalc|membership|modal|show|err|error|toast|tips|log)/i;
   const keys = Object.keys(data || {});
   const picked = [];
@@ -170,6 +174,12 @@ function rcV41ReuseNavigate(pageThis, btn, sig) {
   const templatePlanType = String(data.templatePlanType || '').trim();
   const stopMode = String(data.stopMode || 'STANDARD_RISK_CONTROL').trim();
   const stopModeName = String(data.stopModeName || '标准风险控制').trim();
+
+  // [熵盾 V2.1 · 技能:S01] 透传新参数到复用跳转
+  const riskBudgetPct = Number(data.riskBudgetPct || 2);
+  const heldShares = String(data.heldShares || '').trim();
+  const manualPrices = !!data.manualPrices;
+  const batchPrices = Array.isArray(data.batchPrices) ? data.batchPrices : [];
 
   if (!balance || !price || !code || !entryTemplateId) {
     wx.showToast({ title: '复用跳转缺少参数，继续走原流程', icon: 'none' });
@@ -282,7 +292,7 @@ Page({
     deployRatioIndex: 5,
     deployRatio: 0.8,
 
-    templateOptions: TEMPLATE_OPTIONS,
+    templateOptions: STEADY_TEMPLATES,
     templateIndex: 0,
     entryTemplateId: TEMPLATE_OPTIONS[0].value,
     entryTemplateName: TEMPLATE_OPTIONS[0].label,
@@ -303,7 +313,17 @@ Page({
 
     balanceError: '',
     priceError: '',
-    codeError: ''
+    codeError: '',
+
+    // [熵盾 V2.1 · 技能:S01 风控精度闭环] 新增输入：版本/风险预算/持仓/逐批价
+    versionTab: 'steady',
+    steadyTemplates: STEADY_TEMPLATES,
+    advancedTemplates: ADVANCED_TEMPLATES,
+    riskBudgetPct: 2,
+    heldShares: '',
+    manualPrices: false,
+    batchPrices: ['', '', '', ''],
+    batchLabels: ['第1批进场', '第2批进场', '第3批进场', '第4批进场']
   },
 
   onLoad() {
@@ -748,76 +768,38 @@ Page({
     return true;
   },
 
-  onClickSteady() {
-    console.log('[riskCalculator] click steady');
+  // [熵盾 V2.1 · 技能:S01] 单一主按钮：版本由用户选、加强版权限门控、决策全交用户
+  onClickGenerate() {
+    console.log('[riskCalculator] click generate');
     if (!this.validateForm()) return;
 
-    if (this.data.templatePlanType !== 'steady') {
-      wx.showToast({
-        title: '该模板属于加强版，请使用加强版方案',
-        icon: 'none',
-        duration: 2200
-      });
-      return;
-    }
+    const planType = this.data.versionTab;
 
-    const gate = rcV41OnClickGate(this, 'steady');
-    if (gate && gate.blocked) return;
-
-    funnel.log('CALC_CLICK_STEADY', {
-      deployRatio: this.data.deployRatio,
-      entryTemplateId: this.data.entryTemplateId,
-      stopMode: this.data.stopMode
-    });
-    this.handleGeneratePlan('steady', { skipValidate: true });
-  },
-
-  onClickAdvanced() {
-    console.log('[riskCalculator] click advanced');
-    if (!this.validateForm()) return;
-
-    if (this.data.templatePlanType !== 'advanced') {
-      wx.showToast({
-        title: '当前是稳健版四次进场模板，请先选择加强版三次进场模板',
-        icon: 'none',
-        duration: 2400
-      });
-      return;
-    }
-
-    const gate = rcV41OnClickGate(this, 'advanced');
-    if (gate && gate.blocked) return;
-
-    const adv = this.getAdvancedAccessInfo();
-
-    if (adv.ok) {
-      funnel.log('CALC_CLICK_ADVANCED_ALLOWED', {
+    if (planType === 'advanced') {
+      const adv = this.getAdvancedAccessInfo();
+      if (!adv.ok) {
+        funnel.log('CALC_GENERATE_ADVANCED_BLOCKED', { reason: adv.reason });
+        this.promptAdvancedBlocked();
+        return;
+      }
+      funnel.log('CALC_GENERATE_ADVANCED_ALLOWED', {
         productCode: adv.productCode,
         plan: adv.plan,
         level: adv.level,
-        expireAt: adv.expireAt,
-        deployRatio: this.data.deployRatio,
-        entryTemplateId: this.data.entryTemplateId,
-        stopMode: this.data.stopMode
+        expireAt: adv.expireAt
       });
-
-      this.handleGeneratePlan('advanced', { skipValidate: true });
-      return;
+    } else {
+      funnel.log('CALC_GENERATE_STEADY', { planType });
     }
 
-    funnel.log('CALC_CLICK_ADVANCED_BLOCKED', {
-      reason: adv.reason,
-      productCode: adv.productCode,
-      plan: adv.plan,
-      level: adv.level,
-      expireAt: adv.expireAt
-    });
+    const gate = rcV41OnClickGate(this, planType);
+    if (gate && gate.blocked) return;
 
-    try {
-      console.log('[riskCalculator] advanced local/effective access blocked =>', adv);
-    } catch (e) {}
+    this.handleGeneratePlan(planType, { skipValidate: true });
+  },
 
-    this.promptAdvancedBlocked();
+  onClickAdvanced() {
+    this.onClickGenerate();
   },
 
   getLocalSteadyAccessInfo() {
@@ -1098,6 +1080,12 @@ Page({
     const stopMode = String(data.stopMode || 'STANDARD_RISK_CONTROL').trim();
     const stopModeName = String(data.stopModeName || '标准风险控制').trim();
 
+    // [熵盾 V2.1 · 技能:S01] 透传新参数到结果页
+    const riskBudgetPct = Number(data.riskBudgetPct || 2);
+    const heldShares = String(data.heldShares || '').trim();
+    const manualPrices = !!data.manualPrices;
+    const batchPrices = Array.isArray(data.batchPrices) ? data.batchPrices : [];
+
     const base =
       `?balance=${encodeURIComponent(balance)}` +
       `&price=${encodeURIComponent(priceValue)}` +
@@ -1107,7 +1095,11 @@ Page({
       `&entryTemplateName=${encodeURIComponent(entryTemplateName)}` +
       `&templatePlanType=${encodeURIComponent(templatePlanType)}` +
       `&stopMode=${encodeURIComponent(stopMode)}` +
-      `&stopModeName=${encodeURIComponent(stopModeName)}`;
+      `&stopModeName=${encodeURIComponent(stopModeName)}` +
+      `&riskBudgetPct=${encodeURIComponent(riskBudgetPct)}` +
+      `&heldShares=${encodeURIComponent(heldShares)}` +
+      `&manualPrices=${encodeURIComponent(manualPrices ? '1' : '0')}` +
+      `&batchPrices=${encodeURIComponent(JSON.stringify(batchPrices))}`;
 
     const mt = membershipType ? `&membershipType=${encodeURIComponent(membershipType)}` : '';
 

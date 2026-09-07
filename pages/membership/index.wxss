@@ -2,30 +2,30 @@
   min-height: 100vh;
   padding: 32rpx 24rpx 48rpx;
   box-sizing: border-box;
-  background: var(--es-bg, #0A0E14);
-  color: var(--es-white, #ffffff);
+  background: var(--es-bg, #03060C);
+  color: var(--es-white, #F4F7FA);
 }
 
 .card {
   margin-bottom: 24rpx;
   padding: 28rpx;
   border-radius: 24rpx;
-  background: var(--es-card, #11161E);
+  background: var(--es-card, #07111E);
   border: 1px solid var(--es-line, rgba(255,255,255,0.06));
 }
 
 .hero-card {
-  background: linear-gradient(180deg, rgba(0,229,160,0.10) 0%, var(--es-card, #11161E) 100%);
-  border: 1px solid rgba(0,229,160,0.28);
+  background: linear-gradient(180deg, rgba(0, 191, 255,0.10) 0%, var(--es-card, #07111E) 100%);
+  border: 1px solid rgba(0, 191, 255,0.28);
 }
 
 .brand-mark {
   display: inline-flex;
   padding: 6rpx 16rpx;
-  border: 1px solid rgba(0,229,160,0.42);
+  border: 1px solid rgba(0, 191, 255,0.42);
   border-radius: 999rpx;
-  background: rgba(0,229,160,0.08);
-  color: var(--es-green, #00E5A0);
+  background: rgba(0, 191, 255,0.08);
+  color: var(--es-green, #00BFFF);
   font-size: 22rpx;
   font-weight: 700;
 }
@@ -34,7 +34,7 @@
   margin-top: 18rpx;
   font-size: 38rpx;
   font-weight: 700;
-  color: var(--es-white, #ffffff);
+  color: var(--es-white, #F4F7FA);
   line-height: 1.4;
 }
 
@@ -42,13 +42,13 @@
   margin-top: 12rpx;
   font-size: 24rpx;
   line-height: 1.8;
-  color: var(--es-txt-2, #9AA7B0);
+  color: var(--es-txt-2, #AAB4BE);
 }
 
 /* 当前权益卡片 */
 .current-card.is-member {
-  border: 1px solid rgba(0,229,160,0.34);
-  background: linear-gradient(180deg, rgba(0,229,160,0.08) 0%, var(--es-card, #11161E) 100%);
+  border: 1px solid rgba(0, 191, 255,0.34);
+  background: linear-gradient(180deg, rgba(0, 191, 255,0.08) 0%, var(--es-card, #07111E) 100%);
 }
 
 .current-row {
@@ -64,12 +64,12 @@
 }
 
 .current-label {
-  color: var(--es-txt-2, #8B97A1);
+  color: var(--es-txt-2, #AAB4BE);
   font-size: 24rpx;
 }
 
 .current-value {
-  color: #E6EDEF;
+  color: var(--es-txt-1, #F4F7FA);
   font-size: 26rpx;
   font-weight: 600;
 }
@@ -78,14 +78,14 @@
   margin-top: 14rpx;
   font-size: 23rpx;
   line-height: 1.8;
-  color: var(--es-txt-2, #9AA7B0);
+  color: var(--es-txt-2, #AAB4BE);
 }
 
 /* 套餐列表 */
 .section-title {
   font-size: 30rpx;
   font-weight: 700;
-  color: var(--es-white, #ffffff);
+  color: var(--es-white, #F4F7FA);
 }
 
 .section-sub {
@@ -93,7 +93,7 @@
   margin-bottom: 8rpx;
   font-size: 22rpx;
   line-height: 1.7;
-  color: var(--es-txt-2, #8B97A1);
+  color: var(--es-txt-2, #AAB4BE);
 }
 
 .plan-card {
@@ -101,14 +101,14 @@
   margin-top: 20rpx;
   padding: 24rpx;
   border-radius: 20rpx;
-  background: var(--es-card-2, #0E131A);
+  background: var(--es-card-2, #0F1926);
   border: 1px solid var(--es-line, rgba(255,255,255,0.08));
   overflow: hidden;
 }
 
 .plan-highlight {
-  border: 1px solid rgba(0,229,160,0.55);
-  background: linear-gradient(180deg, rgba(0,229,160,0.08) 0%, var(--es-card-2, #0E131A) 100%);
+  border: 1px solid rgba(0, 191, 255,0.55);
+  background: linear-gradient(180deg, rgba(0, 191, 255,0.08) 0%, var(--es-card-2, #0F1926) 100%);
 }
 
 .plan-flag {
@@ -117,8 +117,8 @@
   right: 0;
   padding: 4rpx 16rpx;
   font-size: 20rpx;
-  color: #04130D;
-  background: var(--es-green, #00E5A0);
+  color: var(--es-on-green, #03060C);
+  background: var(--es-green, #00BFFF);
   border-bottom-left-radius: 16rpx;
   font-weight: 700;
 }
@@ -132,7 +132,7 @@
 .plan-name {
   font-size: 30rpx;
   font-weight: 700;
-  color: var(--es-white, #ffffff);
+  color: var(--es-white, #F4F7FA);
 }
 
 .plan-price {
@@ -143,13 +143,13 @@
 .price-num {
   font-size: 32rpx;
   font-weight: 700;
-  color: var(--es-green, #00E5A0);
+  color: var(--es-green, #00BFFF);
 }
 
 .price-cycle {
   margin-left: 6rpx;
   font-size: 22rpx;
-  color: var(--es-txt-2, #8B97A1);
+  color: var(--es-txt-2, #AAB4BE);
 }
 
 .plan-rights {
@@ -158,41 +158,41 @@
   padding: 4rpx 14rpx;
   border-radius: 999rpx;
   font-size: 21rpx;
-  color: var(--es-green, #00E5A0);
-  background: rgba(0,229,160,0.10);
-  border: 1px solid rgba(0,229,160,0.30);
+  color: var(--es-green, #00BFFF);
+  background: rgba(0, 191, 255,0.10);
+  border: 1px solid rgba(0, 191, 255,0.30);
 }
 
 .plan-desc {
   margin-top: 12rpx;
   font-size: 23rpx;
   line-height: 1.7;
-  color: var(--es-txt-2, #9AA7B0);
+  color: var(--es-txt-2, #AAB4BE);
 }
 
 .plan-action {
   margin-top: 16rpx;
   font-size: 25rpx;
   font-weight: 600;
-  color: var(--es-green, #00E5A0);
+  color: var(--es-green, #00BFFF);
 }
 
 /* 合规说明 */
 .notice-card {
-  background: var(--es-card, #11161E);
+  background: var(--es-card, #07111E);
 }
 
 .notice-title {
   font-size: 25rpx;
   font-weight: 600;
-  color: #C7D0D6;
+  color: var(--es-txt-2, #AAB4BE);
   margin-bottom: 10rpx;
 }
 
 .notice-item {
   font-size: 22rpx;
   line-height: 1.8;
-  color: var(--es-txt-2, #8B97A1);
+  color: var(--es-txt-2, #AAB4BE);
 }
 
 .footer-actions {
@@ -206,7 +206,7 @@
   margin: 0;
   padding: 22rpx 0;
   font-size: 26rpx;
-  color: #C7D0D6;
+  color: var(--es-txt-2, #AAB4BE);
   background: transparent;
   border: 1px solid var(--es-line, rgba(255,255,255,0.14));
   border-radius: 16rpx;

@@ -9,6 +9,6 @@
   display: block;
   font-size: 22rpx;
   line-height: 34rpx;
-  color: var(--es-txt-3, #5A6577);
+  color: var(--es-txt-3, #8E98A3);
   text-align: center;
 }

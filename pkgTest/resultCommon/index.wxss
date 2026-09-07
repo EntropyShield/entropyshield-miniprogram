@@ -1,15 +1,15 @@
 /* 整体页面 */
 .page {
   min-height: 100vh;
-  background-color: var(--es-ink, #000000);
+  background-color: var(--es-ink, #03060C);
   padding: 32rpx 24rpx 40rpx;
   box-sizing: border-box;
-  color: var(--es-white, #ffffff);
+  color: var(--es-white, #F4F7FA);
 }
 
 /* 通用卡片 */
 .card {
-  background-color: var(--es-bg-deep, #050505);
+  background-color: var(--es-bg-deep, #010407);
   border-radius: 24rpx;
   padding: 24rpx 24rpx 28rpx;
   margin-bottom: 28rpx;
@@ -19,7 +19,7 @@
 
 /* 顶部结果卡片 */
 .header-card {
-  border-color: var(--es-green-20, #00E5A033);
+  border-color: var(--es-green-20, #00BFFF33);
 }
 
 /* 顶部：类型 + 等级 */
@@ -33,8 +33,8 @@
 .type-tag {
   padding: 6rpx 18rpx;
   border-radius: 999rpx;
-  border: 1px solid var(--es-green-40, #00E5A066);
-  color: var(--es-green, #00E5A0);
+  border: 1px solid var(--es-green-40, #00BFFF66);
+  color: var(--es-green, #00BFFF);
   font-size: 22rpx;
 }
 
@@ -75,24 +75,24 @@
   width: 150rpx;
   height: 150rpx;
   border-radius: 50%;
-  border: 2rpx solid #00E5A080;
+  border: 2rpx solid #00BFFF80;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   margin-right: 24rpx;
-  background: radial-gradient(circle at 30% 30%, var(--es-green-20, #00E5A033), var(--es-ink, #000000));
+  background: radial-gradient(circle at 30% 30%, var(--es-green-20, #00BFFF33), var(--es-ink, #03060C));
 }
 
 .score-value {
   font-size: 40rpx;
   font-weight: 700;
-  color: var(--es-green, #00E5A0);
+  color: var(--es-green, #00BFFF);
 }
 
 .score-label {
   font-size: 22rpx;
-  color: var(--es-txt-2, #9aa0a6);
+  color: var(--es-txt-2, #AAB4BE);
   margin-top: 4rpx;
 }
 
@@ -103,14 +103,14 @@
 .score-desc .title {
   font-size: 28rpx;
   font-weight: 600;
-  color: var(--es-white, #ffffff);
+  color: var(--es-white, #F4F7FA);
 }
 
 .score-desc .subtitle {
   display: block;
   margin-top: 8rpx;
   font-size: 24rpx;
-  color: var(--es-txt-2, #9aa0a6);
+  color: var(--es-txt-2, #AAB4BE);
   line-height: 1.6;
 }
 
@@ -124,9 +124,9 @@
 .badge {
   padding: 6rpx 18rpx;
   border-radius: 999rpx;
-  border: 1px solid var(--es-green-20, #00E5A033);
+  border: 1px solid var(--es-green-20, #00BFFF33);
   font-size: 22rpx;
-  color: var(--es-txt-4, #e0e0e0);
+  color: var(--es-txt-4, #7B8591);
   margin-right: 10rpx;
   margin-top: 8rpx;
 }
@@ -139,14 +139,14 @@
 .section-title {
   font-size: 26rpx;
   font-weight: 600;
-  color: var(--es-white, #ffffff);
+  color: var(--es-white, #F4F7FA);
 }
 
 .section-sub {
   display: block;
   margin-top: 6rpx;
   font-size: 22rpx;
-  color: var(--es-txt-2, #9aa0a6);
+  color: var(--es-txt-2, #AAB4BE);
 }
 
 /* 风控画像列表 */
@@ -164,7 +164,7 @@
   width: 10rpx;
   height: 10rpx;
   border-radius: 50%;
-  background-color: var(--es-green, #00E5A0);
+  background-color: var(--es-green, #00BFFF);
   margin-top: 10rpx;
   margin-right: 12rpx;
 }
@@ -176,14 +176,14 @@
 .profile-title {
   font-size: 24rpx;
   font-weight: 500;
-  color: var(--es-white, #ffffff);
+  color: var(--es-white, #F4F7FA);
 }
 
 .profile-desc {
   display: block;
   margin-top: 4rpx;
   font-size: 22rpx;
-  color: var(--es-txt-2, #9aa0a6);
+  color: var(--es-txt-2, #AAB4BE);
   line-height: 1.6;
 }
 
@@ -202,8 +202,8 @@
   min-width: 80rpx;
   padding: 6rpx 16rpx;
   border-radius: 999rpx;
-  border: 1px solid var(--es-green-40, #00E5A066);
-  color: var(--es-green, #00E5A0);
+  border: 1px solid var(--es-green-40, #00BFFF66);
+  color: var(--es-green, #00BFFF);
   font-size: 22rpx;
   text-align: center;
   margin-right: 14rpx;
@@ -216,14 +216,14 @@
 .plan-title {
   font-size: 24rpx;
   font-weight: 500;
-  color: var(--es-white, #ffffff);
+  color: var(--es-white, #F4F7FA);
 }
 
 .plan-desc {
   display: block;
   margin-top: 4rpx;
   font-size: 22rpx;
-  color: var(--es-txt-2, #9aa0a6);
+  color: var(--es-txt-2, #AAB4BE);
   line-height: 1.6;
 }
 
@@ -248,17 +248,17 @@
 
 /* 主按钮：风控计算器 */
 .btn-primary {
-  background-color: var(--es-green, #00E5A0);
-  color: var(--es-ink, #000000);
+  background-color: var(--es-green, #00BFFF);
+  color: var(--es-ink, #03060C);
   font-weight: 600;
   border: none;
 }
 
 /* 次级按钮：训练营 */
 .btn-secondary {
-  border: 1px solid var(--es-green, #00E5A0);
+  border: 1px solid var(--es-green, #00BFFF);
   background-color: transparent;
-  color: var(--es-green, #00E5A0);
+  color: var(--es-green, #00BFFF);
 }
 
 /* [V2.0-C4] 分享卡按钮：半填充绿 —— 比次级按钮更实、比主按钮更轻，
@@ -272,9 +272,9 @@
   align-items: center;
   justify-content: center;
   margin-top: 12rpx;
-  background-color: var(--es-green-bg, rgba(0, 229, 160, 0.12));
-  border: 1px solid var(--es-green, #00E5A0);
-  color: var(--es-green, #00E5A0);
+  background-color: var(--es-green-bg, rgba(0, 191, 255, 0.12));
+  border: 1px solid var(--es-green, #00BFFF);
+  color: var(--es-green, #00BFFF);
   font-weight: 600;
 }
 
@@ -282,25 +282,25 @@
 .btn-ghost {
   border: none;
   background-color: transparent;
-  color: var(--es-txt-2, #9aa0a6);
+  color: var(--es-txt-2, #AAB4BE);
 }
 
 /* 合规提示 */
 .notice-card {
   border-style: dashed;
-  border-color: #333333;
-  background-color: var(--es-bg-deep, #050505);
+  border-color: var(--es-line, #4B5663);
+  background-color: var(--es-bg-deep, #010407);
 }
 
 .notice-title {
   font-size: 24rpx;
-  color: var(--es-txt-2, #9aa0a6);
+  color: var(--es-txt-2, #AAB4BE);
   margin-bottom: 8rpx;
 }
 
 .notice-text text {
   display: block;
   font-size: 22rpx;
-  color: var(--es-txt-3, #5f6368);
+  color: var(--es-txt-3, #8E98A3);
   line-height: 1.6;
 }

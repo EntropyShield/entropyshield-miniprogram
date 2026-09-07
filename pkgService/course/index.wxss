@@ -1,5 +1,5 @@
 .page {
-  background-color: var(--es-bg-deep, #0d0d0d);
+  background-color: var(--es-bg-deep, #010407);
   min-height: 100vh;
   padding: 28rpx 24rpx 40rpx;
   box-sizing: border-box;
@@ -22,7 +22,7 @@
 
 .top-title {
   font-size: 30rpx;
-  color: var(--es-white, #ffffff);
+  color: var(--es-white, #F4F7FA);
   font-weight: 700;
 }
 
@@ -30,15 +30,15 @@
   padding: 10rpx 14rpx;
   border-radius: 999rpx;
   font-size: 22rpx;
-  color: var(--es-green, #00E5A0);
-  border: 1rpx solid rgba(0, 229, 160, 0.35);
-  background-color: rgba(0, 229, 160, 0.10);
+  color: var(--es-green, #00BFFF);
+  border: 1rpx solid rgba(0, 191, 255, 0.35);
+  background-color: rgba(0, 191, 255, 0.10);
 }
 
 .top-sub {
   margin-top: 6rpx;
   font-size: 22rpx;
-  color: var(--es-txt-4, #a9b2c2);
+  color: var(--es-txt-4, #7B8591);
 }
 
 .tabs {
@@ -55,12 +55,12 @@
   text-align: center;
   padding: 14rpx 0;
   font-size: 22rpx;
-  color: var(--es-txt-4, #a9b2c2);
+  color: var(--es-txt-4, #7B8591);
 }
 
 .tab-on {
-  background-color: rgba(0, 229, 160, 0.14);
-  color: var(--es-green, #00E5A0);
+  background-color: rgba(0, 191, 255, 0.14);
+  color: var(--es-green, #00BFFF);
   font-weight: 600;
 }
 
@@ -68,7 +68,7 @@
   margin-top: 14rpx;
   display: flex;
   align-items: center;
-  background-color: #14171c;
+  background-color: var(--es-card-2, #0F1926);
   border: 1rpx solid rgba(255, 255, 255, 0.06);
   border-radius: 18rpx;
   padding: 10rpx 12rpx;
@@ -79,11 +79,11 @@
   height: 52rpx;
   line-height: 52rpx;
   font-size: 24rpx;
-  color: var(--es-white, #ffffff);
+  color: var(--es-white, #F4F7FA);
 }
 
 .search-ph {
-  color: var(--es-txt-2, #8a8f99);
+  color: var(--es-txt-2, #AAB4BE);
   font-size: 24rpx;
 }
 
@@ -91,7 +91,7 @@
   padding: 10rpx 14rpx;
   border-radius: 14rpx;
   background-color: rgba(255, 255, 255, 0.06);
-  color: var(--es-txt-4, #c0c6d2);
+  color: var(--es-txt-4, #7B8591);
   font-size: 22rpx;
 }
 
@@ -121,7 +121,7 @@
   border-radius: 999rpx;
   border: 1rpx solid rgba(255, 255, 255, 0.14);
   background-color: rgba(255, 255, 255, 0.06);
-  color: var(--es-white, #ffffff);
+  color: var(--es-white, #F4F7FA);
   font-size: 24rpx;
 }
 .error-btn::after { border: none; }
@@ -142,20 +142,20 @@
   margin-top: 24rpx;
   padding: 26rpx 22rpx;
   border-radius: 22rpx;
-  background-color: #14171c;
+  background-color: var(--es-card-2, #0F1926);
   border: 1rpx solid rgba(255, 255, 255, 0.06);
 }
 
 .empty-title {
   font-size: 26rpx;
-  color: var(--es-white, #ffffff);
+  color: var(--es-white, #F4F7FA);
   font-weight: 600;
 }
 
 .empty-sub {
   margin-top: 8rpx;
   font-size: 22rpx;
-  color: var(--es-txt-4, #a9b2c2);
+  color: var(--es-txt-4, #7B8591);
 }
 
 .group {
@@ -171,18 +171,18 @@
 
 .group-date {
   font-size: 24rpx;
-  color: var(--es-white, #ffffff);
+  color: var(--es-white, #F4F7FA);
   font-weight: 600;
 }
 
 .group-count {
   font-size: 22rpx;
-  color: var(--es-txt-2, #8a8f99);
+  color: var(--es-txt-2, #AAB4BE);
 }
 
 .card {
   border-radius: 24rpx;
-  background-color: #14171c;
+  background-color: var(--es-card-2, #0F1926);
   border: 1rpx solid rgba(255, 255, 255, 0.06);
   padding: 18rpx 18rpx 16rpx;
   margin-bottom: 14rpx;
@@ -204,7 +204,7 @@
   padding: 6rpx 12rpx;
   border-radius: 999rpx;
   font-size: 22rpx;
-  color: var(--es-white, #ffffff);
+  color: var(--es-white, #F4F7FA);
   border: 1rpx solid rgba(255, 255, 255, 0.10);
   background-color: rgba(255, 255, 255, 0.06);
 }
@@ -214,9 +214,9 @@
 }
 
 .pill-promo {
-  border-color: rgba(0, 229, 160, 0.45);
-  background-color: rgba(0, 229, 160, 0.12);
-  color: var(--es-green, #00E5A0);
+  border-color: rgba(0, 191, 255, 0.45);
+  background-color: rgba(0, 191, 255, 0.12);
+  color: var(--es-green, #00BFFF);
 }
 
 .pill-experience {
@@ -246,13 +246,13 @@
 .pill-paid {
   border-color: rgba(255, 255, 255, 0.20);
   background-color: rgba(255, 255, 255, 0.08);
-  color: var(--es-white, #ffffff);
+  color: var(--es-white, #F4F7FA);
 }
 
 .pill-default {
   border-color: rgba(255, 255, 255, 0.10);
   background-color: rgba(255, 255, 255, 0.06);
-  color: var(--es-txt-4, #c0c6d2);
+  color: var(--es-txt-4, #7B8591);
 }
 
 /* [P3-PROGRESSUI-20251215] 进度 pill */
@@ -265,7 +265,7 @@
 .pill-progress-joined {
   border-color: rgba(169, 178, 194, 0.28);
   background-color: rgba(169, 178, 194, 0.08);
-  color: var(--es-txt-4, #c0c6d2);
+  color: var(--es-txt-4, #7B8591);
 }
 
 .pill-progress-doing {
@@ -275,9 +275,9 @@
 }
 
 .pill-progress-finished {
-  border-color: rgba(0, 229, 160, 0.40);
-  background-color: rgba(0, 229, 160, 0.12);
-  color: var(--es-green, #00E5A0);
+  border-color: rgba(0, 191, 255, 0.40);
+  background-color: rgba(0, 191, 255, 0.12);
+  color: var(--es-safe, #00E5A0);
 }
 
 .status {
@@ -285,7 +285,7 @@
   padding: 6rpx 12rpx;
   border-radius: 999rpx;
   border: 1rpx solid rgba(255, 255, 255, 0.10);
-  color: var(--es-txt-4, #a9b2c2);
+  color: var(--es-txt-4, #7B8591);
 }
 
 .status-upcoming {
@@ -294,15 +294,15 @@
 }
 
 .status-live {
-  border-color: rgba(0, 229, 160, 0.45);
-  background-color: rgba(0, 229, 160, 0.12);
-  color: var(--es-green, #00E5A0);
+  border-color: rgba(0, 191, 255, 0.45);
+  background-color: rgba(0, 191, 255, 0.12);
+  color: var(--es-green, #00BFFF);
 }
 
 .status-ended {
   border-color: rgba(120, 120, 120, 0.25);
   background-color: rgba(120, 120, 120, 0.06);
-  color: var(--es-txt-2, #8a8f99);
+  color: var(--es-txt-2, #AAB4BE);
 }
 
 .status-draft {
@@ -314,7 +314,7 @@
 .card-title {
   margin-top: 12rpx;
   font-size: 28rpx;
-  color: var(--es-white, #ffffff);
+  color: var(--es-white, #F4F7FA);
   font-weight: 700;
   line-height: 1.35;
 }
@@ -327,7 +327,7 @@
 
 .meta-time {
   font-size: 22rpx;
-  color: var(--es-txt-4, #a9b2c2);
+  color: var(--es-txt-4, #7B8591);
 }
 
 .meta-dot {
@@ -344,7 +344,7 @@
 .card-desc {
   margin-top: 10rpx;
   font-size: 22rpx;
-  color: var(--es-txt-4, #c0c6d2);
+  color: var(--es-txt-4, #7B8591);
   line-height: 1.5;
   max-height: 96rpx;
   overflow: hidden;
@@ -364,7 +364,7 @@
   font-size: 22rpx;
   margin-left: 12rpx;
   border: 1rpx solid rgba(255, 255, 255, 0.10);
-  color: var(--es-txt-4, #c0c6d2);
+  color: var(--es-txt-4, #7B8591);
   background-color: rgba(255, 255, 255, 0.06);
 }
 
@@ -374,8 +374,8 @@ button.btn {
 
 .btn.primary {
   border: 0;
-  background-color: var(--es-green, #00E5A0);
-  color: var(--es-bg-deep, #050608);
+  background-color: var(--es-green, #00BFFF);
+  color: var(--es-bg-deep, #010407);
   font-weight: 600;
 }
 

@@ -1,14 +1,14 @@
 page {
-  background: var(--es-bg-deep, #050505);
+  background: var(--es-bg-deep, #010407);
 }
 .page {
   padding: 24rpx;
   min-height: 100vh;
   box-sizing: border-box;
-  background: var(--es-bg-deep, #050505);
+  background: var(--es-bg-deep, #010407);
 }
 .card {
-  background: var(--es-green-surface, #0b1110);
+  background: var(--es-green-surface, #04263A);
   border: 2rpx solid #0f7a2d;
   border-radius: 24rpx;
   padding: 28rpx;
@@ -16,7 +16,7 @@ page {
   box-shadow: 0 0 16rpx rgba(36, 255, 90, 0.08);
 }
 .title {
-  color: var(--es-green-bright, #24ff5a);
+  color: var(--es-green-bright, #00E8FF);
   font-size: 38rpx;
   font-weight: 700;
   margin-bottom: 12rpx;
@@ -51,11 +51,11 @@ page {
   font-size: 30rpx;
 }
 .btn-primary {
-  background: var(--es-green-bright, #24ff5a);
-  color: var(--es-green-surface, #041006);
+  background: var(--es-green-bright, #00E8FF);
+  color: var(--es-green-surface, #04263A);
 }
 .btn-ghost {
   background: transparent;
-  color: var(--es-green-bright, #24ff5a);
-  border: 2rpx solid var(--es-green-bright, #24ff5a);
+  color: var(--es-green-bright, #00E8FF);
+  border: 2rpx solid var(--es-green-bright, #00E8FF);
 }

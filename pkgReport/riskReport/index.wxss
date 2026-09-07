@@ -1,13 +1,13 @@
 .rr-page {
   min-height: 100vh;
-  background: #0b0f14;
+  background: var(--es-bg, #03060C);
   padding: 24rpx;
   box-sizing: border-box;
 }
 
 .rr-card {
-  background: #111827;
-  border: 2rpx solid rgba(0, 229, 160, 0.15);
+  background: var(--es-card, #07111E);
+  border: 2rpx solid rgba(0, 191, 255, 0.15);
   border-radius: 24rpx;
   padding: 24rpx;
   margin-bottom: 24rpx;
@@ -15,7 +15,7 @@
 }
 
 .rr-hero {
-  background: linear-gradient(180deg, rgba(0, 229, 160,0.08), rgba(17,24,39,1));
+  background: linear-gradient(180deg, rgba(0, 191, 255,0.08), rgba(17,24,39,1));
 }
 
 .rr-hero-top {
@@ -28,13 +28,13 @@
 .rr-title {
   font-size: 36rpx;
   font-weight: 700;
-  color: var(--es-white, #ffffff);
+  color: var(--es-white, #F4F7FA);
 }
 
 .rr-badge {
   font-size: 24rpx;
-  color: #0b0f14;
-  background: var(--es-green, #00E5A0);
+  color: var(--es-on-green, #03060C);
+  background: var(--es-green, #00BFFF);
   border-radius: 999rpx;
   padding: 10rpx 20rpx;
 }
@@ -42,7 +42,7 @@
 .rr-sub {
   display: block;
   font-size: 24rpx;
-  color: var(--es-txt-2, #9ca3af);
+  color: var(--es-txt-2, #AAB4BE);
   line-height: 1.8;
   margin-bottom: 6rpx;
 }
@@ -50,7 +50,7 @@
 .rr-section-title {
   font-size: 30rpx;
   font-weight: 700;
-  color: var(--es-green, #00E5A0);
+  color: var(--es-green, #00BFFF);
   margin-bottom: 18rpx;
 }
 
@@ -68,7 +68,7 @@
 .rr-step-index {
   display: block;
   font-size: 24rpx;
-  color: var(--es-txt-2, #9ca3af);
+  color: var(--es-txt-2, #AAB4BE);
   margin-bottom: 8rpx;
 }
 
@@ -78,7 +78,7 @@
 .rr-empty {
   display: block;
   font-size: 28rpx;
-  color: var(--es-white, #ffffff);
+  color: var(--es-white, #F4F7FA);
   line-height: 1.7;
   word-break: break-all;
 }
@@ -99,12 +99,12 @@
 }
 
 .rr-btn-primary {
-  background: var(--es-green, #00E5A0);
-  color: #0b0f14;
+  background: var(--es-green, #00BFFF);
+  color: var(--es-on-green, #03060C);
 }
 
 .rr-btn-secondary {
-  background: #111827;
-  color: var(--es-white, #ffffff);
+  background: var(--es-card, #07111E);
+  color: var(--es-white, #F4F7FA);
   border: 2rpx solid rgba(255,255,255,0.12);
 }

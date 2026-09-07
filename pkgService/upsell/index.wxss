@@ -1,8 +1,8 @@
 .page {
   padding: 32rpx;
-  background-color: var(--es-ink, #000);
+  background-color: var(--es-ink, #03060C);
   min-height: 100vh;
-  color: var(--es-white, #fff);
+  color: var(--es-white, #F4F7FA);
 }
 
 .title {
@@ -13,7 +13,7 @@
 }
 
 .card {
-  background-color: var(--es-bg-deep, #050505);
+  background-color: var(--es-bg-deep, #010407);
   border: 1px solid #1a2a1a;
   padding: 28rpx;
   border-radius: 20rpx;
@@ -22,21 +22,21 @@
 
 .card-title {
   font-size: 30rpx;
-  color: var(--es-green, #00E5A0);
+  color: var(--es-green, #00BFFF);
   margin-bottom: 8rpx;
 }
 
 .card-desc {
   font-size: 24rpx;
-  color: var(--es-txt-2, #9aa0a6);
+  color: var(--es-txt-2, #AAB4BE);
 }
 
 .btn-add {
   width: 100%;
   height: 88rpx;
   border-radius: 999rpx;
-  background-color: var(--es-green, #00E5A0);
-  color: var(--es-ink, #000);
+  background-color: var(--es-green, #00BFFF);
+  color: var(--es-ink, #03060C);
   font-size: 30rpx;
   font-weight: 700;
   margin-top: 40rpx;

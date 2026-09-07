@@ -32,7 +32,7 @@
   <textarea
     class="note-input"
     placeholder="简单写下：今天落实了哪些风控动作 / 计划任务。"
-    placeholder-style="color:#5f6368;"
+    placeholder-style="color:var(--es-txt-3, #8E98A3);"
     auto-height="true"
     bindinput="onInput"
     data-field="dailyNote"
@@ -57,7 +57,7 @@
   <textarea
     class="note-input"
     placeholder="写下今天刻意练习了哪一条风控动作，例如：分批建仓、严格止损。"
-    placeholder-style="color:#5f6368;"
+    placeholder-style="color:var(--es-txt-3, #8E98A3);"
     auto-height="true"
     bindinput="onInput"
     data-field="practiceNote"
@@ -82,7 +82,7 @@
   <textarea
     class="note-input"
     placeholder="记录 1～3 个今天最重要的收获 / 教训。"
-    placeholder-style="color:#5f6368;"
+    placeholder-style="color:var(--es-txt-3, #8E98A3);"
     auto-height="true"
     bindinput="onInput"
     data-field="reviewNote"
@@ -107,7 +107,7 @@
   <textarea
     class="note-input"
     placeholder="写下你准备长期坚持的一条小规则，比如：单笔亏损上限 / 看盘频率等。"
-    placeholder-style="color:#5f6368;"
+    placeholder-style="color:var(--es-txt-3, #8E98A3);"
     auto-height="true"
     bindinput="onInput"
     data-field="homeworkNote"

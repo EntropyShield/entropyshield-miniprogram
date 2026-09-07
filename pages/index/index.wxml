@@ -53,6 +53,7 @@
       <button class="checkin-btn {{checkIn.todayDone ? 'is-done' : ''}}" bindtap="doCheckIn" disabled="{{checkIn.todayDone}}">
         {{checkIn.todayDone ? '今日已打卡 ✓' : '立即打卡'}}
       </button>
+      <button class="es-share-btn" open-type="share">分享我的战绩</button>
     </view>
   </view>
 
@@ -65,7 +66,7 @@
     </view>
     <view class="tile es-card" bindtap="goMainchainOverview">
       <text class="tile-k">监控池信号</text>
-      <text class="tile-v" style="color:var(--es-green, #00E5A0)">{{monitorCount}} <text class="tile-vs">个标的</text></text>
+      <text class="tile-v" style="color:var(--es-green, #00BFFF)">{{monitorCount}} <text class="tile-vs">个标的</text></text>
       <text class="tile-m">进入结构区间</text>
     </view>
     <view class="tile es-card" bindtap="goTradeRecord">
@@ -75,7 +76,7 @@
     </view>
     <view class="tile es-card" bindtap="goCamp">
       <text class="tile-k">连续打卡</text>
-      <text class="tile-v" style="color:var(--es-green, #00E5A0)">{{checkIn.streak}} <text class="tile-vs">天</text></text>
+      <text class="tile-v" style="color:var(--es-green, #00BFFF)">{{checkIn.streak}} <text class="tile-vs">天</text></text>
       <text class="tile-m">纪律在养成</text>
     </view>
   </view>

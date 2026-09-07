@@ -17,8 +17,8 @@
 .gate-card {
   width: 100%;
   max-width: 640rpx;
-  background: var(--es-surface, #141A22);
-  border: 1rpx solid var(--es-border, #1F2730);
+  background: var(--es-surface, #0F1926);
+  border: 1rpx solid var(--es-border, #4B5663);
   border-radius: 28rpx;
   padding: 56rpx 44rpx 44rpx;
   box-sizing: border-box;
@@ -35,8 +35,8 @@
   width: 64rpx;
   height: 64rpx;
   border-radius: 16rpx;
-  background: linear-gradient(135deg, var(--es-green, #00E5A0), #00B37A);
-  color: var(--es-on-green, #04140E);
+  background: linear-gradient(135deg, var(--es-green, #00BFFF), #006CFF);
+  color: var(--es-on-green, #03060C);
   font-size: 38rpx;
   font-weight: 800;
   display: flex;
@@ -48,21 +48,21 @@
 .gate-brand-name {
   font-size: 30rpx;
   font-weight: 600;
-  color: var(--es-text, #E6EDF3);
+  color: var(--es-text, #F4F7FA);
   letter-spacing: 1rpx;
 }
 
 .gate-title {
   font-size: 38rpx;
   font-weight: 700;
-  color: var(--es-text, #E6EDF3);
+  color: var(--es-text, #F4F7FA);
   margin-bottom: 16rpx;
 }
 
 .gate-desc {
   font-size: 26rpx;
   line-height: 40rpx;
-  color: var(--es-sub, #9AA4B2);
+  color: var(--es-sub, #AAB4BE);
   margin-bottom: 32rpx;
 }
 
@@ -75,11 +75,11 @@
 
 .gate-link {
   font-size: 28rpx;
-  color: var(--es-green, #00E5A0);
+  color: var(--es-green, #00BFFF);
   padding: 18rpx 22rpx;
   border-radius: 16rpx;
-  background: rgba(0, 229, 160, 0.08);
-  border: 1rpx solid rgba(0, 229, 160, 0.25);
+  background: rgba(0, 191, 255, 0.08);
+  border: 1rpx solid rgba(0, 191, 255, 0.25);
 }
 
 .gate-agree {
@@ -88,14 +88,14 @@
   margin-bottom: 36rpx;
   padding: 20rpx;
   border-radius: 16rpx;
-  background: var(--es-panel, #10151C);
+  background: var(--es-panel, #0F1926);
 }
 
 .gate-checkbox {
   width: 40rpx;
   height: 40rpx;
   border-radius: 10rpx;
-  border: 2rpx solid var(--es-border, #2A3340);
+  border: 2rpx solid var(--es-border, #4B5663);
   background: transparent;
   display: flex;
   align-items: center;
@@ -105,12 +105,12 @@
 }
 
 .gate-checkbox.checked {
-  background: var(--es-green, #00E5A0);
-  border-color: var(--es-green, #00E5A0);
+  background: var(--es-green, #00BFFF);
+  border-color: var(--es-green, #00BFFF);
 }
 
 .gate-check {
-  color: var(--es-on-green, #04140E);
+  color: var(--es-on-green, #03060C);
   font-size: 28rpx;
   font-weight: 800;
   line-height: 1;
@@ -118,7 +118,7 @@
 
 .gate-agree-text {
   font-size: 28rpx;
-  color: var(--es-text, #E6EDF3);
+  color: var(--es-text, #F4F7FA);
 }
 
 .gate-actions {
@@ -144,23 +144,23 @@
 
 .gate-btn-ghost {
   background: transparent;
-  color: var(--es-sub, #9AA4B2);
-  border: 1rpx solid var(--es-border, #2A3340);
+  color: var(--es-sub, #AAB4BE);
+  border: 1rpx solid var(--es-border, #4B5663);
 }
 
 .gate-btn-primary {
-  background: linear-gradient(135deg, var(--es-green, #00E5A0), #00B37A);
-  color: var(--es-on-green, #04140E);
+  background: linear-gradient(135deg, var(--es-green, #00BFFF), #006CFF);
+  color: var(--es-on-green, #03060C);
 }
 
 .gate-btn-primary.disabled {
-  background: var(--es-border, #2A3340);
-  color: #6B7682;
+  background: var(--es-elevated, #151F2C);
+  color: var(--es-txt-3, #8E98A3);
 }
 
 .gate-foot {
   font-size: 22rpx;
-  color: var(--es-sub, #6B7682);
+  color: var(--es-sub, #8E98A3);
   text-align: center;
   margin-top: 28rpx;
   line-height: 34rpx;

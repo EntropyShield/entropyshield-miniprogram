@@ -276,6 +276,33 @@ Page({
     });
   },
 
+  fetchEsPoints() {
+    const points = require('../../utils/points.js');
+    const cid = this.clientId || ensureClientId();
+    if (!cid) return;
+    points.getMe(cid).then((d) => {
+      if (!d || !d.ok) return;
+      const rewards = (d.pendingRewards || []).map((r) => ({ id: r.id, label: r.label, claimed: false }));
+      this.setData({
+        esPoints: Number(d.points) || 0,
+        esLevel: Number(d.level) || 0,
+        esLevelName: d.levelName || '入门守护者',
+        esNextLevelAt: Number(d.nextLevelAt) || 0,
+        esPendingRewards: rewards,
+      });
+    });
+  },
+
+  onClaimReward(e) {
+    const id = (e && e.currentTarget && e.currentTarget.dataset && e.currentTarget.dataset.id) || '';
+    if (!id) return;
+    const points = require('../../utils/points.js');
+    const cid = this.clientId || ensureClientId();
+    points.claimReward(cid, id).then((d) => {
+      if (d && d.ok) { wx.showToast({ title: '已领取', icon: 'success' }); this.fetchEsPoints(); }
+    });
+  },
+
   fetchFissionProfile() {
     const baseUrl = getBaseUrl();
     const clientId = this.clientId || ensureClientId();

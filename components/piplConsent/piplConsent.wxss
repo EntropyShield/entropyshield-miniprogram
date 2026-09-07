@@ -12,8 +12,8 @@
 .pipl-card {
   width: 100%;
   max-width: 640rpx;
-  background: var(--es-card, #121A26);
-  border: 1rpx solid var(--es-line, #1E2A3A);
+  background: var(--es-card, #07111E);
+  border: 1rpx solid var(--es-line, #4B5663);
   border-radius: var(--radius-lg, 28rpx);
   padding: 48rpx 40rpx 36rpx;
   box-sizing: border-box;
@@ -21,13 +21,13 @@
 .pipl-title {
   font-size: 34rpx;
   font-weight: 700;
-  color: var(--es-txt-1, #E8EDF5);
+  color: var(--es-txt-1, #F4F7FA);
   margin-bottom: 16rpx;
 }
 .pipl-desc {
   font-size: 26rpx;
   line-height: 40rpx;
-  color: var(--es-txt-2, #8A94A6);
+  color: var(--es-txt-2, #AAB4BE);
   margin-bottom: 32rpx;
 }
 .pipl-agree {
@@ -35,30 +35,30 @@
   align-items: flex-start;
   padding: 20rpx;
   border-radius: var(--radius-sm, 12rpx);
-  background: var(--es-elevated, #1A2434);
+  background: var(--es-elevated, #151F2C);
   margin-bottom: 32rpx;
 }
 .pipl-box {
   width: 38rpx;
   height: 38rpx;
   border-radius: 10rpx;
-  border: 2rpx solid var(--es-line, #2A3340);
+  border: 2rpx solid var(--es-line, #4B5663);
   display: flex;
   align-items: center;
   justify-content: center;
   margin-right: 16rpx;
   flex-shrink: 0;
-  color: var(--es-on-green, #04140E);
+  color: var(--es-on-green, #03060C);
   font-weight: 800;
 }
 .pipl-box.on {
-  background: var(--es-green, #00E5A0);
-  border-color: var(--es-green, #00E5A0);
+  background: var(--es-green, #00BFFF);
+  border-color: var(--es-green, #00BFFF);
 }
 .pipl-text {
   font-size: 26rpx;
   line-height: 38rpx;
-  color: var(--es-txt-1, #E8EDF5);
+  color: var(--es-txt-1, #F4F7FA);
 }
 .pipl-actions {
   display: flex;
@@ -78,20 +78,20 @@
 .pipl-btn::after { border: none; }
 .pipl-ghost {
   background: transparent;
-  color: var(--es-txt-2, #8A94A6);
-  border: 1rpx solid var(--es-line, #2A3340);
+  color: var(--es-txt-2, #AAB4BE);
+  border: 1rpx solid var(--es-line, #4B5663);
 }
 .pipl-primary {
-  background: linear-gradient(135deg, var(--es-green, #00E5A0), var(--es-green-deep, #0F6E56));
-  color: var(--es-on-green, #04140E);
+  background: linear-gradient(135deg, var(--es-green, #00BFFF), var(--es-green-deep, #006CFF));
+  color: var(--es-on-green, #03060C);
 }
 .pipl-primary.dis {
-  background: var(--es-line, #2A3340);
-  color: #6B7682;
+  background: var(--es-line, #4B5663);
+  color: var(--es-txt-3, #8E98A3);
 }
 .pipl-foot {
   font-size: 22rpx;
   line-height: 34rpx;
-  color: var(--es-txt-3, #5A6577);
+  color: var(--es-txt-3, #8E98A3);
   margin-top: 24rpx;
 }

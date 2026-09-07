@@ -38,7 +38,7 @@
 
       <checkbox-group bindchange="onPrivacyAgreementChange">
         <label class="agreement-check-row">
-          <checkbox value="agree" checked="{{privacyChecked}}" color="#00E5A0" />
+          <checkbox value="agree" checked="{{privacyChecked}}" color="#00BFFF" />
           <text class="agreement-check-text">我已阅读并同意以下协议</text>
         </label>
       </checkbox-group>

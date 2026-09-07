@@ -59,15 +59,30 @@ for (const dm of dailyMounts) {
   }
 }
 
+// server.js 里直接定义的路由（不经 routes/ 挂载），如 /api/health、/api/_selfcheck。
+// ★ 不扫这里会把已实现的接口误判为缺口（/api/health 就曾因此被误报）。
+const directRe = /app\.(get|post|put|delete)\(\s*['"`]([^'"`]+)['"`]/g;
+while ((m = directRe.exec(serverSrc))) beRoutes.add(m[2]);
+
 /* ---------- 2. 前端：调用清单 + 归属 ---------- */
 const feCalls = new Map(); // path -> Set(调用方)
+// ★ 注释里的 "/api/xxx" 不是真实调用（如 utils/recall.js 注释中提到的 /api/recall/*），
+//   必须先剥注释再提取，否则会误报缺口。
+function stripJsComments(src) {
+  let out = src.replace(/\/\*[\s\S]*?\*\//g, (s) => s.replace(/[^\n]/g, ' '));
+  out = out.replace(/(^|[^:])\/\/[^\n]*/g, (s, p1) => p1 + s.slice(p1.length).replace(/[^\n]/g, ' '));
+  return out;
+}
 function walk(dir) {
   for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
     if (e.name === 'node_modules' || e.name === '.git' || e.name.startsWith('_')) continue;
     const p = path.join(dir, e.name);
     if (e.isDirectory()) walk(p);
     else if (/\.(js|wxml|json)$/.test(e.name)) {
-      const src = fs.readFileSync(p, 'utf8');
+      // 按文件类型选择注释剥离方式：js 用 // 与 /* */，wxml 用 <!-- -->，json 无注释
+      let src = fs.readFileSync(p, 'utf8');
+      if (e.name.endsWith('.js')) src = stripJsComments(src);
+      else if (e.name.endsWith('.wxml')) src = src.replace(/<!--[\s\S]*?-->/g, (s) => s.replace(/[^\n]/g, ' '));
       const re = /\/api\/[A-Za-z0-9_\/.\-]*/g;
       let x;
       while ((x = re.exec(src))) {

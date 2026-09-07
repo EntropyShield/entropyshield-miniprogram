@@ -23,6 +23,15 @@
     </view>
   </view>
 
-  <button class="btn-primary" bindtap="goCalc" disabled="{{!confirmed}}">{{confirmed ? "去使用风控计算器" : "权益确认中"}}</button>
+  <!-- 升级承接：仅 9.9元/7天体验展示。
+       到期提醒依赖订阅消息，模板 ID 仍在审核中，故成功页明示到期日是当前唯一可靠提醒手段。 -->
+  <view wx:if="{{showUpgrade}}" class="card upgrade">
+    <view class="upgrade-title">{{upgradeTitle}}</view>
+    <view class="upgrade-desc">{{upgradeDesc}}</view>
+    <view wx:if="{{expireText}}" class="upgrade-expire">{{expireText}}</view>
+    <button class="btn-upgrade" bindtap="goMembership">查看会员权益</button>
+  </view>
+
+  <button class="btn-primary" bindtap="onPrimaryTap" disabled="{{!confirmed && !canLeave}}">{{confirmed ? "去使用风控计算器" : (canLeave ? "返回首页" : "权益确认中")}}</button>
   <button class="btn-ghost" bindtap="goHome">返回首页</button>
 </view>

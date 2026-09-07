@@ -116,10 +116,13 @@ const RISK_TESTS = [
 ];
 
 // 风险温度颜色映射
+// [VI V1.0 §11.2] 三档风险状态：红=高 / 琥珀=中 / 绿=低。
+// ⚠️ 低档必须用 --es-safe（Stable Green 功能色），不能用 --es-green（该令牌现为品牌蓝 #00BFFF），
+//    否则"安全/低风险"会被渲染成品牌色，语义反转。2026-09-07 修正。
 function tempColor(score) {
   if (score >= 70) return 'var(--es-red, #FF4D5E)';
   if (score >= 40) return 'var(--es-amber, #FFB020)';
-  return 'var(--es-green, #00E5A0)';
+  return 'var(--es-safe, #00E5A0)';
 }
 function tempLevel(score) {
   if (score >= 70) return '偏高·谨慎';
@@ -445,10 +448,11 @@ Page({
         ctx.scale(dpr, dpr);
         ctx.clearRect(0, 0, w, h);
 
-        const GREEN1 = '#00E5A0';
-        const GREEN2 = '#21FF7A';
-        const BLUE1 = '#36CFFF';
-        const BLUE2 = '#1E90FF';
+        // [VI V1.0 2026-09-07] 与 components/logoShield 保持同一套品牌色（canvas 不支持 var()，只能写死）
+        const GREEN1 = '#00BFFF';  // 外六边形渐变起：Electric Blue（原 #00E5A0）
+        const GREEN2 = '#00E8FF';  // 外六边形渐变止：Energy Cyan（原 #21FF7A）
+        const BLUE1 = '#00E8FF';   // 内部符号渐变起：Energy Cyan（原 #36CFFF）
+        const BLUE2 = '#006CFF';   // 内部符号渐变止：Deep Energy Blue（原 #1E90FF）
         const cx = w / 2, cy = h / 2, R = Math.min(w, h) * 0.46;
 
         const hexLW = Math.max(1, w * 0.095);
@@ -456,7 +460,7 @@ Page({
         gradG.addColorStop(0, GREEN1); gradG.addColorStop(1, GREEN2);
         ctx.save();
         ctx.strokeStyle = gradG; ctx.lineWidth = hexLW; ctx.lineJoin = 'round';
-        ctx.shadowColor = 'rgba(0, 229, 160,0.35)'; ctx.shadowBlur = 2 * (w / 40);
+        ctx.shadowColor = 'rgba(0, 191, 255,0.35)'; ctx.shadowBlur = 2 * (w / 40);
         ctx.beginPath();
         for (let i = 0; i < 6; i++) {
           const ang = -Math.PI / 6 + (i * Math.PI) / 3;
@@ -470,7 +474,7 @@ Page({
         gradB.addColorStop(0, BLUE1); gradB.addColorStop(1, BLUE2);
         ctx.save();
         ctx.strokeStyle = gradB; ctx.lineWidth = infLW; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-        ctx.shadowColor = 'rgba(30,144,255,0.35)'; ctx.shadowBlur = 1.5 * (w / 40);
+        ctx.shadowColor = 'rgba(0,108,255,0.35)'; ctx.shadowBlur = 1.5 * (w / 40);
         ctx.beginPath(); ctx.arc(cx - rx, cy, r, 0, Math.PI * 2); ctx.stroke();
         ctx.beginPath(); ctx.arc(cx + rx, cy, r, 0, Math.PI * 2); ctx.stroke();
         ctx.restore();
@@ -543,10 +547,11 @@ Page({
     const inviteCode = rights.inviteCode || this.data.inviteCode || '';
     safeTrack('HOME_SHARE_APP_MESSAGE', { hasInviteCode: !!inviteCode });
 
+    const st = (self && self.data && self.data.checkIn) || {};
     const rt = this.data.riskTemp;
-    const title = rt && rt.ready
-      ? `今日市场风险温度 ${rt.score} · ${rt.level}，先看风险再交易`
-      : '熵盾——交易之前，先用熵盾看风险';
+    const title = (rt && rt.ready)
+      ? `连续守纪 ${st.streak || 0} 天 · 今日风险温度 ${rt.score}，先看风险再交易`
+      : `我已连续守纪 ${st.streak || 0} 天 · 熵盾帮你管住交易纪律`;
     const path = inviteCode
       ? `/pages/index/index?inviteCode=${encodeURIComponent(inviteCode)}`
       : '/pages/index/index';

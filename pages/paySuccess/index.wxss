@@ -1,22 +1,24 @@
 page {
-  background: var(--es-bg-deep, #050505);
+  background: var(--es-bg-deep, #010407);
 }
 .page {
   padding: 24rpx;
   min-height: 100vh;
   box-sizing: border-box;
-  background: var(--es-bg-deep, #050505);
+  background: var(--es-bg-deep, #010407);
 }
 .card {
-  background: var(--es-green-surface, #0b1110);
-  border: 2rpx solid #0f7a2d;
+  background: var(--es-green-surface, #04263A);
+  border: 2rpx solid rgba(0, 191, 255, 0.28);
   border-radius: 24rpx;
   padding: 28rpx;
   margin-bottom: 24rpx;
-  box-shadow: 0 0 16rpx rgba(36, 255, 90, 0.08);
+  box-shadow: 0 0 16rpx rgba(0, 191, 255, 0.08);
 }
 .title {
-  color: var(--es-green-bright, #24ff5a);
+  /* 主色 = Electric Blue #00BFFF（VI V1.0 品牌识别色，见 app.wxss）。
+     注意：令牌名 --es-green 仍是旧命名，但其值已是品牌蓝；安全/通过语义请用 --es-safe。 */
+  color: var(--es-green, #00BFFF);
   font-size: 38rpx;
   font-weight: 700;
   margin-bottom: 12rpx;
@@ -52,11 +54,49 @@ page {
   font-size: 30rpx;
 }
 .btn-primary {
-  background: var(--es-green-bright, #24ff5a);
-  color: var(--es-green-surface, #041006);
+  background: var(--es-green, #00BFFF);
+  color: #04140e;
 }
 .btn-ghost {
   background: transparent;
-  color: var(--es-green-bright, #24ff5a);
-  border: 2rpx solid var(--es-green-bright, #24ff5a);
+  color: var(--es-green, #00BFFF);
+  border: 2rpx solid var(--es-green, #00BFFF);
+}
+
+/* ===== 升级承接卡（仅 9.9元/7天体验展示） ===== */
+.upgrade {
+  border-color: rgba(0, 191, 255, 0.45);
+  background: linear-gradient(
+    180deg,
+    rgba(0, 191, 255, 0.1) 0%,
+    var(--es-green-surface, #04263A) 100%
+  );
+}
+.upgrade-title {
+  color: var(--es-green, #00BFFF);
+  font-size: 32rpx;
+  font-weight: 700;
+  margin-bottom: 12rpx;
+}
+.upgrade-desc {
+  color: #cfe9dc;
+  font-size: 26rpx;
+  line-height: 1.7;
+}
+.upgrade-expire {
+  display: inline-block;
+  margin-top: 18rpx;
+  padding: 6rpx 18rpx;
+  border-radius: 999rpx;
+  background: rgba(0, 191, 255, 0.14);
+  color: var(--es-green, #00BFFF);
+  font-size: 24rpx;
+}
+.btn-upgrade {
+  margin-top: 24rpx;
+  border-radius: 999rpx;
+  font-size: 28rpx;
+  background: transparent;
+  color: var(--es-green, #00BFFF);
+  border: 2rpx solid var(--es-green, #00BFFF);
 }

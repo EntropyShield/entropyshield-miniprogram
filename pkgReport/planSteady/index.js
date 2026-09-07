@@ -244,6 +244,14 @@ onLoad(options) {
       ? '动态利润保护'
       : '标准风险控制'
   );
+  // [熵盾 V2.1 · 技能:S01] 透传计算器新参数（后端解冻后生效）
+  const riskBudgetPct = Number(options.riskBudgetPct || 2);
+  const heldShares = String(safeDecode(options.heldShares, '') || '').trim();
+  const manualPrices = safeDecode(options.manualPrices, '0') === '1';
+  let batchPrices = [];
+  try { batchPrices = JSON.parse(options.batchPrices || '[]'); } catch (e) { batchPrices = []; }
+  if (!Array.isArray(batchPrices)) batchPrices = [];
+
   const deployRatioIndex = Math.max(
     0,
     DEPLOY_RATIO_OPTIONS.findIndex(item => item.value === deployRatio)
@@ -269,6 +277,10 @@ onLoad(options) {
     templateIndex,
     stopMode,
     stopModeName,
+    riskBudgetPct,
+    heldShares,
+    manualPrices,
+    batchPrices,
     hasResult: false,
     isGenerating: false,
     loadError: ''
@@ -358,7 +370,12 @@ editParameters() {
         account_capital: accountCapital,
         deploy_ratio: deployRatio,
         entry_template_id: entryTemplateId,
-        stop_mode: stopMode
+        stop_mode: stopMode,
+        risk_budget_pct: Number(this.data.riskBudgetPct || 2),
+        held_shares: String(this.data.heldShares || '').trim(),
+        ...(this.data.manualPrices && Array.isArray(this.data.batchPrices) && this.data.batchPrices.some(p => p && Number(p) > 0)
+          ? { entry_prices: this.data.batchPrices.filter(p => p && Number(p) > 0) }
+          : {})
       },
       success: (res) => {
         const body = res && res.data ? res.data : {};
