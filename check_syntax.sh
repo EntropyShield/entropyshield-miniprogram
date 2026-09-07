@@ -26,12 +26,12 @@ while IFS= read -r f; do
 done < <(find . -name "*.json" -not -path "./.git/*")
 
 echo ""
-echo "-------- BOM 头拦截（JS 严禁 UTF-8 BOM）--------"
+echo "-------- BOM 头拦截（所有源码文件严禁 UTF-8 BOM）--------"
 bom=0
 while IFS= read -r f; do
   head="$("$NODE" -e "const s=require('fs').readFileSync(process.argv[1]);process.stdout.write((s[0]===0xEF&&s[1]===0xBB&&s[2]===0xBF)?'BOM':'ok')" "$f" 2>/dev/null)"
-  if [ "$head" = "BOM" ]; then echo "BOM(JS)   $f  —— 微信开发者工具解析器会报 SyntaxError，需执行 node 脚本剥除"; bom=$((bom+1)); fi
-done < <(find . -name "*.js" -not -path "./.git/*")
+  if [ "$head" = "BOM" ]; then echo "BOM       $f  —— 微信开发者工具解析器会报 SyntaxError（JS 抛 4 次同错 / WXML 抛 Invalid token），需执行 node 脚本剥除"; bom=$((bom+1)); fi
+done < <(find . -type f \( -name "*.js" -o -name "*.json" -o -name "*.wxml" -o -name "*.wxs" -o -name "*.sjs" -o -name "*.wxss" \) -not -path "./.git/*" -not -path "./miniprogram_npm/*" -not -path "./node_modules/*")
 if [ "$bom" -eq 0 ]; then echo "OK   （全库零 BOM）"; fi
 
 echo ""

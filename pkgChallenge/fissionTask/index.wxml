@@ -1,4 +1,4 @@
-﻿<!-- pages/fissionTask/index.wxml -->
+<!-- pages/fissionTask/index.wxml -->
 <view class="page">
   <!-- 主卡：二维码 -->
   <view class="card" wx:if="{{qrcodeUrl}}">

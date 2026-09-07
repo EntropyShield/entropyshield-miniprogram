@@ -1,4 +1,4 @@
-﻿<view class="page">
+<view class="page">
   <view class="card card-main">
     <view class="card-header">
       <text class="card-title">来访预约</text>
