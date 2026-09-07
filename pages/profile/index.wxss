@@ -94,18 +94,32 @@
   margin-top: 10rpx;
 }
 
+/* 段位徽章 —— 方案B「游戏化成就」：Warm Metal 金属质感表段位
+   （原为主色蓝 chip，无法与「普通标签」区分；金属色=等级/成就，符合 Duolingo 式留存杠杆）
+   ⚠️ VI §11.2：徽章内必须有段位文字（levelText），颜色不得作唯一载体 */
 .badge-level {
   padding: 5rpx 14rpx;
-  border: 1px solid rgba(0, 191, 255, 0.4);
+  border: 1px solid var(--es-badge, #9A7D5A);
   border-radius: 999rpx;
-  color: var(--es-green, #00BFFF);
+  background: var(--es-badge-bg, rgba(154, 125, 90, .18));
+  color: var(--es-badge-txt, #E8D9C0);
   font-size: 21rpx;
   font-weight: 700;
+  flex-shrink: 0;
 }
 
+/* 连胜火焰 —— 方案B「游戏化成就」：Amber chip
+   （原为纯灰文字，无任何成就视觉；现已带「连续打卡 N 天」文字，符合 VI §11.2） */
 .badge-streak {
-  color: var(--es-txt-2, #AAB4BE);
-  font-size: 22rpx;
+  display: inline-flex;
+  align-items: center;
+  padding: 5rpx 14rpx;
+  border: 1px solid rgba(255, 176, 32, .35);
+  border-radius: 999rpx;
+  background: var(--es-streak-bg, rgba(255, 176, 32, .16));
+  color: var(--es-streak, #FFB020);
+  font-size: 21rpx;
+  font-weight: 700;
 }
 
 .badge-setting {
