@@ -30,7 +30,7 @@
   border-radius: 999rpx;
   font-size: 22rpx;
   color: var(--es-on-green, #03060C);
-  background: linear-gradient(90deg, var(--es-green, #00BFFF), #63ff8f);
+  background: linear-gradient(90deg, var(--es-green, #00BFFF), var(--es-green-deep, #006CFF));
   font-weight: 600;
 }
 
@@ -115,7 +115,7 @@
 }
 
 .pa-value-warning {
-  color: #ff5c5c;
+  color: var(--es-red, #FF4D5E);
 }
 
 /* 底部提示 */
@@ -146,7 +146,7 @@
 .pa-btn-outline {
   background-color: transparent;
   border-color: var(--es-green-40, #00BFFF66);
-  color: #c0ffc0;
+  color: var(--es-brand, #00BFFF);
   margin-top: 12rpx;
 }
 
@@ -200,11 +200,11 @@
 /* 正式方案参数填写区 */
 .pa-form-field { margin-top: 22rpx; }
 .pa-form-label { display:block; margin-bottom:10rpx; color:var(--es-txt-2, #AAB4BE); font-size:24rpx; }
-.pa-form-input,.pa-form-picker { min-height:80rpx; padding:0 22rpx; border:1rpx solid #00BFFF44; border-radius:16rpx; background:var(--es-on-green, #03060C); color:var(--es-white, #F4F7FA); font-size:28rpx; box-sizing:border-box; }
+.pa-form-input,.pa-form-picker { min-height:80rpx; padding:0 22rpx; border:1rpx solid var(--es-green-40, rgba(0, 191, 255, .4)); border-radius:16rpx; background:var(--es-on-green, #03060C); color:var(--es-white, #F4F7FA); font-size:28rpx; box-sizing:border-box; }
 .pa-form-input { height:80rpx; }
 .pa-form-picker { display:flex; align-items:center; justify-content:space-between; }
-.pa-form-picker-desc { color:#7f878d; font-size:22rpx; margin-left:16rpx; }
-.pa-risk-rule { margin-top:24rpx; padding:20rpx; border-radius:16rpx; border:1rpx solid #00BFFF55; background:rgba(0, 191, 255,.06); }
+.pa-form-picker-desc { color:var(--es-txt-3, #8E98A3); font-size:22rpx; margin-left:16rpx; }
+.pa-risk-rule { margin-top:24rpx; padding:20rpx; border-radius:16rpx; border:1rpx solid var(--es-green-40, rgba(0, 191, 255, .4)); background:rgba(0, 191, 255,.06); }
 .pa-risk-rule-row { display:flex; align-items:center; justify-content:space-between; font-size:27rpx; }
 .pa-risk-rule-desc { display:block; margin-top:10rpx; color:var(--es-txt-2, #AAB4BE); font-size:22rpx; line-height:1.6; }
 .pa-generate-btn,.pa-edit-btn { margin-top:24rpx; border-radius:999rpx; background:var(--es-green, #00BFFF); color:var(--es-ink, #03060C); font-size:28rpx; font-weight:700; }
@@ -214,7 +214,7 @@
 .pa-step-item { box-sizing:border-box; padding-right:12rpx; }
 .pa-step-item .pa-label,.pa-step-item .pa-value { display:block; }
 
-.pa-rights-tip { margin:14rpx 0 4rpx; padding:16rpx; border-radius:14rpx; background:rgba(0, 191, 255,.06); color:#c0ffc0; font-size:22rpx; line-height:1.6; }
+.pa-rights-tip { margin:14rpx 0 4rpx; padding:16rpx; border-radius:14rpx; background:rgba(0, 191, 255,.06); color:var(--es-brand, #00BFFF); font-size:22rpx; line-height:1.6; }
 
 /* ====== [MOD:PLANADVANCED_MAINCHAIN_ENTRY_20260402] START ====== */
 .result-entry-card {
@@ -229,7 +229,7 @@
 .result-entry-title {
   font-size: 32rpx;
   font-weight: 700;
-  color: #E8FFF0;
+  color: var(--es-txt-1, #F4F7FA);
   line-height: 1.4;
 }
 
@@ -254,14 +254,14 @@
   border-radius: 18rpx;
   border: 1rpx solid rgba(0, 191, 255, 0.35);
   background: rgba(10, 18, 16, 0.92);
-  color: #D8FFE3;
+  color: var(--es-txt-1, #F4F7FA);
   font-size: 28rpx;
   font-weight: 600;
 }
 
 .result-entry-btn--primary {
   color: var(--es-on-green, #03060C);
-  background: linear-gradient(180deg, #39FF5A 0%, #17D83A 100%);
+  background: linear-gradient(180deg, var(--es-green-deep, #006CFF) 0%, var(--es-green-deep, #006CFF) 100%);
   border-color: rgba(57, 255, 90, 0.9);
 }
 /* ====== [MOD:PLANADVANCED_MAINCHAIN_ENTRY_20260402] END ====== */
@@ -280,12 +280,12 @@
 }
 
 .result-loss {
-  color: #d93025 !important;
+  color: var(--es-red, #FF4D5E) !important;
   font-weight: 700;
 }
 
 .result-profit {
-  color: #168c4a !important;
+  color: var(--es-safe, #00E5A0) !important;
   font-weight: 700;
 }
 

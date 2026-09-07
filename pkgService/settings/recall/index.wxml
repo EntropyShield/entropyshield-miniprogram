@@ -54,18 +54,18 @@
 
     <view class="row">
       <text class="row-label">短信提醒</text>
-      <switch checked="{{pref.sms}}" bindchange="onToggleSms" color="#00BFFF" />
+      <switch checked="{{pref.sms}}" bindchange="onToggleSms" color="var(--es-brand, #00BFFF)" />
     </view>
     <view class="row">
       <text class="row-label">语音播报（自动拨打，念三遍）</text>
-      <switch checked="{{pref.voice}}" bindchange="onToggleVoice" color="#00BFFF" />
+      <switch checked="{{pref.voice}}" bindchange="onToggleVoice" color="var(--es-brand, #00BFFF)" />
     </view>
 
     <view class="divider"></view>
 
     <view class="row">
       <text class="row-label">单独同意（PIPL 敏感信息）</text>
-      <switch checked="{{pref.consent}}" bindchange="onConsent" color="#00BFFF" />
+      <switch checked="{{pref.consent}}" bindchange="onConsent" color="var(--es-brand, #00BFFF)" />
     </view>
     <text class="hint">手机号属敏感个人信息，须单独同意用于发送风险提醒；可随时关闭并撤回。</text>
 

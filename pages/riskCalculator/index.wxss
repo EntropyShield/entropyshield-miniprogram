@@ -86,7 +86,7 @@ page {
   display: block;
   font-size: 24rpx;
   line-height: 1.6;
-  color: #ff8f8f;
+  color: var(--es-red, #FF4D5E);
 }
 
 /* 权益条 */
@@ -164,7 +164,7 @@ page {
 }
 
 .input-error {
-  border-color: #ff6b6b;
+  border-color: var(--es-red, #FF4D5E);
   box-shadow: 0 0 0 2rpx rgba(255, 107, 107, 0.12);
 }
 
@@ -181,7 +181,7 @@ page {
   margin-top: 8rpx;
   font-size: 22rpx;
   line-height: 1.5;
-  color: #ff6b6b;
+  color: var(--es-red, #FF4D5E);
 }
 
 /* 选择器与固定风险 */
@@ -341,7 +341,7 @@ page {
   margin-top: 4rpx;
   font-size: 22rpx;
   line-height: 1.7;
-  color: #7f8790;
+  color: var(--es-txt-3, #8E98A3);
   text-align: left;
 }
 
@@ -673,7 +673,7 @@ page {
     display: block;
     font-size: 22rpx;
     line-height: 1.6;
-    color: #FFB020;
+    color: var(--es-amber, #FFB020);
   }
 
   .seg-control {

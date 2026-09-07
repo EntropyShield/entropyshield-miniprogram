@@ -13,7 +13,7 @@
   border-radius: 24rpx;
   padding: 24rpx 24rpx 28rpx;
   margin-bottom: 28rpx;
-  border: 1px solid #1a2a1a;
+  border: 1px solid var(--es-line, #4B5663);
   box-shadow: 0 0 24rpx rgba(0, 0, 0, 0.6);
 }
 
@@ -88,7 +88,7 @@
 
 /* 选中态 */
 .option-item.active {
-  background: linear-gradient(90deg, var(--es-green-surface, #04263A), #0f4f1b);
+  background: linear-gradient(90deg, var(--es-green-surface, #04263A), var(--es-safe-bg, rgba(0, 229, 160, .12)));
   border-color: var(--es-green, #00BFFF);
   box-shadow: 0 0 18rpx rgba(0, 191, 255, 0.4);
 }

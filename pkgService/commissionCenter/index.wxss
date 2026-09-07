@@ -90,7 +90,7 @@ page {
 }
 
 .top-tab.active {
-  background: linear-gradient(90deg, #18b74b, var(--es-green, #00BFFF));
+  background: linear-gradient(90deg, var(--es-safe, #00E5A0), var(--es-green, #00BFFF));
   color: var(--es-bg-deep, #010407);
 }
 
@@ -150,7 +150,7 @@ page {
 }
 
 .search-btn.ghost {
-  background: #2a2d33;
+  background: var(--es-elevated, #151F2C);
   color: var(--es-white, #F4F7FA);
 }
 

@@ -19,7 +19,7 @@
 .page-subtitle {
   margin-top: 8rpx;
   font-size: 24rpx;
-  color: #909090;
+  color: var(--es-txt-2, #AAB4BE);
 }
 
 /* 筛选 Tab */
@@ -38,7 +38,7 @@
   text-align: center;
   padding: 16rpx 0;
   font-size: 26rpx;
-  color: #b0b0b0;
+  color: var(--es-txt-2, #AAB4BE);
   border-radius: 999rpx;
 }
 
@@ -57,7 +57,7 @@
 }
 
 .tip-error {
-  color: #ff4d4f;
+  color: var(--es-red, #FF4D5E);
 }
 
 /* 列表滚动区 */
@@ -78,7 +78,7 @@
 
 /* 课程卡片 */
 .course-card {
-  background-color: #151515;
+  background-color: var(--es-card, #07111E);
   border-radius: 24rpx;
   padding: 24rpx 28rpx;
   margin-bottom: 20rpx;
@@ -169,7 +169,7 @@
   flex: 1;
   height: 10rpx;
   border-radius: 999rpx;
-  background-color: #303030;
+  background-color: var(--es-surface, #0F1926);
   overflow: hidden;
 }
 

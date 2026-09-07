@@ -51,11 +51,11 @@
   padding: 40rpx 20rpx;
   text-align: center;
   font-size: 26rpx;
-  color: #9da2b8;
+  color: var(--es-txt-2, #AAB4BE);
 }
 
 .tip-error {
-  color: #ff5b5b;
+  color: var(--es-red, #FF4D5E);
 }
 
 .list {
@@ -82,7 +82,7 @@
 .card-time {
   margin-top: 6rpx;
   font-size: 24rpx;
-  color: #a0a4ba;
+  color: var(--es-txt-2, #AAB4BE);
 }
 
 .card-meta {
@@ -105,7 +105,7 @@
 
 .status-finished {
   background-color: rgba(85, 214, 255, 0.2);
-  color: #55d6ff;
+  color: var(--es-green-bright, #00E8FF);
 }
 
 .progress-text {

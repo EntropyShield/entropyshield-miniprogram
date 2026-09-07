@@ -25,7 +25,7 @@
   font-size: 20rpx; padding: 3rpx 12rpx; border-radius: 999rpx; margin-left: 14rpx;
 }
 .badge-sub { background: rgba(0, 191, 255,.15); color: var(--es-green, #00BFFF); }
-.badge-ext { background: rgba(77,169,252,.15); color: #3DA9FC; }
+.badge-ext { background: rgba(77,169,252,.15); color: var(--es-blue, #006CFF); }
 .badge-oa { background: rgba(0, 191, 255,.18); color: var(--es-green, #00BFFF); border: 1rpx solid rgba(0, 191, 255,.4); }
 .badge-cs { background: rgba(255,176,32,.15); color: var(--orange, #FFB020); }
 
@@ -35,15 +35,15 @@
 .oa-step { display: flex; align-items: center; font-size: 24rpx; padding: 8rpx 0; }
 .oa-idx {
   width: 30rpx; height: 30rpx; border-radius: 50%; background: var(--es-green, #00BFFF);
-  color: #04110B; font-size: 20rpx; font-weight: 800; text-align: center; line-height: 30rpx; margin-right: 14rpx; flex: none;
+  color: var(--es-bg, #03060C); font-size: 20rpx; font-weight: 800; text-align: center; line-height: 30rpx; margin-right: 14rpx; flex: none;
 }
 .oa-link { color: var(--es-green, #00BFFF); }
-.oa-qr-box { margin-top: 14rpx; padding: 16rpx; background: #0E141D; border-radius: 12rpx; text-align: center; }
+.oa-qr-box { margin-top: 14rpx; padding: 16rpx; background: var(--es-surface, #0F1926); border-radius: 12rpx; text-align: center; }
 .oa-qr { width: 280rpx; height: 280rpx; background: var(--es-white, #F4F7FA); border-radius: 8rpx; }
 .oa-qr-tip { font-size: 20rpx; color: var(--es-sub, #9AA4B2); display: block; margin-top: 10rpx; line-height: 1.5; }
 
 .btn-oa {
-  margin-top: 18rpx; font-size: 26rpx; color: #04110B; font-weight: 700;
+  margin-top: 18rpx; font-size: 26rpx; color: var(--es-bg, #03060C); font-weight: 700;
   background: var(--es-green, #00BFFF); border-radius: 12rpx; padding: 16rpx 0;
 }
 .oa-done { margin-top: 16rpx; font-size: 24rpx; color: var(--es-safe, #00E5A0); }
@@ -88,7 +88,7 @@
   border-radius: 12rpx; padding: 14rpx 0; line-height: 1.4;
 }
 .btn-primary {
-  margin-top: 12rpx; font-size: 26rpx; color: #04110B; font-weight: 700;
+  margin-top: 12rpx; font-size: 26rpx; color: var(--es-bg, #03060C); font-weight: 700;
   background: var(--es-green, #00BFFF); border-radius: 12rpx; padding: 16rpx 0;
 }
 

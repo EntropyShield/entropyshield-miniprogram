@@ -48,7 +48,9 @@ page {
   --es-green-deep: #006CFF;     /* 主色深端 Deep Energy Blue（渐变末端/按下态） */
   --es-green-bg: rgba(0, 191, 255, .12);   /* 主色 12% 底：标签/徽章 */
   --es-red: #FF4D5E;            /* Risk Red：破戒、止损触发 */
+  --es-red-bg: rgba(255, 77, 94, .12);      /* 红 12% 底：危险标签（与 --es-green-bg 同一模式） */
   --es-amber: #FFB020;          /* Warning Amber：关注、待确认 */
+  --es-amber-bg: rgba(255, 176, 32, .12);   /* 琥珀 12% 底：警示标签 */
   --es-blue: #006CFF;           /* Deep Energy Blue：链接、图表 */
 
   /* ---- 背景三层（VI §6.1：母背景 / 层级背景 / 结构金属）---- */
@@ -118,6 +120,28 @@ page {
   --Radius-Card: 20rpx;
   --Radius-Btn: 16rpx;
   --Gutter: 24rpx;
+
+  /* ---- 方案 B「游戏化成就」组件令牌（S07 落地 · 2026-09-07）----
+     用户 9/2 已拍板方案 B。色值全部取自 VI V1.0，不新增品牌色：
+     等级徽章 = Warm Metal（金属质感表段位）· 连胜/奖励 = Warning Amber
+     · 进度环 = 主识别色 · 学院入口 = Deep Energy Blue。
+     硬约束（VI §11.2）：颜色不得作唯一载体，徽章/进度环必须同时带文字。 */
+  --es-badge: #9A7D5A;                    /* Warm Metal：等级徽章 Lv 主色 */
+  --es-badge-bg: rgba(154, 125, 90, .18); /* 徽章底 */
+  --es-badge-txt: #E8D9C0;                /* 徽章文字（暖白，深底可读） */
+  --es-streak: #FFB020;                   /* Warning Amber：连胜火焰 */
+  --es-streak-bg: rgba(255, 176, 32, .16);
+  --es-reward: #FFB020;                   /* 奖励 chip 主色 */
+  --es-reward-bg: rgba(255, 176, 32, .14);
+  --es-ring: #00BFFF;                     /* 进度环·已完成弧 */
+  --es-ring-track: #0F1926;               /* 进度环·轨道 */
+  --es-academy: #006CFF;                  /* 学院入口强调 */
+  --es-academy-bg: rgba(0, 108, 255, .14);
+  /* 内容分类色（非品牌色）：课程「沙龙」需与「体验/进行中」在视觉上区分，
+     VI 未定义紫色，此处作为分类标识色单独登记，不得挪作品牌/交互用途。
+     VI §11.2：分类色必须配文字，不得作唯一载体。 */
+  --es-cat-salon: #A5B4FC;
+  --es-cat-salon-soft: #EAD7FF;
 }
 
 /* 兼容 Web 预览环境（:root 在此生效，与 page 双写保证一致） */
@@ -127,7 +151,9 @@ page {
   --es-green-deep: #006CFF;
   --es-green-bg: rgba(0, 191, 255, .12);
   --es-red: #FF4D5E;
+  --es-red-bg: rgba(255, 77, 94, .12);
   --es-amber: #FFB020;
+  --es-amber-bg: rgba(255, 176, 32, .12);
   --es-blue: #006CFF;
   --es-bg: #03060C;
   --es-card: #07111E;
@@ -163,6 +189,18 @@ page {
   --Line: #4B5663;
   --Text-Main: #F4F7FA;
   --Text-Secondary: #AAB4BE;
+  /* 方案 B「游戏化成就」组件令牌（与 page{} 保持一致） */
+  --es-badge: #9A7D5A;
+  --es-badge-bg: rgba(154, 125, 90, .18);
+  --es-badge-txt: #E8D9C0;
+  --es-streak: #FFB020;
+  --es-streak-bg: rgba(255, 176, 32, .16);
+  --es-reward: #FFB020;
+  --es-reward-bg: rgba(255, 176, 32, .14);
+  --es-ring: #00BFFF;
+  --es-ring-track: #0F1926;
+  --es-academy: #006CFF;
+  --es-academy-bg: rgba(0, 108, 255, .14);
 }
 
 /* ============================================================
@@ -226,6 +264,105 @@ page {
   border-bottom: 1rpx solid var(--es-line, #4B5663);
 }
 .es-item:last-child { border-bottom: none; }
+
+/* ============================================================
+   方案 B「游戏化成就」组件五件套（S07 落地 · 2026-09-07）
+   卡片化 · 等级徽章 Lv · 连胜火焰 · 进度环 · 奖励 chip · 学院入口突出
+   ⚠️ VI §11.2 硬约束：颜色不得作唯一载体——
+      徽章必须带「Lv.N」文字、进度环中心必须带百分比/分数文字、
+      连胜必须带天数文字。纯色块无文字一律视为不合规。
+   ============================================================ */
+
+/* 1. 等级徽章 Lv（Warm Metal 金属质感 = 段位） */
+.es-badge-lv {
+  display: inline-flex;
+  align-items: center;
+  gap: 6rpx;
+  padding: 6rpx 16rpx;
+  border-radius: 999rpx;
+  font-size: var(--fs-xs, 20rpx);
+  font-weight: 700;
+  letter-spacing: .5rpx;
+  background: var(--es-badge-bg, rgba(154, 125, 90, .18));
+  color: var(--es-badge-txt, #E8D9C0);
+  border: 1rpx solid var(--es-badge, #9A7D5A);
+  flex-shrink: 0;
+}
+
+/* 2. 连胜火焰（Amber；必须带天数文字，图标只是辅助） */
+.es-streak {
+  display: inline-flex;
+  align-items: center;
+  gap: 6rpx;
+  padding: 6rpx 16rpx;
+  border-radius: 999rpx;
+  font-size: var(--fs-xs, 20rpx);
+  font-weight: 700;
+  background: var(--es-streak-bg, rgba(255, 176, 32, .16));
+  color: var(--es-streak, #FFB020);
+  border: 1rpx solid rgba(255, 176, 32, .35);
+  flex-shrink: 0;
+}
+
+/* 3. 进度环（conic-gradient；行内用 style="--p:65" 传 0-100 的纯数字）
+      兜底：不支持 conic-gradient 时显示轨道色，中心文字仍可读进度。 */
+.es-ring {
+  --p: 0;
+  position: relative;
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 50%;
+  background: var(--es-ring-track, #0F1926);
+  background: conic-gradient(var(--es-ring, #00BFFF) calc(var(--p) * 1%), var(--es-ring-track, #0F1926) 0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.es-ring::after {
+  content: '';
+  position: absolute;
+  top: 12rpx; left: 12rpx; right: 12rpx; bottom: 12rpx;
+  border-radius: 50%;
+  background: var(--es-card, #07111E);
+}
+.es-ring__txt {
+  position: relative;
+  z-index: 1;
+  font-size: var(--fs-sm, 24rpx);
+  font-weight: 700;
+  color: var(--es-txt-1, #F4F7FA);
+}
+
+/* 4. 奖励 chip（待领取/可解锁的橙色提示） */
+.es-chip-reward {
+  display: inline-flex;
+  align-items: center;
+  gap: 6rpx;
+  padding: 8rpx 18rpx;
+  border-radius: 999rpx;
+  font-size: var(--fs-xs, 20rpx);
+  font-weight: 600;
+  background: var(--es-reward-bg, rgba(255, 176, 32, .14));
+  color: var(--es-reward, #FFB020);
+  border: 1rpx dashed rgba(255, 176, 32, .45);
+}
+
+/* 5. 控局者学院入口（Deep Energy Blue 强调，B 方案要求"突出"） */
+.es-academy-entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--sp-3, 24rpx);
+  border-radius: var(--radius-md, 20rpx);
+  background: linear-gradient(135deg, var(--es-academy-bg, rgba(0, 108, 255, .14)), var(--es-card, #07111E));
+  border: 1rpx solid rgba(0, 108, 255, .35);
+}
+.es-academy-entry__title {
+  font-size: var(--fs-md, 32rpx);
+  font-weight: 700;
+  color: var(--es-txt-1, #F4F7FA);
+}
 
 /* ============================================================
    全局基础（保留原有类名，确保存量页面不破坏）

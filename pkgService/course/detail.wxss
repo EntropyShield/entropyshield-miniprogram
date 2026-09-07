@@ -19,7 +19,7 @@
 }
 
 .tip-error {
-  color: #ff4d4f;
+  color: var(--es-red, #FF4D5E);
 }
 
 .retry-wrap {
@@ -43,7 +43,7 @@
 }
 
 .course-card {
-  background: #101114;
+  background: var(--es-card, #07111E);
   border-radius: 24rpx;
   padding: 32rpx 28rpx 40rpx;
   box-shadow: 0 12rpx 30rpx rgba(0, 0, 0, 0.6);
@@ -84,25 +84,25 @@
 .tag-experience {
   border-color: rgba(80, 200, 255, 0.35);
   background-color: rgba(80, 200, 255, 0.10);
-  color: #cfefff;
+  color: var(--es-brand, #00BFFF);
 }
 
 .tag-camp {
   border-color: rgba(255, 210, 80, 0.35);
   background-color: rgba(255, 210, 80, 0.10);
-  color: #ffe6a8;
+  color: var(--es-amber, #FFB020);
 }
 
 .tag-risk {
   border-color: rgba(255, 120, 120, 0.35);
   background-color: rgba(255, 120, 120, 0.10);
-  color: #ffd0d0;
+  color: var(--es-red, #FF4D5E);
 }
 
 .tag-salon {
   border-color: rgba(200, 160, 255, 0.35);
   background-color: rgba(200, 160, 255, 0.10);
-  color: #ead7ff;
+  color: var(--es-cat-salon-soft, #EAD7FF);
 }
 
 .tag-controller {
@@ -126,7 +126,7 @@
 .status-tag {
   border-color: rgba(79, 209, 197, 0.18);
   background: rgba(79, 209, 197, 0.10);
-  color: #4fd1c5;
+  color: var(--es-safe, #00E5A0);
 }
 
 .status-draft {
@@ -151,7 +151,7 @@
 .status-default {
   border-color: rgba(79, 209, 197, 0.18);
   background: rgba(79, 209, 197, 0.10);
-  color: #4fd1c5;
+  color: var(--es-safe, #00E5A0);
 }
 
 .meta-row {
@@ -162,7 +162,7 @@
 }
 
 .meta-label {
-  color: #8c8c8c;
+  color: var(--es-txt-3, #8E98A3);
   font-size: 24rpx;
 }
 
@@ -188,13 +188,13 @@
 }
 
 .section-title {
-  color: #d9d9d9;
+  color: var(--es-txt-1, #F4F7FA);
   font-size: 26rpx;
   margin-bottom: 10rpx;
 }
 
 .section-content {
-  color: #bfbfbf;
+  color: var(--es-txt-1, #F4F7FA);
   font-size: 24rpx;
   line-height: 1.6;
 }

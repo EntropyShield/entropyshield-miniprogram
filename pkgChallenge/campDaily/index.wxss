@@ -13,7 +13,7 @@
   border-radius: 24rpx;
   padding: 24rpx 24rpx 28rpx;
   margin-bottom: 28rpx;
-  border: 1px solid #1a2a1a;
+  border: 1px solid var(--es-line, #4B5663);
   box-shadow: 0 0 24rpx rgba(0, 0, 0, 0.6);
 }
 
@@ -55,7 +55,7 @@
 
 /* 区块标题 */
 .section-card {
-  border-color: #1a2a1a;
+  border-color: var(--es-line, #4B5663);
 }
 
 .section-title-row {
@@ -82,7 +82,7 @@
   padding: 12rpx 16rpx;
   border-radius: 16rpx;
   background-color: var(--es-on-green, #03060C);
-  border: 1px solid #262626;
+  border: 1px solid var(--es-line, #4B5663);
 }
 
 .example-label {
@@ -93,7 +93,7 @@
 
 .example-text {
   font-size: 22rpx;
-  color: #cfd2dc;
+  color: var(--es-txt-1, #F4F7FA);
 }
 
 /* 文本输入区域 */
@@ -103,7 +103,7 @@
   padding: 16rpx 18rpx;
   border-radius: 18rpx;
   background-color: var(--es-ink, #03060C);
-  border: 1px solid #1f1f1f;
+  border: 1px solid var(--es-line, #4B5663);
   color: var(--es-txt-4, #7B8591);
   font-size: 24rpx;
   line-height: 1.6;

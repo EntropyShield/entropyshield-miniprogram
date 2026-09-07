@@ -44,7 +44,7 @@
 .u-free { color: var(--es-green, #00BFFF); background: rgba(0, 191, 255, .12); }
 .u-points { color: var(--es-amber, #FFB020); background: rgba(255, 176, 32, .12); }
 .u-paid { color: var(--es-red, #FF4D5E); background: rgba(255, 77, 94, .12); }
-.u-member { color: #8AA0FF; background: rgba(138, 160, 255, .12); }
+.u-member { color: var(--es-blue, #006CFF); background: rgba(138, 160, 255, .12); }
 .les-state { font-size: var(--fs-xs, 20rpx); color: var(--es-green, #00BFFF); }
 .les-state.making { color: var(--es-txt-3, #8E98A3); }
 

@@ -23,7 +23,7 @@
 .u-free { color: var(--es-green, #00BFFF); background: rgba(0, 191, 255, .12); }
 .u-points { color: var(--es-amber, #FFB020); background: rgba(255, 176, 32, .12); }
 .u-paid { color: var(--es-red, #FF4D5E); background: rgba(255, 77, 94, .12); }
-.u-member { color: #8AA0FF; background: rgba(138, 160, 255, .12); }
+.u-member { color: var(--es-blue, #006CFF); background: rgba(138, 160, 255, .12); }
 .unlock-note { margin: 6rpx 0 18rpx; font-size: var(--fs-xs, 20rpx); color: var(--es-txt-3, #8E98A3); }
 
 .blk { margin-bottom: 18rpx; padding: 24rpx; border-radius: var(--radius-md, 20rpx); background: var(--es-card, #07111E); border: 2rpx solid var(--es-line, #4B5663); }
@@ -33,7 +33,7 @@
 .card-title { font-size: var(--fs-base, 28rpx); font-weight: 700; color: var(--es-green, #00BFFF); }
 .card-body { font-size: var(--fs-sm, 24rpx); color: var(--es-txt-2, #AAB4BE); line-height: 1.8; }
 .b-story { background: rgba(138,160,255,.06); border-color: rgba(138,160,255,.25); }
-.story-title { display: block; font-size: var(--fs-base, 28rpx); font-weight: 700; color: #8AA0FF; margin-bottom: 8rpx; }
+.story-title { display: block; font-size: var(--fs-base, 28rpx); font-weight: 700; color: var(--es-blue, #006CFF); margin-bottom: 8rpx; }
 .story-body { font-size: var(--fs-sm, 24rpx); color: var(--es-txt-2, #AAB4BE); line-height: 1.85; }
 .b-quiz { background: rgba(255,176,32,.06); border-color: rgba(255,176,32,.25); }
 .quiz-q { display: block; font-size: var(--fs-base, 28rpx); font-weight: 600; color: var(--es-txt-1, #F4F7FA); line-height: 1.7; margin-bottom: 10rpx; }

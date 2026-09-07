@@ -206,7 +206,7 @@ page {
   border-radius: 9999rpx;
   font-size: 28rpx;
   color: var(--es-bg-deep, #010407);
-  background: linear-gradient(90deg, #18b74b, var(--es-green, #00BFFF));
+  background: linear-gradient(90deg, var(--es-safe, #00E5A0), var(--es-green, #00BFFF));
 }
 
 .btn-secondary {
@@ -215,7 +215,7 @@ page {
   border-radius: 9999rpx;
   font-size: 28rpx;
   color: var(--es-txt-4, #7B8591);
-  border: 1rpx solid #3a3d45;
+  border: 1rpx solid var(--es-line, #4B5663);
   background: transparent;
 }
 .btn-primary,

@@ -138,7 +138,7 @@
         <text class="label-tag required-tag">必选</text>
       </view>
       <view class="risk-budget-row">
-        <slider class="risk-budget-slider" min="0.5" max="3" step="0.5" value="{{riskBudgetPct}}" bindchange="onRiskBudgetChange" activeColor="#00BFFF" block-color="#00BFFF" />
+        <slider class="risk-budget-slider" min="0.5" max="3" step="0.5" value="{{riskBudgetPct}}" bindchange="onRiskBudgetChange" activeColor="var(--es-brand, #00BFFF)" block-color="var(--es-brand, #00BFFF)" />
         <text class="risk-budget-value">{{riskBudgetPct}}%</text>
       </view>
       <text class="field-tip">你愿意为这一笔交易承担的最大亏损占账户可用资金的比例，由你本人设定，熵盾据此反推各批止损价。</text>
@@ -160,7 +160,7 @@
       </view>
       <view class="manual-toggle">
         <text class="manual-toggle-text">手动设定每批买价（默认按模板梯度自动递增）</text>
-        <switch checked="{{manualPrices}}" bindchange="onManualPricesToggle" color="#00BFFF" />
+        <switch checked="{{manualPrices}}" bindchange="onManualPricesToggle" color="var(--es-brand, #00BFFF)" />
       </view>
       <view wx:if="{{manualPrices}}" class="batch-price-list">
         <view class="batch-price-item" wx:for="{{batchLabels}}" wx:key="index" wx:for-index="bidx">

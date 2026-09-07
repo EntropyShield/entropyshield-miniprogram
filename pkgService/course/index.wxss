@@ -7,7 +7,7 @@
 
 .topbar {
   border-radius: 28rpx;
-  background: linear-gradient(135deg, #11141b, #171e27);
+  background: linear-gradient(135deg, var(--es-card, #07111E), var(--es-card, #07111E));
   border: 1rpx solid rgba(255, 255, 255, 0.06);
   padding: 22rpx 20rpx 18rpx;
   box-shadow: 0 16rpx 40rpx rgba(0, 0, 0, 0.6);
@@ -111,7 +111,7 @@
 
 .error-text {
   font-size: 22rpx;
-  color: #ffb3b3;
+  color: var(--es-red, #FF4D5E);
 }
 
 .error-btn {
@@ -222,25 +222,25 @@
 .pill-experience {
   border-color: rgba(80, 200, 255, 0.35);
   background-color: rgba(80, 200, 255, 0.10);
-  color: #cfefff;
+  color: var(--es-brand, #00BFFF);
 }
 
 .pill-camp {
   border-color: rgba(255, 210, 80, 0.35);
   background-color: rgba(255, 210, 80, 0.10);
-  color: #ffe6a8;
+  color: var(--es-amber, #FFB020);
 }
 
 .pill-salon {
   border-color: rgba(200, 160, 255, 0.35);
   background-color: rgba(200, 160, 255, 0.10);
-  color: #ead7ff;
+  color: var(--es-cat-salon-soft, #EAD7FF);
 }
 
 .pill-risk {
   border-color: rgba(255, 120, 120, 0.35);
   background-color: rgba(255, 120, 120, 0.10);
-  color: #ffd0d0;
+  color: var(--es-red, #FF4D5E);
 }
 
 .pill-paid {
@@ -271,7 +271,7 @@
 .pill-progress-doing {
   border-color: rgba(80, 200, 255, 0.30);
   background-color: rgba(80, 200, 255, 0.10);
-  color: #cfefff;
+  color: var(--es-brand, #00BFFF);
 }
 
 .pill-progress-finished {

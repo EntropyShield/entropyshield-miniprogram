@@ -15,7 +15,7 @@
   border-radius: 24rpx;
   padding: 20rpx 22rpx 24rpx;
   margin-bottom: 20rpx;
-  border: 1px solid #1a2a1a;
+  border: 1px solid var(--es-line, #4B5663);
   box-shadow: 0 0 20rpx rgba(0, 0, 0, 0.6);
 }
 
@@ -58,7 +58,7 @@
   padding: 2rpx 14rpx;
   border-radius: 999rpx;
   border: 1px solid rgba(0, 191, 255, 0.2);
-  color: #c0ffc0;
+  color: var(--es-brand, #00BFFF);
   margin-right: 8rpx;
   margin-top: 4rpx;
 }
@@ -100,18 +100,18 @@
 
 /* 等级颜色：沿用 resultCommon / campReport */
 .level-low {
-  color: #00e676;
-  background-color: #003314;
+  color: var(--es-safe, #00E5A0);
+  background-color: var(--es-safe-bg, rgba(0, 229, 160, .12));
 }
 
 .level-mid {
-  color: #ffca28;
-  background-color: #332600;
+  color: var(--es-amber, #FFB020);
+  background-color: var(--es-amber-bg, rgba(255, 176, 32, .12));
 }
 
 .level-high {
-  color: #ff5252;
-  background-color: #330000;
+  color: var(--es-red, #FF4D5E);
+  background-color: var(--es-red-bg, rgba(255, 77, 94, .12));
 }
 
 .grade-main {
@@ -209,7 +209,7 @@
 
 /* 日历卡片 */
 .calendar-card {
-  border-color: #1a2a1a;
+  border-color: var(--es-line, #4B5663);
 }
 
 .calendar-header {
@@ -240,7 +240,7 @@
   padding: 10rpx 0;
   margin-right: 10rpx;
   border-radius: 20rpx;
-  border: 1px solid #1a2a1a;
+  border: 1px solid var(--es-line, #4B5663);
   background-color: var(--es-bg-deep, #010407);
   position: relative;
 }
@@ -276,7 +276,7 @@
 
 /* 任务详情卡片 */
 .detail-card {
-  border-color: #1a2a1a;
+  border-color: var(--es-line, #4B5663);
 }
 
 .detail-header {

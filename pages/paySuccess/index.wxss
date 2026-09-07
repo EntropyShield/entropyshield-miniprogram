@@ -16,7 +16,7 @@ page {
   box-shadow: 0 0 16rpx rgba(0, 191, 255, 0.08);
 }
 .title {
-  /* 主色 = Electric Blue #00BFFF（VI V1.0 品牌识别色，见 app.wxss）。
+  /* 主色 = Electric Blue var(--es-brand, #00BFFF)（VI V1.0 品牌识别色，见 app.wxss）。
      注意：令牌名 --es-green 仍是旧命名，但其值已是品牌蓝；安全/通过语义请用 --es-safe。 */
   color: var(--es-green, #00BFFF);
   font-size: 38rpx;
@@ -24,7 +24,7 @@ page {
   margin-bottom: 12rpx;
 }
 .desc {
-  color: #e7f6ea;
+  color: var(--es-txt-2, #AAB4BE);
   font-size: 28rpx;
   line-height: 1.7;
 }
@@ -38,13 +38,13 @@ page {
 .label {
   width: 150rpx;
   font-size: 26rpx;
-  color: #9bc7a6;
+  color: var(--es-txt-2, #AAB4BE);
 }
 .value {
   flex: 1;
   text-align: right;
   font-size: 26rpx;
-  color: #e7f6ea;
+  color: var(--es-txt-2, #AAB4BE);
   line-height: 1.7;
 }
 .btn-primary,
@@ -55,7 +55,7 @@ page {
 }
 .btn-primary {
   background: var(--es-green, #00BFFF);
-  color: #04140e;
+  color: var(--es-bg, #03060C);
 }
 .btn-ghost {
   background: transparent;
@@ -79,7 +79,7 @@ page {
   margin-bottom: 12rpx;
 }
 .upgrade-desc {
-  color: #cfe9dc;
+  color: var(--es-txt-2, #AAB4BE);
   font-size: 26rpx;
   line-height: 1.7;
 }

@@ -83,7 +83,7 @@ button::after {
   height: 88rpx;
   line-height: 88rpx;
   border-radius: 18rpx;
-  background: linear-gradient(90deg, #18b74b, var(--es-green, #00BFFF));
+  background: linear-gradient(90deg, var(--es-safe, #00E5A0), var(--es-green, #00BFFF));
   color: var(--es-bg-deep, #010407);
   font-size: 28rpx;
   font-weight: 600;

@@ -50,11 +50,11 @@ page {
 .status-tab-count {
   margin-top: 2rpx;
   font-size: 20rpx;
-  color: #4b4f59;
+  color: var(--es-txt-3, #8E98A3);
 }
 
 .status-tab.active {
-  background: linear-gradient(90deg, #18b74b, var(--es-green, #00BFFF));
+  background: linear-gradient(90deg, var(--es-safe, #00E5A0), var(--es-green, #00BFFF));
 }
 
 .status-tab.active .status-tab-label,
@@ -111,12 +111,12 @@ page {
 
 .status-pill-pending {
   background: rgba(255, 184, 0, 0.16);
-  color: #ffb800;
+  color: var(--es-amber, #FFB020);
 }
 
 .status-pill-confirmed {
   background: rgba(0, 160, 255, 0.18);
-  color: #00a0ff;
+  color: var(--es-blue, #006CFF);
 }
 
 .status-pill-done {
@@ -126,7 +126,7 @@ page {
 
 .status-pill-cancel {
   background: rgba(255, 71, 71, 0.18);
-  color: #ff4747;
+  color: var(--es-red, #FF4D5E);
 }
 
 .visit-row {
@@ -148,11 +148,11 @@ page {
 }
 
 .visit-meta .visit-label {
-  color: #6f727a;
+  color: var(--es-txt-3, #8E98A3);
 }
 
 .visit-meta .visit-value {
-  color: #a6a9b0;
+  color: var(--es-txt-2, #AAB4BE);
 }
 
 .btn-row {
@@ -177,7 +177,7 @@ page {
 
 .btn-confirm {
   background: rgba(0, 160, 255, 0.2);
-  color: #00a0ff;
+  color: var(--es-blue, #006CFF);
 }
 
 .btn-done {
@@ -187,7 +187,7 @@ page {
 
 .btn-cancel {
   background: rgba(255, 71, 71, 0.2);
-  color: #ff4747;
+  color: var(--es-red, #FF4D5E);
 }
 
 .btn-small.is-disabled,

@@ -41,7 +41,7 @@ page {
 }
 
 .refresh-btn {
-  background: linear-gradient(90deg, #18b74b, var(--es-green, #00BFFF));
+  background: linear-gradient(90deg, var(--es-safe, #00E5A0), var(--es-green, #00BFFF));
   color: var(--es-bg-deep, #010407);
   border-radius: 9999rpx;
   font-size: 22rpx;
@@ -58,7 +58,7 @@ page {
 .current-id-label {
   display: block;
   font-size: 22rpx;
-  color: #9fb0c3;
+  color: var(--es-txt-2, #AAB4BE);
   line-height: 1.5;
 }
 
@@ -89,7 +89,7 @@ page {
 .summary-label {
   display: block;
   font-size: 22rpx;
-  color: #a9b7c8;
+  color: var(--es-txt-2, #AAB4BE);
   line-height: 1.5;
 }
 
@@ -128,7 +128,7 @@ page {
   display: block;
   margin-top: 8rpx;
   font-size: 22rpx;
-  color: #d8e1eb;
+  color: var(--es-txt-1, #F4F7FA);
   word-break: break-all;
   line-height: 1.7;
 }
@@ -136,7 +136,7 @@ page {
 .empty {
   padding: 24rpx;
   text-align: center;
-  color: #c3ced9;
+  color: var(--es-txt-1, #F4F7FA);
   font-size: 24rpx;
   background: linear-gradient(180deg, var(--es-card, #07111E) 0%, var(--es-card, #07111E) 100%);
   border: 1rpx solid rgba(255, 255, 255, 0.05);
@@ -189,7 +189,7 @@ page {
 .card .meta {
   display: block !important;
   margin-top: 8rpx !important;
-  color: #eef4fb !important;
+  color: var(--es-txt-1, #F4F7FA) !important;
   font-size: 22rpx !important;
   line-height: 1.7 !important;
   word-break: break-all !important;
@@ -202,7 +202,7 @@ page {
 }
 
 .card .identity-pill-temp {
-  color: #ffd76a !important;
+  color: var(--es-amber, #FFB020) !important;
   background: rgba(255, 184, 0, 0.16) !important;
   border: 1rpx solid rgba(255, 184, 0, 0.20) !important;
 }
@@ -224,7 +224,7 @@ page {
 }
 
 .current-id-label {
-  color: #A9B4C2 !important;
+  color: var(--es-txt-2, #AAB4BE) !important;
   font-size: 22rpx !important;
 }
 
@@ -238,7 +238,7 @@ page {
 .current-id-tip {
   display: block !important;
   margin-top: 10rpx !important;
-  color: #DCE6F2 !important;
+  color: var(--es-txt-1, #F4F7FA) !important;
   font-size: 24rpx !important;
   line-height: 1.8 !important;
   word-break: break-all !important;

@@ -35,7 +35,7 @@
   width: 64rpx;
   height: 64rpx;
   border-radius: 16rpx;
-  background: linear-gradient(135deg, var(--es-green, #00BFFF), #006CFF);
+  background: linear-gradient(135deg, var(--es-green, #00BFFF), var(--es-blue, #006CFF));
   color: var(--es-on-green, #03060C);
   font-size: 38rpx;
   font-weight: 800;
@@ -149,7 +149,7 @@
 }
 
 .gate-btn-primary {
-  background: linear-gradient(135deg, var(--es-green, #00BFFF), #006CFF);
+  background: linear-gradient(135deg, var(--es-green, #00BFFF), var(--es-blue, #006CFF));
   color: var(--es-on-green, #03060C);
 }
 
