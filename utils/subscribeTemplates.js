@@ -1,26 +1,22 @@
 // utils/subscribeTemplates.js
-// 订阅消息模板配置 · 一次性订阅（自定义模板，字段由我们在 MP 后台申请时自定义）
+// 订阅消息模板配置 · 一次性订阅
 //
-// 【为什么是"自定义模板"？】
-// 9/1 实测：微信「公共模板库」的现成模板（资金变动通知/佣金提醒…）关键词是
-// 预设死字段槽，卡片永远显示「变动类型:购买 / 金额:100元」，无法承载风控纪律场景。
-// 经微信开放社区核实：公共模板库搜完翻到最后一页有「帮忙我们完善模板库」入口，
-// 可申请【自定义一次性订阅模板】，字段名我们自己定。故本文件按自定义模板设计。
+// 【两类来源并存】
+// - 公共模板库现成模板：直接用「我的模板」拿到的 ID（如 order_paid_success）
+// - 自定义场景：原计划走「帮忙我们完善模板库」申请自定义模板
+//   （daily_temperature / evening_checkin / position_alert / watchlist_signal / grade_upgrade）
+//   当前未申请，字段空——保留场景定义便于将来补。
+//
+// 【字段映射铁律（9/7 落库）】
+// 公共模板的真实字段编号由 MP 后台决定，写代码时只能按「我的模板 → 详情」显示的占位符填：
+//   thing1.DATA / time2.DATA / amount3.DATA / character_string5.DATA ...
+// buildPayload() 只负责拼 template_id + 透传 data，调用方（后端）按真实编号填 data。
 //
 // 【流程】
-// 1. 你在 MP 后台「订阅消息 → 公共模板库」搜任意词 → 翻到最后一页 → 点「帮忙我们完善模板库」
-//    → 按下方 SCENES 的「name / fields / desc」填写并提交审核（一般 1-3 个工作日）
-// 2. 审核通过后，在「我的模板」拿到 5 个模板 ID
-// 3. 把 ID 填进下方 TEMPLATE_ID（去掉 '' 替换）
-// 4. 前端 sub.request() 在用户意愿最高点（打卡成功/支付成功）调起授权
-// 5. 后端拿用户 openid + template_id + data 调微信 subscribeMessage.send 下发
-//
-// 【字段说明（重要）】
-// SCENES[].fields 是我们向微信申请的字段「提案」；微信审核通过后会给定字段类型与编号
-// （thing / number / date 等，形如 thing1.DATA），实际下发 data 的 key 以「我的模板」
-// 页面显示的真实编号为准。例如我们申请"温度分值"字段，微信可能给 thing1.DATA 或
-// thing3.DATA，届时按 34 号手册「我的模板」页显示的真实编号组织 data 即可。
-// buildPayload() 只负责拼 template_id + 透传 data，调用方（后端）按真实编号填 data。
+// 1. 在 MP 后台「订阅消息 → 公共模板库」选用 → 拿到 template_id → 填进 TEMPLATE_ID
+// 2. 前端 sub.request() 在用户意愿最高点（支付成功）调起授权
+// 3. 后端拿用户 openid + template_id + data 调微信 subscribeMessage.send 下发
+// 4. 用户授权状态由 reportGranted() 上报到后端 recalled subscribedTemplates 白名单
 
 const SCENES = {
   daily_temperature: {
@@ -96,6 +92,7 @@ function reportGranted(granted) {
 
 module.exports = {
   TEMPLATE_ID: {
+    order_paid_success: 'Kmn7KwzQUq_sIwn7TUsnJmpl_Ofvk5MqcZz2xvKwpnU', // 场景0 · 订单支付成功通知（9/7 落库）
     daily_temperature: '',  // 场景1 · 今日风险温度 9:15
     evening_checkin: '',    // 场景2 · 收盘复盘/晚间打卡提醒
     position_alert: '',     // 场景3 · 持仓止损预警
