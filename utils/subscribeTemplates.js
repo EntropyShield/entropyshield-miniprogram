@@ -41,9 +41,19 @@ const SCENES = {
   },
   evening_checkin: {
     name: '晚间打卡提醒',
-    desc: '订阅后当日尚未完成风控打卡时的晚间提醒',
+    desc: '订阅后当日尚未完成风控打卡时的晚间提醒（场景5 · 20:30）',
     fields: { 连续天数: 'thing', 升级提示: 'thing' },
     prompt: '开启晚间打卡提醒'
+  },
+  checkin_task: {
+    // 9/7 归位：该模板 ID 原先被误填在 grade_upgrade（后端 .env WX_SUB_TPL_GRADE_UPGRADE）。
+    // 经核对 ID 中间段 PmnqmY80_Td8aVYxjpWGYEFvV 与 MP 后台「打卡任务提醒」一致，
+    // 属打卡类模板。按 21 号台账 D1 标准「场景与模板一一对应」归位到打卡场景，
+    // 严禁继续冒充等级升级——用错模板发推送 = 合规事故（可被投诉至封禁）。
+    name: '收盘复盘打卡',
+    desc: '订阅后每个交易日收盘后提醒复盘打卡（场景2 · 15:00）',
+    fields: { 打卡主题: 'thing', 打卡天数: 'thing', 打卡日期: 'time' },
+    prompt: '开启收盘复盘提醒'
   },
   position_alert: {
     name: '持仓止损预警',
@@ -110,7 +120,8 @@ module.exports = {
   //   order_paid_success ↔ （后端暂无，本次新增）
   //   membership        ↔ membership
   //   evening_checkin   ↔ checkin_remind
-  //   grade_upgrade     ↔ grade_upgrade   ★ 见下方 WARNING
+  //   checkin_task      ↔ checkin_task（9/7 归位，原误填在 grade_upgrade）
+  //   grade_upgrade     ↔ grade_upgrade   ★ 两端均留空，见下方说明
   //   daily_temperature ↔ risk_temperature（后端未配，等模板通过）
   //   watchlist_signal  ↔ monitor_signal   （后端未配，等模板通过）
   //   position_alert    ↔ （后端无此场景）
@@ -118,9 +129,12 @@ module.exports = {
     order_paid_success: 'Kmn7KwzQUq_sIwn7TUsnJmpl_Ofvk5MqcZz2xvKwpnU', // 订单支付成功通知（9/7 新增）
     membership: 'KELsQGZzmd2kP78K6xywxQY7E_KH6sVmCSV_zHxsCg0',        // 会员到期提醒（卡券到期提醒模板）
     evening_checkin: 'erlK1Qk50UZnMOQKRMgTKi1TD-B40TmkDaMAhzadvh0',   // 晚间打卡提醒（打卡通知模板）
-    // ★ WARNING：后端 .env 的 WX_SUB_TPL_GRADE_UPGRADE 实际配的是「打卡任务提醒」模板
-    //   （ID 中间段 PmnqmY80_Td8aVYxjpWGYEFvV 与打卡任务提醒一致），不是等级升级模板。
-    //   照抄会导致「等级升级通知」发出去显示打卡字段。故此处留空，等用户确认后再填。
+    checkin_task: 'et1ksNMrPmnqmY80_Td8aVYxjpWGYEFvVHy6HrEhMco',      // 收盘复盘打卡（打卡任务提醒模板·9/7 归位）
+    // ★ grade_upgrade 留空（9/7 定案）：真正的「等级升级」模板尚未申请/过审。
+    //   原候选项 et1ksNMr... 经核对实为「打卡任务提醒」，已归位到 checkin_task，
+    //   前后端同步清空。按 21 号台账 D1 标准「场景与模板一一对应」，宁可暂停该场景，
+    //   也绝不挪用其它场景模板顶替（用错模板发推送 = 合规事故，可被投诉至封禁）。
+    //   → 影响：等级升级通知暂不下发、不调起授权；真模板过审后填此处即可恢复。
     grade_upgrade: '',
     daily_temperature: '',  // 等「风险温度」模板通过审核
     watchlist_signal: '',   // 等「监控信号」模板通过审核
