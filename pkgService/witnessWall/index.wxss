@@ -1,0 +1,22 @@
+.page {
+  min-height: 100vh;
+  background: #03060C;
+  padding: 24rpx 24rpx 60rpx;
+  box-sizing: border-box;
+}
+.header { padding: 12rpx 8rpx 24rpx; }
+.header .title { font-size: 34rpx; font-weight: 700; color: #EAF2FF; }
+.header .sub { font-size: 24rpx; color: #7B8591; margin-top: 10rpx; line-height: 1.6; }
+.list { margin-top: 8rpx; }
+.item {
+  background: #0B1220;
+  border: 1rpx solid #1B2940;
+  border-radius: 16rpx;
+  padding: 26rpx 24rpx;
+  margin-bottom: 16rpx;
+}
+.item-id { color: #EAF2FF; font-size: 32rpx; font-weight: 700; margin-bottom: 8rpx; }
+.item-grade { color: #00BFFF; font-size: 26rpx; font-weight: 600; margin-bottom: 10rpx; }
+.item-stats { color: #7B8591; font-size: 24rpx; line-height: 1.6; }
+.empty { text-align: center; color: #5A6675; font-size: 26rpx; padding: 80rpx 0; }
+.loading, .finished { text-align: center; color: #5A6675; font-size: 24rpx; padding: 30rpx 0; }

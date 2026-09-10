@@ -1,0 +1,52 @@
+<view class="page">
+  <view class="head">
+    <text class="h-name">{{pool.wardMask}}</text>
+    <text class="h-tag" wx:if="{{isMine}}">我的盘口</text>
+    <text class="h-tag grey" wx:if="{{pool.status === 'settled'}}">已结算</text>
+  </view>
+
+  <view class="balance">
+    <text>我的战力值</text><text class="bv">{{power}}</text>
+  </view>
+
+  <view class="pool" wx:if="{{pool}}">
+    <view class="side {{pool.myBet && pool.myBet.side === 'Y' ? 'mine' : ''}}">
+      <text class="sk">守 (Y)</text>
+      <text class="sv">{{pool.poolYes}}</text>
+      <text class="so" wx:if="{{pool.result !== null}}">{{pool.result === 1 ? '✓ 命中' : '未中'}}</text>
+      <text class="so" wx:elif="{{pool.oddsY}}">赔率 {{pool.oddsY}}</text>
+      <text class="so" wx:else>等待押注</text>
+    </view>
+    <view class="side {{pool.myBet && pool.myBet.side === 'N' ? 'mine' : ''}}">
+      <text class="sk">否 (N)</text>
+      <text class="sv">{{pool.poolNo}}</text>
+      <text class="so" wx:if="{{pool.result !== null}}">{{pool.result === 0 ? '✓ 命中' : '未中'}}</text>
+      <text class="so" wx:elif="{{pool.oddsN}}">赔率 {{pool.oddsN}}</text>
+      <text class="so" wx:else>等待押注</text>
+    </view>
+  </view>
+
+  <view class="mybet" wx:if="{{pool.myBet}}">
+    我的下注：{{pool.myBet.side === 'Y' ? '守' : '否'}} · {{pool.myBet.amount}} 战力值
+    <text wx:if="{{pool.myBet.payout !== null}}"> · 结算 {{pool.myBet.payout}}</text>
+  </view>
+
+  <view class="bet" wx:if="{{pool.status !== 'settled'}}">
+    <view class="bet-side">
+      <view class="bs {{side === 'Y' ? 'on' : ''}}" data-side="Y" bindtap="onSide">押 守(Y)</view>
+      <view class="bs {{side === 'N' ? 'on' : ''}}" data-side="N" bindtap="onSide">押 否(N)</view>
+    </view>
+    <view class="bet-amt">
+      <input class="amt-input" type="number" value="{{amount}}" bindinput="onAmount" placeholder="下注战力值"/>
+      <view class="quick">
+        <text class="q" data-v="10" bindtap="quick">10</text>
+        <text class="q" data-v="30" bindtap="quick">30</text>
+        <text class="q" data-v="50" bindtap="quick">50</text>
+        <text class="q" data-v="-1" bindtap="quick">最大</text>
+      </view>
+    </view>
+    <view class="btn" bindtap="onSubmit">确认下注（按占比分彩 · 不退还）</view>
+  </view>
+
+  <view class="tip">同注分彩：押中者按投入占比分得整个奖池，平台不抽水；无人押中赢边则全额退还。仅用免费战力值，不涉及人民币。</view>
+</view>

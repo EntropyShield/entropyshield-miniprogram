@@ -7,8 +7,12 @@
       <text class="day-pill-text">{{dayLabel}}</text>
     </view>
     <text class="header-tip">
-      请按顺序完成今天的 4 个小任务，提交后即可完成今日打卡。
+      请按顺序完成今天的 {{isRestDay ? 3 : 4}} 个小任务，提交后即可完成今日打卡。
     </text>
+  </view>
+  <!-- [Phase 2] 周末/休市：降级为复盘日，不做实盘动作 -->
+  <view class="rest-tip" wx:if="{{isRestDay}}">
+    <text class="rest-tip-text">周末 · 复盘日：今天休市，不做实盘动作，只做复盘与规则整理。</text>
   </view>
   <text class="header-sub">
     以上内容只用于你个人的风控训练与复盘记录，不会上报到任何服务器。
@@ -40,8 +44,8 @@
   />
 </view>
 
-<!-- 区块 2：实盘演练 -->
-<view class="card section-card">
+<!-- 区块 2：实盘演练（周末休市自动隐藏，降级为复盘日） -->
+<view class="card section-card" wx:if="{{!isRestDay}}">
   <view class="section-title-row">
     <text class="section-title">实盘演练记录</text>
     <text class="section-sub">今天在实盘里做了哪些「刻意练习」？</text>

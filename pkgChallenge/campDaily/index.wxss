@@ -169,3 +169,17 @@
   color: var(--es-txt-3, #8E98A3);
   line-height: 1.6;
 }
+
+/* [2026-09-10 Phase 2] 周末/休市复盘日提示条 */
+.rest-tip {
+  margin-top: 14rpx;
+  padding: 14rpx 18rpx;
+  border-radius: 10rpx;
+  background: rgba(0, 191, 255, 0.08);
+  border: 1rpx solid rgba(0, 191, 255, 0.22);
+}
+.rest-tip-text {
+  font-size: 24rpx;
+  color: var(--es-txt-2, #AAB4BE);
+  line-height: 1.5;
+}

@@ -1,0 +1,12 @@
+.page { padding:24rpx; background:#03060C; min-height:100vh; box-sizing:border-box; }
+.head { color:#E6EDF3; font-size:32rpx; font-weight:700; margin:8rpx 4rpx 20rpx; }
+.hint { color:#7B8591; font-size:26rpx; padding:40rpx 8rpx; text-align:center; }
+.row { display:flex; align-items:center; background:#0E1620; border:1rpx solid #1C2733; border-radius:14rpx; padding:22rpx 24rpx; margin-bottom:14rpx; }
+.row.top { border-color:#00BFFF; }
+.rk { width:56rpx; color:#7B8591; font-size:30rpx; font-weight:700; }
+.row.top .rk { color:#00BFFF; }
+.info { flex:1; }
+.nm { color:#E6EDF3; font-size:30rpx; font-weight:600; }
+.meta { color:#7B8591; font-size:22rpx; margin-top:4rpx; }
+.rate { color:#00BFFF; font-size:38rpx; font-weight:700; }
+.tip { color:#5A6672; font-size:22rpx; margin-top:24rpx; line-height:1.6; }

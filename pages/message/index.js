@@ -52,6 +52,8 @@ Page({
   },
 
   onOpenSettings() {
-    wx.navigateTo({ url: 'pkgService/settings/recall/index' });
+    // [2026-09-10 修复] 原相对路径会从主包 /pages/message/ 解析成
+    //   /pages/message/pkgService/settings/recall/index（不存在），改绝对路径指分包
+    wx.navigateTo({ url: '/pkgService/settings/recall/index' });
   }
 });

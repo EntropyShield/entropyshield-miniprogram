@@ -27,18 +27,23 @@
   <!-- L1.5 熵盾积分 + 控局者等级 -->
   <view class="card es-points-card">
     <view class="es-points-head">
-      <text class="es-points-title">熵盾积分 · 控局者等级</text>
+      <text class="es-points-title">熵盾积分 · 积分等级</text>
       <text class="es-points-level">{{esLevelName}}</text>
     </view>
     <view class="es-points-grid">
       <view class="es-pitem"><text class="es-pk">积分</text><text class="es-pv">{{esPoints}}</text></view>
-      <view class="es-pitem" wx:if="{{esNextLevelAt > 0}}"><text class="es-pk">距下一级</text><text class="es-pv">{{esNextLevelAt}} 天</text></view>
+      <view class="es-pitem" wx:if="{{esNextLevelAt > 0}}"><text class="es-pk">距下一级</text><text class="es-pv">{{esNextLevelAt}} 分</text></view>
       <view class="es-pitem" wx:else><text class="es-pk">等级</text><text class="es-pv">已满级</text></view>
     </view>
-    <view class="es-rewards" wx:if="{{esPendingRewards.length}}">
-      <text class="es-rewards-k">待领奖励：</text>
-      <text class="es-reward" wx:for="{{esPendingRewards}}" wx:key="id" bindtap="onClaimReward" data-id="{{item.id}}">{{item.label}} · 点击领取</text>
+    <view class="es-progress-wrap">
+      <view class="es-progress-bar">
+        <view class="es-progress-fill" style="width: {{esProgress}}%"></view>
+      </view>
+      <view class="es-progress-text" wx:if="{{esNextLevelAt > 0}}">还需 {{esNextLevelAt}} 分 → {{esNextLevelName}}</view>
+      <view class="es-progress-text" wx:else>已封顶 · 全部荣誉已解锁</view>
     </view>
+    <!-- [2026-09-10 全链路审计] 移除"待领奖励"区块：后端 /api/points/me 无 pendingRewards
+         字段、/api/points/claim 路由不存在，该区块恒不渲染，属死链路。 -->
   </view>
 
   <!-- L2 资产账本层 -->
@@ -79,6 +84,30 @@
       </view>
       <text class="nav-arrow">›</text>
     </view>
+
+    <view class="battle-row" bindtap="goExam">
+      <view class="battle-main">
+        <text class="battle-name">散户风控力大考</text>
+        <text class="battle-desc">20 题测出你的控亏段位</text>
+      </view>
+      <text class="nav-arrow">›</text>
+    </view>
+
+    <view class="battle-row" bindtap="goSeasonRank">
+      <view class="battle-main">
+        <text class="battle-name">守纪挑战赛榜单</text>
+        <text class="battle-desc">达标率榜 / 连续守纪榜</text>
+      </view>
+      <text class="nav-arrow">›</text>
+    </view>
+
+    <picker class="battle-row" mode="selector" range="{{provinces}}" bindchange="onPickRegion">
+      <view class="battle-main">
+        <text class="battle-name">我的地区</text>
+        <text class="battle-desc">{{regionSet ? regionName + ' · 点按可更改' : '设置后查看本省守纪榜'}}</text>
+      </view>
+      <text class="nav-arrow">›</text>
+    </picker>
 
     <view class="battle-row" bindtap="goWitness">
       <view class="battle-main">

@@ -1,0 +1,50 @@
+<view class="page">
+
+  <view wx:if="{{loading}}" class="hint">成绩生成中…</view>
+
+  <block wx:elif="{{hasData}}">
+    <!-- 段位 + 分数 -->
+    <view class="hero">
+      <view class="level-tag">{{levelTag || 'V1 散兵'}}</view>
+      <view class="score-box">
+        <text class="score-num">{{score}}</text>
+        <text class="score-label">统考得分</text>
+      </view>
+      <view wx:if="{{correct != null}}" class="score-sub">答对 {{correct}} / {{total}} 题</view>
+      <view wx:if="{{beatPct != null}}" class="score-sub">击败了 {{beatPct}}% 的考生</view>
+    </view>
+
+    <!-- 入榜状态 -->
+    <view wx:if="{{rankStatusText}}" class="card status-card {{rankStatusClass}}">
+      <text>{{rankStatusText}}</text>
+    </view>
+
+    <!-- 四维能力 -->
+    <view wx:if="{{dims.length}}" class="card dim-card">
+      <view class="card-title">四维风控力</view>
+      <view wx:for="{{dims}}" wx:key="name" class="dim-row">
+        <text class="dim-name">{{item.name}}</text>
+        <view class="dim-bar">
+          <view class="dim-fill" style="width:{{item.pct}}%"></view>
+        </view>
+        <text class="dim-pct">{{item.pct}}%</text>
+      </view>
+      <view class="dim-tip">绿色越满，说明该维度认知越扎实；越短越要重点补强。</view>
+    </view>
+
+    <!-- 合规 -->
+    <view class="card notice-card">
+      <view class="notice-title">说明</view>
+      <view class="notice-text">本题考仅用于交易风控认知自查，不构成任何投资建议或收益承诺。段位为展示标签，不代表任何权威评级。</view>
+      <view class="notice-text notice-reward">统考奖励：全网前 100 名赠年度会员、前 1000 名赠 3 个月会员、全员赠 3 次高级测算（均为虚拟权益，边际成本为零）。奖品所涉税费由主办方承担，参与者无需自理。</view>
+    </view>
+
+    <!-- 操作 -->
+    <view class="action-bar">
+      <button class="btn-primary" bindtap="goRetry">再考一次</button>
+      <button class="btn-ghost" bindtap="goRank">看守纪榜</button>
+      <button class="btn-ghost" bindtap="goBack">返回</button>
+    </view>
+  </block>
+
+</view>

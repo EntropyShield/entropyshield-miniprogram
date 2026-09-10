@@ -6,7 +6,7 @@
     <view class="section">
       <view class="section-title">一、协议说明</view>
       <view class="paragraph">
-        欢迎使用熵盾研究院小程序。本协议是你与本小程序运营方之间关于使用本小程序服务所订立的协议。
+        欢迎使用熵盾风控管理工具小程序。本协议是你与本小程序运营方之间关于使用本小程序服务所订立的协议。
       </view>
     </view>
 
@@ -39,7 +39,14 @@
     </view>
 
     <view class="section">
-      <view class="section-title">六、协议变更</view>
+      <view class="section-title">六、风控数据的存储与同步</view>
+      <view class="paragraph">
+        你主动保存的风控测算草稿、主链方案、交易记录、风控报告与长期档案，会加密存储于开发者服务器，用于在你更换设备或重新安装后恢复使用，以及为你生成年度风控报告。上述数据仅为你本人使用，不会用于对外评价、排名或披露。你可随时申请清除云端数据。
+      </view>
+    </view>
+
+    <view class="section">
+      <view class="section-title">七、协议变更</view>
       <view class="paragraph">
         我们有权根据业务发展、法律法规要求或产品调整对本协议进行更新。更新后的协议将在本页面展示，并自发布之日起生效。
       </view>

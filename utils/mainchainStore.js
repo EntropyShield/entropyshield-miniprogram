@@ -98,6 +98,12 @@ function getPlanResultByDraftId(draftId) {
   return map[String(draftId || '')] || null;
 }
 
+// [2026-09-10 D-7] 方案存续跟踪：取全部已落地方案（按时间倒序）
+function getAllPlanResults() {
+  const map = safeMap(wx.getStorageSync(KEYS.PLAN_BY_DRAFT));
+  return sortByTimeDesc(Object.keys(map).map(k => map[k]));
+}
+
 function clearPlanResults() {
   wx.removeStorageSync(KEYS.PLAN_LATEST);
   wx.removeStorageSync(KEYS.PLAN_BY_DRAFT);
@@ -436,6 +442,7 @@ module.exports = {
   savePlanResult,
   getLatestPlanResult,
   getPlanResultByDraftId,
+  getAllPlanResults,
   clearPlanResults,
 
   saveTradeRecord,

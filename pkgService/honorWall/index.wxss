@@ -1,0 +1,124 @@
+/* pkgService/honorWall/index.wxss —— L3 荣誉墙（暗色主题，与积分商城一致） */
+.hw {
+  min-height: 100vh;
+  background: #03060C;
+  padding: 24rpx 24rpx 60rpx;
+  box-sizing: border-box;
+}
+
+/* 我的段位卡 */
+.me-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(135deg, #0a2030 0%, #03101c 100%);
+  border: 1rpx solid #0a3550;
+  border-radius: 20rpx;
+  padding: 32rpx 28rpx;
+  margin-bottom: 28rpx;
+}
+.me-l { flex: 1; min-width: 0; }
+.me-level {
+  font-size: 40rpx;
+  font-weight: 700;
+  color: #00BFFF;
+  line-height: 1.25;
+}
+.me-sub {
+  font-size: 22rpx;
+  color: #7B8591;
+  margin-top: 8rpx;
+}
+.me-rank {
+  font-size: 44rpx;
+  font-weight: 800;
+  color: #EAF2FF;
+  background: #0a3550;
+  border-radius: 16rpx;
+  padding: 8rpx 20rpx;
+}
+.me-card-empty .me-level { color: #7B8591; }
+
+/* 区块 */
+.sec {
+  background: #0a0f17;
+  border: 1rpx solid #16202c;
+  border-radius: 18rpx;
+  padding: 24rpx;
+  margin-bottom: 24rpx;
+}
+.sec-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 18rpx;
+}
+.sec-title {
+  font-size: 28rpx;
+  color: #EAF2FF;
+  font-weight: 700;
+}
+.sec-sub {
+  font-size: 20rpx;
+  color: #5d6b78;
+}
+
+/* 排名列表 */
+.rank-list { display: flex; flex-direction: column; gap: 4rpx; }
+.rank-row {
+  display: flex;
+  align-items: center;
+  padding: 18rpx 6rpx;
+  border-bottom: 1rpx solid #16202c;
+}
+.rank-row:last-child { border-bottom: none; }
+.rank-no {
+  width: 56rpx;
+  height: 56rpx;
+  line-height: 56rpx;
+  text-align: center;
+  border-radius: 12rpx;
+  font-size: 26rpx;
+  font-weight: 700;
+  margin-right: 20rpx;
+  flex-shrink: 0;
+}
+.rank-no-top {
+  background: linear-gradient(135deg, #00E0A1 0%, #00BFFF 100%);
+  color: #03101c;
+}
+.rank-no-n {
+  background: #16202c;
+  color: #7B8591;
+}
+.rank-main { flex: 1; min-width: 0; }
+.rank-name {
+  font-size: 28rpx;
+  color: #EAF2FF;
+  font-weight: 600;
+}
+.rank-lv {
+  font-size: 20rpx;
+  color: #00BFFF;
+  margin-left: 12rpx;
+}
+.rank-d {
+  font-size: 22rpx;
+  color: #7B8591;
+  margin-top: 6rpx;
+}
+
+.state {
+  text-align: center;
+  color: #7B8591;
+  font-size: 24rpx;
+  padding: 48rpx 0;
+}
+
+.compliance-tip {
+  margin-top: 8rpx;
+  font-size: 20rpx;
+  color: #5d6b78;
+  line-height: 1.6;
+  padding: 0 8rpx;
+}

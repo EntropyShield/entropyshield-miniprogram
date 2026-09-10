@@ -1,0 +1,47 @@
+<view class="page">
+
+  <!-- 顶部进度条 -->
+  <view class="topbar">
+    <view class="progress-text">已答 {{answeredCount}} / {{total}}</view>
+    <view class="timer {{elapsed < 60000 ? 'warn' : ''}}">{{elapsedText}}</view>
+  </view>
+
+  <view wx:if="{{loading}}" class="hint">题目加载中…</view>
+
+  <block wx:else>
+    <block wx:for="{{questions}}" wx:for-item="q" wx:for-index="qIndex" wx:key="id">
+      <view class="card q-card">
+        <view class="q-head">
+          <text class="q-no">第 {{qIndex + 1}} 题</text>
+          <text class="q-dim">{{q.dimName}}</text>
+        </view>
+        <view class="q-stem">{{q.stem}}</view>
+        <view class="options">
+          <block wx:for="{{q.options}}" wx:for-item="opt" wx:key="key">
+            <view
+              class="option-item {{q.selected === opt.key ? 'active' : ''}}"
+              bindtap="onSelect"
+              data-qindex="{{qIndex}}"
+              data-key="{{opt.key}}"
+            >
+              <view class="option-dot">{{opt.key}}</view>
+              <view class="option-text">{{opt.text}}</view>
+            </view>
+          </block>
+        </view>
+      </view>
+    </block>
+  </block>
+
+  <!-- 底部交卷 -->
+  <view class="action-bar">
+    <button
+      class="btn-primary"
+      bindtap="onSubmit"
+      disabled="{{submitting || answeredCount < total}}"
+    >
+      {{submitting ? '交卷中…' : '交卷出成绩'}}
+    </button>
+  </view>
+
+</view>

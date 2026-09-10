@@ -11,6 +11,12 @@
 
   <view class="ai-banner">🤖 {{aiBadge}} · 无真人讲师 · 每节均经人工审核留痕</view>
 
+  <!-- 仅体验版/开发版可见：正式版不渲染 -->
+  <view class="debug-bar" wx:if="{{isTrialEnv}}" bindtap="toggleNonMember">
+    <text class="dbg-txt">联调开关：{{forceNonMember ? '当前=模拟非会员（可测解锁/支付）' : '当前=真实身份（会员全解锁）'}}</text>
+    <text class="dbg-btn">{{forceNonMember ? '恢复' : '模拟非会员'}}</text>
+  </view>
+
   <block wx:for="{{modules}}" wx:key="id" wx:for-item="mod">
     <view class="mod">
       <view class="mod-head">
@@ -30,13 +36,43 @@
         </view>
         <view class="les-right">
           <text class="les-dur">{{les.duration}}′</text>
-          <text class="les-unlock u-{{les.unlock}}">{{les.unlockLabel}}</text>
-          <text class="les-state" wx:if="{{les.done}}">✓ 已学</text>
-          <text class="les-state making" wx:elif="{{!les.ready}}">制作中</text>
+          <text class="les-state lock" wx:if="{{les.locked}}">🔒 未解锁</text>
+          <text class="les-state" wx:elif="{{les.done}}">✓ 已学</text>
+          <text class="les-unlock u-{{les.unlock}}" wx:else>{{les.unlockLabel}}</text>
+          <text class="les-state making" wx:if="{{!les.ready}}">制作中</text>
         </view>
       </view>
     </view>
   </block>
 
-  <view class="foot">免费课观看 0 积分；学完、分享得积分，积分可兑会员/解锁券</view>
+  <view class="foot">免费课观看 0 积分；学完、分享得积分，积分可解锁课程</view>
+
+  <!-- 单课解锁面板（58 号方案：解锁是成交引擎，1 元首课制造微承诺） -->
+  <view class="mask" wx:if="{{showUnlock}}" bindtap="onCloseUnlock">
+    <view class="panel" catchtap="onNoop">
+      <view class="p-title">{{unlockLesson.title}}</view>
+      <view class="p-sub">解锁后可永久回看</view>
+
+      <!-- 主 CTA：首课 1 元（每人限一次）；用过则显示正价 -->
+      <view class="btn primary" wx:if="{{!ent.firstOfferUsed}}"
+            bindtap="onUnlockByPaid" data-code="course_first">
+        {{unlocking ? '处理中…' : '1 元解锁首课'}}
+      </view>
+      <view class="btn primary" wx:else
+            bindtap="onUnlockByPaid" data-code="course_one">
+        {{unlocking ? '处理中…' : '19.9 元解锁本课'}}
+      </view>
+
+      <!-- 次要：积分解锁（显示余额，让用户知道"走得动"） -->
+      <view class="btn ghost" bindtap="onUnlockByPoints">
+        用 {{ent.pointCost || 80}} 积分解锁（现有 {{ent.points || 0}}）
+      </view>
+
+      <!-- 会员引导：课程只当赠品讲，主价值是测算次数 -->
+      <view class="vip-line" bindtap="onGoMember">{{memberPitch}} ›</view>
+
+      <view class="p-tip">虚拟内容，一经解锁不支持退款</view>
+      <view class="p-close" bindtap="onCloseUnlock">暂不解锁</view>
+    </view>
+  </view>
 </view>

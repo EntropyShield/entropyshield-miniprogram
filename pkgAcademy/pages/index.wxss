@@ -13,6 +13,27 @@
 .pg-num { color: var(--es-green, #00BFFF); font-size: var(--fs-lg, 36rpx); font-weight: 800; }
 .pg-tot { color: var(--es-txt-2, #AAB4BE); font-size: var(--fs-sm, 24rpx); margin-left: 6rpx; }
 
+/* 联调开关条：仅体验版/开发版渲染 */
+.debug-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 0 18rpx;
+  padding: 14rpx 20rpx;
+  border-radius: var(--radius-sm, 12rpx);
+  background: rgba(255, 176, 32, .12);
+  border: 1rpx dashed rgba(255, 176, 32, .5);
+}
+.dbg-txt { color: #FFB020; font-size: var(--fs-xs, 20rpx); flex: 1; }
+.dbg-btn {
+  color: #1A1F26;
+  background: #FFB020;
+  font-size: var(--fs-xs, 20rpx);
+  padding: 6rpx 18rpx;
+  border-radius: 999rpx;
+  margin-left: 12rpx;
+}
+
 .ai-banner {
   margin: 6rpx 0 22rpx;
   padding: 16rpx 20rpx;
@@ -49,3 +70,16 @@
 .les-state.making { color: var(--es-txt-3, #8E98A3); }
 
 .foot { margin-top: 10rpx; text-align: center; font-size: var(--fs-xs, 20rpx); color: var(--es-txt-3, #8E98A3); line-height: 1.7; }
+
+/* ===== 单课解锁面板（58 号方案 波次1）===== */
+.les-state.lock { color: var(--es-txt-3, #8E98A3); }
+.mask { position: fixed; left: 0; top: 0; right: 0; bottom: 0; background: rgba(0,0,0,.62); display: flex; align-items: center; justify-content: center; z-index: 999; }
+.panel { width: 620rpx; background: var(--es-bg-2, #14181D); border-radius: 24rpx; padding: 40rpx 36rpx 28rpx; }
+.p-title { font-size: 32rpx; font-weight: 700; color: var(--es-txt, #E6EDF3); line-height: 1.4; }
+.p-sub { margin-top: 8rpx; font-size: 22rpx; color: var(--es-txt-3, #8E98A3); }
+.btn { margin-top: 24rpx; height: 88rpx; line-height: 88rpx; text-align: center; border-radius: 999rpx; font-size: 28rpx; font-weight: 600; }
+.btn.primary { background: linear-gradient(90deg, #00BFFF, #006CFF); color: #fff; }
+.btn.ghost { background: transparent; border: 1rpx solid rgba(0,191,255,.45); color: var(--es-green, #00BFFF); }
+.vip-line { margin-top: 26rpx; text-align: center; font-size: 22rpx; color: var(--es-amber, #FFB020); }
+.p-tip { margin-top: 16rpx; text-align: center; font-size: 20rpx; color: var(--es-txt-3, #8E98A3); }
+.p-close { margin-top: 10rpx; text-align: center; font-size: 24rpx; color: var(--es-txt-3, #8E98A3); padding: 12rpx; }

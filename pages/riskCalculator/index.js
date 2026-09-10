@@ -2,6 +2,7 @@
 const funnel = require('../../utils/funnel.js');
 const UR = require('../../utils/userRights.js');
 const { syncEffectiveRights } = require('../../utils/rightsSync.js');
+const academyApi = require('../../utils/academyApi.js'); // [波次2] 复用会员话术红线（课程只当赠品）
 
 const DEPLOY_RATIO_OPTIONS = [30, 40, 50, 60, 70, 80].map(value => ({
   label: `${value}%`,
@@ -685,6 +686,16 @@ Page({
     });
   },
 
+  // [2026-09-10 补齐] wxml 已绑定但此前未实现：风险预算滑块
+  onRiskBudgetChange(e) {
+    this.setData({ riskBudgetPct: Number(e.detail.value || 2) });
+  },
+
+  // [2026-09-10 补齐] wxml 已绑定但此前未实现：手动填写买价开关
+  onManualPricesToggle(e) {
+    this.setData({ manualPrices: !!e.detail.value });
+  },
+
   onTemplateChange(e) {
     const index = Number(e.detail.value || 0);
     const option = TEMPLATE_OPTIONS[index] || TEMPLATE_OPTIONS[0];
@@ -1133,6 +1144,33 @@ Page({
 
     funnel.log('CALC_CHOOSE_NEXT', { planType, hasFreeTimes: false });
 
+    // [58 号方案 波次2] 次数耗尽是转化最强时刻：先用 Modal 讲清价值（主价值=测算次数，
+    // 72 课只当赠品带一句），再放原来的三选一作为次要路径。
+    wx.showModal({
+      title: '本周期的测算次数已用完',
+      content: `${academyApi.MEMBER_PITCH}。现在开通，这一笔马上就能算出结果。`,
+      confirmText: '查看会员方案',
+      cancelText: '其他方式',
+      success: (r) => {
+        if (r.confirm) {
+          funnel.log('CALC_OUT_OF_TIMES_TO_MEMBER', { planType });
+          wx.navigateTo({
+            url:
+              `/pages/membership/index?type=${planType}` +
+              `&balance=${encodeURIComponent(balance)}` +
+              `&price=${encodeURIComponent(price)}` +
+              `&code=${encodeURIComponent(code || '')}`
+          });
+          return;
+        }
+        funnel.log('CALC_OUT_OF_TIMES_OTHER', { planType });
+        this.showOtherWays(planType, balance, price, code);
+      }
+    });
+  },
+
+  // 次要路径：训练营 / 邀请好友（原 ActionSheet 内容，保留不丢）
+  showOtherWays(planType, balance, price, code) {
     wx.showActionSheet({
       itemList: [
         '直接开通会员，解锁完整方案',

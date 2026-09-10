@@ -1,0 +1,28 @@
+<!-- pkgService/ebookRoom/index.wxml —— 守护者电子书房 -->
+<view class="room">
+  <view class="head">
+    <view class="head-title">守护者电子书房</view>
+    <view class="head-sub">用熵盾积分解锁的专属书单，小程序内阅读</view>
+  </view>
+
+  <view wx:if="{{loading}}" class="state">加载中…</view>
+  <view wx:elif="{{books.length === 0}}" class="empty">
+    <view class="empty-emoji">📚</view>
+    <view class="empty-title">书房还空着</view>
+    <view class="empty-sub">去积分商城兑换「守护者电子书房」即可解锁书单</view>
+    <button class="empty-btn" bindtap="goExchange">去积分商城</button>
+  </view>
+
+  <view wx:else class="book-list">
+    <view class="book" wx:for="{{books}}" wx:key="id" data-url="{{item.content_url}}" data-title="{{item.title}}" bindtap="onTapBook">
+      <image wx:if="{{item.cover}}" class="book-cover" src="{{item.cover}}" mode="aspectFill" />
+      <view wx:else class="book-cover book-cover-ph">📕</view>
+      <view class="book-info">
+        <view class="book-title">{{item.title}}</view>
+        <view wx:if="{{item.author}}" class="book-author">{{item.author}}</view>
+        <view wx:if="{{item.intro}}" class="book-intro">{{item.intro}}</view>
+        <view class="book-read">{{item.content_url ? '点击阅读 ›' : '内容筹备中'}}</view>
+      </view>
+    </view>
+  </view>
+</view>

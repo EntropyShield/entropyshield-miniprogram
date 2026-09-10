@@ -1,0 +1,138 @@
+/* pkgService/redeemOrders/index.wxss —— 我的兑换订单 */
+.orders {
+  min-height: 100vh;
+  background: #03060C;
+  padding: 24rpx 24rpx 60rpx;
+  box-sizing: border-box;
+}
+
+.header {
+  margin-bottom: 28rpx;
+}
+.title {
+  font-size: 40rpx;
+  color: #EAF2FF;
+  font-weight: 700;
+}
+.sub {
+  font-size: 22rpx;
+  color: #7B8591;
+  margin-top: 8rpx;
+}
+
+.state {
+  text-align: center;
+  color: #7B8591;
+  font-size: 26rpx;
+  padding: 100rpx 0;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.order-card {
+  background: #0a0f17;
+  border: 1rpx solid #16202c;
+  border-radius: 18rpx;
+  padding: 26rpx 24rpx;
+}
+.order-hd {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 16rpx;
+}
+.order-name {
+  flex: 1;
+  font-size: 30rpx;
+  color: #EAF2FF;
+  font-weight: 600;
+  line-height: 1.3;
+  padding-right: 20rpx;
+}
+.order-status {
+  font-size: 22rpx;
+  padding: 4rpx 14rpx;
+  border-radius: 999rpx;
+  background: #1a232e;
+  color: #5d6b78;
+  white-space: nowrap;
+}
+.order-status.fulfilled { background: #0a2a1a; color: #00E0A1; }
+.order-status.shipped { background: #06223a; color: #00BFFF; }
+.order-status.pending { background: #2a2314; color: #f0c040; }
+
+.order-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 22rpx;
+  color: #7B8591;
+  margin-bottom: 16rpx;
+}
+.cost {
+  color: #00BFFF;
+}
+
+.order-mode {
+  display: flex;
+  gap: 12rpx;
+  margin-bottom: 16rpx;
+}
+.mode-tag {
+  font-size: 20rpx;
+  color: #9fb0c0;
+  background: #111820;
+  border-radius: 6rpx;
+  padding: 4rpx 12rpx;
+}
+.layer-tag {
+  font-size: 20rpx;
+  border-radius: 6rpx;
+  padding: 4rpx 12rpx;
+}
+.layer-tag.l1 { color: #00BFFF; background: #06223a; }
+.layer-tag.l2 { color: #00E0A1; background: #0a2a1a; }
+
+.code-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #111820;
+  border-radius: 12rpx;
+  padding: 16rpx;
+  margin-top: 16rpx;
+}
+.code-val {
+  flex: 1;
+  font-family: monospace;
+  font-size: 26rpx;
+  color: #00E0A1;
+  word-break: break-all;
+  padding-right: 16rpx;
+}
+.copy-btn {
+  background: #16202c;
+  color: #00BFFF;
+  font-size: 22rpx;
+  border-radius: 999rpx;
+  padding: 0 24rpx;
+  margin: 0;
+  line-height: 2.2;
+}
+
+.action-row {
+  margin-top: 16rpx;
+}
+.read-btn {
+  background: #00BFFF;
+  color: #03101c;
+  font-size: 24rpx;
+  font-weight: 700;
+  border-radius: 999rpx;
+  padding: 0 32rpx;
+  margin: 0;
+  line-height: 2.4;
+}

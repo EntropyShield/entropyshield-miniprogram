@@ -364,7 +364,7 @@ const B_LESSONS = [
     duration: 4, unlock: 'points', schemaVersion: SCHEMA_VERSION,
     blocks: [
       { t: 'hero', text: '消息面前的冷静' },
-      { t: 'hook', text: '看到利好利空先做什么？九成的人做反——本课给你标准动作。' },
+      { t: 'hook', text: '看到利好利空先做什么？很多人做反——本课给你标准动作。' },
       { t: 'card', title: '利好不追', body: '利好常已 price-in，开盘冲高易套；等回踩确认再动。' },
       { t: 'card', title: '利空不慌', body: '先看是否触及你的止损线，没破按原计划，破了才走。' },
       { t: 'card', title: '动作清单', body: '关推送噪 → 看计划单 → 核对止损 → 非计划不动。' },
@@ -429,32 +429,7 @@ const B_LESSONS = [
 // C–F 模块：标题骨架（内容由 AI 批量制作，doc 51 流水线）。blocks=null 表示"制作中"。
 const STUB_LESSONS = [
   // C 实战演练（白银）：全文已由 C_LESSONS 生成（波次3 S04，2026-09-02）
-  // E 体系搭建（铂金）：会员
-  ['E1', 'E', '个人风控系统蓝图', '把零散动作连成系统', 'member'],
-  ['E2', 'E', '信号→计划→执行闭环', '三段式工作流', 'member'],
-  ['E3', 'E', '风险预算分层', '日/周/月三级限额', 'member'],
-  ['E4', 'E', '自动化提醒设置', '用召回补上遗忘', 'member'],
-  ['E5', 'E', '年度报告怎么读', '用长期档案看自己', 'member'],
-  ['E6', 'E', '策略迭代方法', '小步快跑改规则', 'member'],
-  ['E7', 'E', '多账户风控', '主账户与试验仓', 'member'],
-  ['E8', 'E', '杠杆的边界', '什么情况绝不用杠杆', 'member'],
-  ['E9', 'E', '黑天鹅预案库', '提前写好的应对卡', 'member'],
-  ['E10', 'E', '系统自检清单', '每月跑一次', 'member'],
-  ['E11', 'E', '教别人=学最牢', '把体系讲给朋友', 'member'],
-  ['E12', 'E', '铂金结业', '输出你的系统文档', 'member'],
-  // F 控局大师（钻石）：会员
-  ['F1', 'F', '活过一轮牛熊', '周期里的仓位节奏', 'member'],
-  ['F2', 'F', '熊市生存手册', '空仓也是操作', 'member'],
-  ['F3', 'F', '牛市不止盈陷阱', '涨多了更要守线', 'member'],
-  ['F4', 'F', '控局者的资金观', '把交易当长期生意', 'member'],
-  ['F5', 'F', '从守护者到控局者', '身份升级的临界点', 'member'],
-  ['F6', 'F', '带新手不踩坑', '把方法论传出去', 'member'],
-  ['F7', 'F', '三年复盘回望', '看自己的成长曲线', 'member'],
-  ['F8', 'F', '极端行情年鉴', '历史案例库', 'member'],
-  ['F9', 'F', '终身风控习惯', '退休也在做的事', 'member'],
-  ['F10', 'F', '控局者公约', '你给自己立的规矩', 'member'],
-  ['F11', 'F', '钻石答辩', '向自己交卷', 'member'],
-  ['F12', 'F', '结业：你是控局者', '走到这里你已不同', 'member']
+  // E 体系搭建（铂金）/ F 控局大师（钻石）：全文已由 E_LESSONS / F_LESSONS 生成（波次3 S04，2026-09-08），骨架已清空
 ];
 
 // [熵盾 V2.1 · 技能:S04 学院 B–F 全文] Module C（实战演练·白银）12 课全文，沿用 A/B 格式 + 合规免责；批量生成（用户授权，生成完统一审）
@@ -849,11 +824,403 @@ const D_LESSONS = [
   },
 ];
 
+// [熵盾 V2.1 · 技能:S04 学院 B–F 全文] Module E（体系搭建·铂金）12 课全文，沿用 A–D 格式 + 合规免责；批量生成（用户授权，生成完统一审）
+const E_LESSONS = [
+  {
+    id: 'E1', moduleId: 'E', title: '个人风控系统蓝图', subtitle: '把零散动作连成系统',
+    duration: 4, unlock: 'member', schemaVersion: SCHEMA_VERSION,
+    blocks: [
+      { t: 'hero', text: '个人风控系统蓝图' },
+      { t: 'hook', text: '止损你会了，仓位你会了，复盘你也会了——但它们还是散的。缺的是一张把它们串起来的图。' },
+      { t: 'card', title: '为什么需要系统', body: '单招靠临场想起，一紧张就漏。系统让动作在开仓前就排好，不靠意志力。' },
+      { t: 'card', title: '系统的四层', body: '底线（风险预算）→ 计划（开仓清单）→ 执行（提醒与打卡）→ 复盘（迭代规则）。' },
+      { t: 'card', title: '一页纸画完', body: '四层各写三行，一页纸搞定。贴在显示器旁，开仓前瞄一眼。' },
+      { t: 'story', title: '组装家具', body: '零件全了，没有说明书还是装不起来。系统就是你交易的说明书。' },
+      { t: 'quiz', q: '系统和单招最大的区别是什么？', a: '系统在开仓前就把动作定好，不靠临场发挥；单招一紧张就会忘。' },
+      { t: 'mnemonic', text: '口诀：四层一张纸；底线计划执行复盘，缺一层就漏风。' },
+      { t: 'action', text: '今天：拿一页纸画出你的四层系统，每层不超过三行。' },
+      { t: 'disclaimer', text: '课程为通用方法教学，非投资建议。' }
+    ]
+  },
+  {
+    id: 'E2', moduleId: 'E', title: '信号→计划→执行闭环', subtitle: '三段式工作流',
+    duration: 4, unlock: 'member', schemaVersion: SCHEMA_VERSION,
+    blocks: [
+      { t: 'hero', text: '信号→计划→执行闭环' },
+      { t: 'hook', text: '大多数人不是败在信号，是败在"信号→计划"这段直接跳过去了。' },
+      { t: 'card', title: '信号：什么触发关注', body: '只从自选池和预设提醒来，不刷行情、不听消息临时起意。' },
+      { t: 'card', title: '计划：算股数画止损', body: '用计算器算出能买几股、止损画在哪、为什么买，三行写完。' },
+      { t: 'card', title: '执行：按单不改', body: '下单后只做两件事：到了止损就走，到了目标就走。中途不改计划。' },
+      { t: 'story', title: '消防演练', body: '火警响了才想路线就晚了。三段式要提前跑熟，事到临头才有肌肉记忆。' },
+      { t: 'quiz', q: '三段式最容易断在哪一环？', a: '计划到执行之间——人会在下单瞬间改止损、加仓位。' },
+      { t: 'mnemonic', text: '口诀：信号进、计划算、执行不改；三段不断环。' },
+      { t: 'action', text: '今天：用计算器为下一笔交易写完整三段，尤其是"计划"那三行。' },
+      { t: 'disclaimer', text: '工作流为自我管理方法，非收益保证。' }
+    ]
+  },
+  {
+    id: 'E3', moduleId: 'E', title: '风险预算分层', subtitle: '日/周/月三级限额',
+    duration: 4, unlock: 'member', schemaVersion: SCHEMA_VERSION,
+    blocks: [
+      { t: 'hero', text: '风险预算分层' },
+      { t: 'hook', text: '单笔 1% 只是第一道。真正救账户的，是日、周、月三级总闸。' },
+      { t: 'card', title: '日限：单日最大亏损', body: '建议账户的 2%。当天触限立刻停手，关掉软件。' },
+      { t: 'card', title: '周限：连亏熔断', body: '连亏 3 笔或周亏 4%，强制休息两天，先复盘再回来。' },
+      { t: 'card', title: '月限：回撤减速带', body: '月度回撤到 6% 把仓位砍半，到 8% 只留观察仓。' },
+      { t: 'story', title: '总闸与插座', body: '单笔止损是插座保险丝，三级限额是总闸。总闸不装，烧的是整栋楼。' },
+      { t: 'quiz', q: '为什么要有周限和月限？', a: '因为单笔都对也可能连亏，日限防不住"每天小亏"积累成大回撤。' },
+      { t: 'mnemonic', text: '口诀：日二周四月六八；触限就停手，明天再来做。' },
+      { t: 'action', text: '今天：写下你的三级限额数字，并设成手机提醒。' },
+      { t: 'disclaimer', text: '限额数值仅为教学示例，请按自身承受能力设定。' }
+    ]
+  },
+  {
+    id: 'E4', moduleId: 'E', title: '自动化提醒设置', subtitle: '用召回补上遗忘',
+    duration: 4, unlock: 'member', schemaVersion: SCHEMA_VERSION,
+    blocks: [
+      { t: 'hero', text: '自动化提醒设置' },
+      { t: 'hook', text: '靠"记得住"做风控，等于把底线交给心情。用工具召回，比自律可靠。' },
+      { t: 'card', title: '盘中提醒', body: '持仓触发止损线、当日亏损接近日限，自动推一条。' },
+      { t: 'card', title: '盘后提醒', body: '收盘后固定时间推"复盘三问"，让复盘变成日程而非选项。' },
+      { t: 'card', title: '周期提醒', body: '每周末账户体检、每月系统自检，各一条，别多。' },
+      { t: 'story', title: '吃药闹钟', body: '再重要的事，不设闹钟也会忘。风控提醒就是你的闹钟。' },
+      { t: 'quiz', q: '提醒设太多会怎样？', a: '会被当成噪音忽略掉。三类足够，宁少勿多。' },
+      { t: 'mnemonic', text: '口诀：盘中盘后加周期；三类提醒，宁少勿多。' },
+      { t: 'action', text: '今天：把"盘后复盘三问"设成每天固定时间的提醒。' },
+      { t: 'disclaimer', text: '提醒为辅助工具，最终决策仍由你自己做出。' }
+    ]
+  },
+  {
+    id: 'E5', moduleId: 'E', title: '年度报告怎么读', subtitle: '用长期档案看自己',
+    duration: 4, unlock: 'member', schemaVersion: SCHEMA_VERSION,
+    blocks: [
+      { t: 'hero', text: '年度报告怎么读' },
+      { t: 'hook', text: '单笔盈亏是噪音，年度档案才是信号。会读档案的人进步快三倍。' },
+      { t: 'card', title: '看执行率而非胜率', body: '按计划执行的笔数占比，比赚了几笔更能预测未来。' },
+      { t: 'card', title: '看最大回撤而非总收益', body: '回撤决定你能不能活到下次机会，收益只决定快慢。' },
+      { t: 'card', title: '看破戒次数', body: '追涨、超仓、删止损各多少次——这是你真正的敌人清单。' },
+      { t: 'story', title: '体检报告', body: '年度档案是体检报告不是成绩单。指标难看不要紧，看不懂才可怕。' },
+      { t: 'quiz', q: '年度报告最该先看哪一项？', a: '最大回撤和执行率——它们决定生死，收益只决定快慢。' },
+      { t: 'mnemonic', text: '口诀：年报看执行、看回撤、看破戒；收益只是副产品。' },
+      { t: 'action', text: '今天：导出今年交易记录，算出你的执行率和最大回撤。' },
+      { t: 'disclaimer', text: '档案分析为自我评估方法，不构成投资建议。' }
+    ]
+  },
+  {
+    id: 'E6', moduleId: 'E', title: '策略迭代方法', subtitle: '小步快跑改规则',
+    duration: 4, unlock: 'member', schemaVersion: SCHEMA_VERSION,
+    blocks: [
+      { t: 'hero', text: '策略迭代方法' },
+      { t: 'hook', text: '亏两笔就改规则，是最贵的习惯——你永远不知道到底是哪招有用。' },
+      { t: 'card', title: '一次只改一个变量', body: '同时改三个参数，赚了亏了都归因不了，等于白试。' },
+      { t: 'card', title: '改前记录基线', body: '先记下当前 20 笔的执行率和回撤，改完才有对照。' },
+      { t: 'card', title: '跑够样本再评估', body: '至少 20 笔，且跨越不同行情，再决定留或弃。' },
+      { t: 'story', title: '调配方', body: '厨师调味道一次只动一味，还要记下改动。你改策略也一样。' },
+      { t: 'quiz', q: '为什么不能同时改多个参数？', a: '无法归因——不知道是哪个改动起了作用，样本就白费了。' },
+      { t: 'mnemonic', text: '口诀：一次改一样，基线先存档；二十笔后再定夺。' },
+      { t: 'action', text: '今天：写下你当前策略的基线数据，只挑一个变量准备调整。' },
+      { t: 'disclaimer', text: '策略迭代为方法论教学，不保证任何结果。' }
+    ]
+  },
+  {
+    id: 'E7', moduleId: 'E', title: '多账户风控', subtitle: '主账户与试验仓',
+    duration: 4, unlock: 'member', schemaVersion: SCHEMA_VERSION,
+    blocks: [
+      { t: 'hero', text: '多账户风控' },
+      { t: 'hook', text: '新想法很诱人，但拿主账户试等于拿命试。开个小试验仓，满足好奇心又不伤筋动骨。' },
+      { t: 'card', title: '主账户：只跑成熟系统', body: '策略跑够样本、执行率稳定后才进主账户，仓位按标准算。' },
+      { t: 'card', title: '试验仓：上限 5%', body: '新想法只在这里试，总资金占比不超过 5%，亏光也不影响主线。' },
+      { t: 'card', title: '两仓彻底隔离', body: '不互相补仓、不互相救。试验仓归零就停，不追加。' },
+      { t: 'story', title: '实验室与工厂', body: '实验室可以爆炸，工厂不能。试验仓就是你的实验室。' },
+      { t: 'quiz', q: '试验仓最重要的规则是什么？', a: '上限 5% 且亏光不追加——保证试错成本永远可控。' },
+      { t: 'mnemonic', text: '口诀：主仓跑熟系统，试仓五封顶；两仓不互救。' },
+      { t: 'action', text: '今天：如果你有未验证的想法，把它从主账户挪进试验仓。' },
+      { t: 'disclaimer', text: '多账户为资金管理方法，非收益承诺。' }
+    ]
+  },
+  {
+    id: 'E8', moduleId: 'E', title: '杠杆的边界', subtitle: '什么情况绝不用杠杆',
+    duration: 4, unlock: 'member', schemaVersion: SCHEMA_VERSION,
+    blocks: [
+      { t: 'hero', text: '杠杆的边界' },
+      { t: 'hook', text: '杠杆不制造风险，它只是把风险和你之间的距离缩短了。距离太短，你来不及反应。' },
+      { t: 'card', title: '四条绝不用', body: '新手期、策略未验证、波动明显放大、资金是借来的——四种情况一律不用。' },
+      { t: 'card', title: '用了就先降仓位', body: '若确要用，把单笔风险预算降到原来的 1/3，止损距离同步放宽。' },
+      { t: 'card', title: '强平线要提前算', body: '写下"跌到多少会被强平"，这个数字必须离你的止损足够远。' },
+      { t: 'story', title: '限速与刹车距离', body: '车速翻倍，刹车距离是四倍。杠杆翻倍，你的容错空间也是四倍地缩水。' },
+      { t: 'quiz', q: '用杠杆时仓位该怎么调？', a: '单笔风险预算降到约 1/3，因为波动和情绪都被放大了。' },
+      { t: 'mnemonic', text: '口诀：新手未验不放杠杆；要用先减仓，强平线先算。' },
+      { t: 'action', text: '今天：如果你在用杠杆，写下强平价，检查它与止损的距离。' },
+      { t: 'disclaimer', text: '杠杆风险极高，课程仅提示风险，不鼓励使用。' }
+    ]
+  },
+  {
+    id: 'E9', moduleId: 'E', title: '黑天鹅预案库', subtitle: '提前写好的应对卡',
+    duration: 4, unlock: 'member', schemaVersion: SCHEMA_VERSION,
+    blocks: [
+      { t: 'hero', text: '黑天鹅预案库' },
+      { t: 'hook', text: '极端行情来时，你的智商按不住手。唯一管用的是提前写好的卡片。' },
+      { t: 'card', title: '四类必写场景', body: '单日暴跌 5%、持仓停牌、跳空低开、连续跌停无法卖出。' },
+      { t: 'card', title: '每张卡三行', body: '触发条件写死 + 要做的动作 + 明确禁止的动作。不写判断，只写动作。' },
+      { t: 'card', title: '提前演练一遍', body: '每季度拿历史极端行情演练一次，卡片的漏洞才会暴露。' },
+      { t: 'story', title: '消防演习', body: '火灾时没人会读说明书，大家只会做演练过的动作。预案卡就是演练。' },
+      { t: 'quiz', q: '预案卡为什么不能只写"视情况而定"？', a: '因为极端时刻你无法理性判断，只有写死的动作才执行得出来。' },
+      { t: 'mnemonic', text: '口诀：四类场景三行卡；触发动作加禁令，季度演一遍。' },
+      { t: 'action', text: '今天：写第一张卡——"单日暴跌 5% 我该做什么、绝不做什么"。' },
+      { t: 'disclaimer', text: '预案为风险管理练习，无法覆盖所有极端情况。' }
+    ]
+  },
+  {
+    id: 'E10', moduleId: 'E', title: '系统自检清单', subtitle: '每月跑一次',
+    duration: 4, unlock: 'member', schemaVersion: SCHEMA_VERSION,
+    blocks: [
+      { t: 'hero', text: '系统自检清单' },
+      { t: 'hook', text: '系统会慢慢走样：止损画得越来越远、仓位悄悄变大。每月自检一次，把它掰回来。' },
+      { t: 'card', title: '十项自检', body: '风险预算、止损执行率、仓位合规率、破戒次数、复盘完成率、计划单完整度、提醒是否生效、限额是否触过、试验仓规模、情绪状态。' },
+      { t: 'card', title: '红黄绿三色', body: '达标绿、偏离黄、失控红。出现任一红灯，当月必须修完再开新仓。' },
+      { t: 'card', title: '存档对照', body: '每次自检结果存一份，三个月后横向比，才看得出趋势。' },
+      { t: 'story', title: '汽车保养', body: '车不等坏才修，系统也不等爆才改。定期保养最省钱。' },
+      { t: 'quiz', q: '自检出现红灯该怎么办？', a: '当月先修完这一项再开新仓，硬扛只会让偏离越滚越大。' },
+      { t: 'mnemonic', text: '口诀：每月十项自检；红黄绿分色，红灯当月修。' },
+      { t: 'action', text: '今天：跑一次十项自检，标出你的第一盏红灯。' },
+      { t: 'disclaimer', text: '自检清单为通用管理工具，非投资建议。' }
+    ]
+  },
+  {
+    id: 'E11', moduleId: 'E', title: '教别人=学最牢', subtitle: '把体系讲给朋友',
+    duration: 4, unlock: 'member', schemaVersion: SCHEMA_VERSION,
+    blocks: [
+      { t: 'hero', text: '教别人=学最牢' },
+      { t: 'hook', text: '以为自己懂了，一讲就卡壳——那个卡壳的地方，就是你真正的漏洞。' },
+      { t: 'card', title: '费曼学习法', body: '用大白话讲给外行听，讲不下去就回去补课，直到能一句话说清。' },
+      { t: 'card', title: '三条教学红线', body: '不代操盘、不推荐具体标的、不承诺收益。只讲方法，不给结论。' },
+      { t: 'card', title: '输出倒逼输入', body: '每教一次，你会发现自己的规则哪里含糊、哪里其实没做到。' },
+      { t: 'story', title: '备课的老师', body: '真正学会一门课的是老师不是学生，因为老师必须讲得出来。' },
+      { t: 'quiz', q: '为什么讲不下去说明没真懂？', a: '因为讲清楚需要结构化理解，含糊的规则一开口就露馅。' },
+      { t: 'mnemonic', text: '口诀：讲得出才算懂；只教方法，不推票不代操。' },
+      { t: 'action', text: '今天：用三句话向朋友讲清你的风险预算规则。' },
+      { t: 'disclaimer', text: '教学内容仅供交流，任何具体决策请自行判断。' }
+    ]
+  },
+  {
+    id: 'E12', moduleId: 'E', title: '铂金结业', subtitle: '输出你的系统文档',
+    duration: 4, unlock: 'member', schemaVersion: SCHEMA_VERSION,
+    blocks: [
+      { t: 'hero', text: '铂金结业' },
+      { t: 'hook', text: '到铂金，说明你从"会几招"变成了"有一套"。用一份文档把它固定下来。' },
+      { t: 'card', title: '文档四页', body: '一页四层系统、一页三级限额、一页预案卡、一页自检表。' },
+      { t: 'card', title: '结业标准', body: '能把文档讲给外行听懂，且连续 30 天按系统执行（不论盈亏）。' },
+      { t: 'card', title: '下一站', body: 'F 模块讲的是周期与身份——从守门人升级为控局者。' },
+      { t: 'story', title: '拿到驾照', body: '铂金不是终点，是终于有资格独自上路。后面还有长路要跑。' },
+      { t: 'quiz', q: '铂金结业的硬标准是什么？', a: '文档讲得清 + 连续 30 天按系统执行，缺一不可。' },
+      { t: 'mnemonic', text: '口诀：铂金出文档；四页写全，三十天不走样。' },
+      { t: 'action', text: '今天：把四页系统文档写完，然后进 F 模块。' },
+      { t: 'disclaimer', text: '课程为通用体系教学，非投资建议。' }
+    ]
+  },
+];
+
+// [熵盾 V2.1 · 技能:S04 学院 B–F 全文] Module F（控局大师·钻石）12 课全文，沿用 A–E 格式 + 合规免责；批量生成（用户授权，生成完统一审）
+const F_LESSONS = [
+  {
+    id: 'F1', moduleId: 'F', title: '活过一轮牛熊', subtitle: '周期里的仓位节奏',
+    duration: 4, unlock: 'member', schemaVersion: SCHEMA_VERSION,
+    blocks: [
+      { t: 'hero', text: '活过一轮牛熊' },
+      { t: 'hook', text: '一轮牛熊下来，赚得最稳的人往往不是最会选的，而是最会调节奏的。' },
+      { t: 'card', title: '不预测只应对', body: '猜顶底没有胜算，用仓位档位回应市场温度，才是可执行的做法。' },
+      { t: 'card', title: '三档仓位', body: '低温区高仓、常温区标准仓、高温区轻仓。档位提前定，不临场拍脑袋。' },
+      { t: 'card', title: '换挡要有规则', body: '写明"什么条件升档、什么条件降档"，每次换挡记录理由。' },
+      { t: 'story', title: '四季穿衣', body: '没人靠猜明天气温活着，都是看天穿衣。仓位就是你的衣服。' },
+      { t: 'quiz', q: '为什么仓位档位要提前定？', a: '临场会被情绪带着走；提前写死的条件，在波动里才执行得出来。' },
+      { t: 'mnemonic', text: '口诀：不猜顶底只调仓；三档提前定，换挡记理由。' },
+      { t: 'action', text: '今天：写下你的三档仓位与升档降档条件。' },
+      { t: 'disclaimer', text: '周期为事后描述，课程不预测市场走势。' }
+    ]
+  },
+  {
+    id: 'F2', moduleId: 'F', title: '熊市生存手册', subtitle: '空仓也是操作',
+    duration: 4, unlock: 'member', schemaVersion: SCHEMA_VERSION,
+    blocks: [
+      { t: 'hero', text: '熊市生存手册' },
+      { t: 'hook', text: '熊市最大的错误不是少赚，是为了"不闲着"反复进场被磨死。' },
+      { t: 'card', title: '空仓是仓位的一种', body: '空仓等于 0% 仓位，它是一个主动决策，不是"没操作"。' },
+      { t: 'card', title: '熊市三件事', body: '保住本金、练习系统、等待信号。三件都做，就不算虚度。' },
+      { t: 'card', title: '不接飞刀', body: '下跌中抄底要有明确触发条件，否则一律等右侧信号。' },
+      { t: 'story', title: '冬眠', body: '熊知道冬天该睡。硬撑着觅食的，多半熬不到春天。' },
+      { t: 'quiz', q: '为什么说空仓也是操作？', a: '因为它是主动选择的 0% 仓位，目的明确：保本与等待。' },
+      { t: 'mnemonic', text: '口诀：熊市保本练功等；空仓是决策，飞刀不要接。' },
+      { t: 'action', text: '今天：写下你的熊市三件事清单，贴在显眼处。' },
+      { t: 'disclaimer', text: '课程不判断市场所处阶段，仅提供管理思路。' }
+    ]
+  },
+  {
+    id: 'F3', moduleId: 'F', title: '牛市不止盈陷阱', subtitle: '涨多了更要守线',
+    duration: 4, unlock: 'member', schemaVersion: SCHEMA_VERSION,
+    blocks: [
+      { t: 'hero', text: '牛市不止盈陷阱' },
+      { t: 'hook', text: '牛市里最贵的一句话是"还能涨"——它让你删掉止损，把利润还回去。' },
+      { t: 'card', title: '移动止损是默认动作', body: '浮盈达到一倍风险后，止损上移至成本价，此后只上移不下移。' },
+      { t: 'card', title: '分批止盈写死', body: '涨到目标先减一半，剩下的用移动止损跟。规则先写，临场不改。' },
+      { t: 'card', title: '警惕删止损冲动', body: '想删止损时，先关软件十分钟再决定——多数冲动会自己消失。' },
+      { t: 'story', title: '涨潮与退潮', body: '潮水最高时最像还会再涨。老渔民看的是退潮路线，不是浪尖。' },
+      { t: 'quiz', q: '浮盈后止损该怎么处理？', a: '按规则上移锁定利润，只上移不下移，不让盈利拖成亏损。' },
+      { t: 'mnemonic', text: '口诀：涨多更守线；移动止损只上移，想删先停十分钟。' },
+      { t: 'action', text: '今天：为你的持仓设定移动止损规则，写进计划单。' },
+      { t: 'disclaimer', text: '止盈规则为管理方法，不保证收益。' }
+    ]
+  },
+  {
+    id: 'F4', moduleId: 'F', title: '控局者的资金观', subtitle: '把交易当长期生意',
+    duration: 4, unlock: 'member', schemaVersion: SCHEMA_VERSION,
+    blocks: [
+      { t: 'hero', text: '控局者的资金观' },
+      { t: 'hook', text: '把本金当赌注，你会追求一把定输赢；把它当生产资料，你才会算成本。' },
+      { t: 'card', title: '本金是生产资料', body: '它和店里的设备一样，损耗了要补，不能一次性押上去。' },
+      { t: 'card', title: '看年度不看单笔', body: '单笔盈亏随机性太大，年度执行率和回撤才反映真实水平。' },
+      { t: 'card', title: '复利靠不亏大钱', body: '一次大回撤能抹掉三年积累，所以防守优先于进攻。' },
+      { t: 'story', title: '开餐馆', body: '没人开餐馆指望第一桌回本，算的是一年的翻台率。你也该这么算。' },
+      { t: 'quiz', q: '为什么防守优先于进攻？', a: '一次大回撤的数学代价极高，会抹掉多年积累，心理代价更大。' },
+      { t: 'mnemonic', text: '口诀：本金是设备；看年不看笔，防守胜进攻。' },
+      { t: 'action', text: '今天：算出去年你的最大回撤，写下把它减半的一个动作。' },
+      { t: 'disclaimer', text: '资金观为理念分享，非收益承诺。' }
+    ]
+  },
+  {
+    id: 'F5', moduleId: 'F', title: '从守护者到控局者', subtitle: '身份升级的临界点',
+    duration: 4, unlock: 'member', schemaVersion: SCHEMA_VERSION,
+    blocks: [
+      { t: 'hero', text: '从守护者到控局者' },
+      { t: 'hook', text: '守护者想的是"别亏"，控局者想的是"我的系统今天有没有照常运转"。' },
+      { t: 'card', title: '两者的区别', body: '守护者盯单笔结果，控局者盯流程执行；前者累，后者稳。' },
+      { t: 'card', title: '临界点', body: '连续 6 个月执行率达标且未触发月限，才谈得上身份转变。' },
+      { t: 'card', title: '身份改变行为', body: '把自己当控局者，问的是"系统怎么说"，而不是"我觉得"。' },
+      { t: 'story', title: '从士兵到指挥官', body: '士兵想的是活过这一仗，指挥官想的是整场战役的补给线。' },
+      { t: 'quiz', q: '身份转变的客观标志是什么？', a: '连续 6 个月执行率达标且未触发月限，而不是某一笔大赚。' },
+      { t: 'mnemonic', text: '口诀：守门盯结果，控局盯流程；半年达标才算升级。' },
+      { t: 'action', text: '今天：回顾最近 6 个月执行率，判断自己处在哪个身份。' },
+      { t: 'disclaimer', text: '身份划分为教学模型，非能力评价。' }
+    ]
+  },
+  {
+    id: 'F6', moduleId: 'F', title: '带新手不踩坑', subtitle: '把方法论传出去',
+    duration: 4, unlock: 'member', schemaVersion: SCHEMA_VERSION,
+    blocks: [
+      { t: 'hero', text: '带新手不踩坑' },
+      { t: 'hook', text: '带人最大的风险不是教错，是越界——一旦越界，方法和责任得一起背。' },
+      { t: 'card', title: '三条红线', body: '不代操盘、不推荐具体标的、不承诺收益。碰一条就是灾难。' },
+      { t: 'card', title: '只教方法', body: '教他怎么算仓位、怎么画止损，让他自己得出结论。' },
+      { t: 'card', title: '先问再做', body: '先弄清对方的目标与承受力，再讲对应方法，别一律照搬。' },
+      { t: 'story', title: '教游泳', body: '岸上讲动作可以，替他游不行。下水只能他自己来。' },
+      { t: 'quiz', q: '带新手时最不能做的事是什么？', a: '代操盘、推具体标的、承诺收益——这三条会让你背不该背的责任。' },
+      { t: 'mnemonic', text: '口诀：带人三不；不代操、不推票、不承诺。' },
+      { t: 'action', text: '今天：找一个人，只教他"怎么算仓位"这一件事。' },
+      { t: 'disclaimer', text: '任何具体决策都需由本人独立做出并自担结果。' }
+    ]
+  },
+  {
+    id: 'F7', moduleId: 'F', title: '三年复盘回望', subtitle: '看自己的成长曲线',
+    duration: 4, unlock: 'member', schemaVersion: SCHEMA_VERSION,
+    blocks: [
+      { t: 'hero', text: '三年复盘回望' },
+      { t: 'hook', text: '三年是个神奇的尺度：短到记得清，长到能看出变化。' },
+      { t: 'card', title: '看三条曲线', body: '执行率曲线、最大回撤曲线、破戒次数曲线——比收益曲线诚实得多。' },
+      { t: 'card', title: '对照年度档案', body: '把三年档案并排放，找出反复出现的同一个问题，那是你的核心课题。' },
+      { t: 'card', title: '承认退步也是进步', body: '某一年变差不丢人，看不懂为什么变差才丢人。' },
+      { t: 'story', title: '老照片', body: '翻三年前的照片才知道变化多大。交易档案就是你的老照片。' },
+      { t: 'quiz', q: '三年回望最该找什么？', a: '反复出现的同一个问题——它就是核心课题，其他都是枝节。' },
+      { t: 'mnemonic', text: '口诀：三年看三曲线；执行回撤破戒，找重复的那一题。' },
+      { t: 'action', text: '今天：把你最早的档案和最近的并排看一次，写下最大的变化。' },
+      { t: 'disclaimer', text: '回望为自我评估方法，不涉及任何收益预期。' }
+    ]
+  },
+  {
+    id: 'F8', moduleId: 'F', title: '极端行情年鉴', subtitle: '历史案例库',
+    duration: 4, unlock: 'member', schemaVersion: SCHEMA_VERSION,
+    blocks: [
+      { t: 'hero', text: '极端行情年鉴' },
+      { t: 'hook', text: '每次极端行情你都觉得"这次不一样"，其实你的反应每次都一样。' },
+      { t: 'card', title: '记录三要素', body: '市场发生了什么、我当时做了什么、事后看该做什么。' },
+      { t: 'card', title: '情绪也要记', body: '当天的心情、睡眠、是否看了太多消息——这些常是决策的真因。' },
+      { t: 'card', title: '下次直接调用', body: '遇到相似情况先翻年鉴，照着"该做什么"那一条执行。' },
+      { t: 'story', title: '船长的航海日志', body: '老船长遇风暴不慌，因为他记过好几次了，知道该收哪张帆。' },
+      { t: 'quiz', q: '年鉴里最易漏掉却最重要的是什么？', a: '当时的情绪和状态——它们往往才是决策跑偏的真正原因。' },
+      { t: 'mnemonic', text: '口诀：极端行情记三样；市场动作加情绪，下次直接查。' },
+      { t: 'action', text: '今天：补记你经历过的一次极端行情，尤其是当时的情绪。' },
+      { t: 'disclaimer', text: '历史情形不会简单重复，年鉴仅供参照。' }
+    ]
+  },
+  {
+    id: 'F9', moduleId: 'F', title: '终身风控习惯', subtitle: '退休也在做的事',
+    duration: 4, unlock: 'member', schemaVersion: SCHEMA_VERSION,
+    blocks: [
+      { t: 'hero', text: '终身风控习惯' },
+      { t: 'hook', text: '课程会结束，习惯不会。真正护你一辈子的，是那几个不用想就会做的动作。' },
+      { t: 'card', title: '四个终身习惯', body: '开仓前算预算、下单必带止损、盘后写复盘、每月做自检。' },
+      { t: 'card', title: '自动化到不费力', body: '把提醒、清单、计算器设成默认流程，让正确的事最容易做。' },
+      { t: 'card', title: '允许偶尔失手', body: '习惯的价值在长期概率，不要求次次完美，断了接上就行。' },
+      { t: 'story', title: '刷牙', body: '没人靠意志力刷牙，因为它是默认流程。风控也该变成默认流程。' },
+      { t: 'quiz', q: '怎么让风控习惯真正坚持下来？', a: '把它自动化成默认流程，降低执行成本，而不是每次都下决心。' },
+      { t: 'mnemonic', text: '口诀：预算止损复盘自检；自动化成默认，断了自己接。' },
+      { t: 'action', text: '今天：检查四项里哪还没自动化，先补最弱的一项。' },
+      { t: 'disclaimer', text: '习惯养成方法，非投资建议。' }
+    ]
+  },
+  {
+    id: 'F10', moduleId: 'F', title: '控局者公约', subtitle: '你给自己立的规矩',
+    duration: 4, unlock: 'member', schemaVersion: SCHEMA_VERSION,
+    blocks: [
+      { t: 'hero', text: '控局者公约' },
+      { t: 'hook', text: '意志力在盘中是最不可靠的东西。写下来的公约，比当下的决心管用十倍。' },
+      { t: 'card', title: '五到八条就够', body: '太多记不住。挑你最常破的那几条，写成"绝不"句式。' },
+      { t: 'card', title: '要签字要可见', body: '手写签名、贴在显示器旁。看不见的公约等于不存在。' },
+      { t: 'card', title: '违反要有代价', body: '写明自罚（如停手三天），代价不重但要真实执行。' },
+      { t: 'story', title: '船员的规矩', body: '船上每条怪规矩背后都有一次事故。你的公约也该来自你的教训。' },
+      { t: 'quiz', q: '公约为什么必须写下来并签字？', a: '盘中的意志力不可靠，可见的书面承诺才能约束当下的冲动。' },
+      { t: 'mnemonic', text: '口诀：公约五到八条；签字贴墙上，违了真停手。' },
+      { t: 'action', text: '今天：手写你的控局者公约，签名，贴在看得见的地方。' },
+      { t: 'disclaimer', text: '公约为自我约束工具，无外部效力。' }
+    ]
+  },
+  {
+    id: 'F11', moduleId: 'F', title: '钻石答辩', subtitle: '向自己交卷',
+    duration: 4, unlock: 'member', schemaVersion: SCHEMA_VERSION,
+    blocks: [
+      { t: 'hero', text: '钻石答辩' },
+      { t: 'hook', text: '前面十一课都是输入，这一课要输出——向自己交一份卷子。' },
+      { t: 'card', title: '五个必答', body: '我的风险预算是多少、我的止损怎么画、我的三级限额是什么、我的预案卡有几张、我最近一次破戒是什么。' },
+      { t: 'card', title: '交三份材料', body: '一页系统文档、近一年自检记录、极端行情年鉴。' },
+      { t: 'card', title: '自己打分', body: '五题全答出且材料齐全才算过；答不出就回对应模块重修。' },
+      { t: 'story', title: '毕业答辩', body: '答辩不是考你背了多少，是考你能不能把体系讲成一个整体。' },
+      { t: 'quiz', q: '答辩答不出来说明什么？', a: '说明那一项还没真正内化，需要回到对应模块重练，而不是跳过。' },
+      { t: 'mnemonic', text: '口诀：钻石答五题；文档自检年鉴齐，答不出就回炉。' },
+      { t: 'action', text: '今天：不看资料，口头回答这五个问题，录下来回听。' },
+      { t: 'disclaimer', text: '自测为学习方法，不代表任何能力认证。' }
+    ]
+  },
+  {
+    id: 'F12', moduleId: 'F', title: '结业：你是控局者', subtitle: '走到这里你已不同',
+    duration: 4, unlock: 'member', schemaVersion: SCHEMA_VERSION,
+    blocks: [
+      { t: 'hero', text: '结业：你是控局者' },
+      { t: 'hook', text: '72 课走完，你和刚进来时的区别，不在收益，在"遇到波动时你会做什么"。' },
+      { t: 'card', title: '你多了什么', body: '一条算得出来的底线、一套跑得起来的流程、一份查得到的档案。' },
+      { t: 'card', title: '你少了什么', body: '少了临场拍脑袋、少了"再等等就回本"、少了把希望当计划。' },
+      { t: 'card', title: '接下来做两件事', body: '继续打卡保持手感，带一个人把方法传出去——教是最牢的复习。' },
+      { t: 'story', title: '拿到地图', body: '课程不是终点，是给了你一张地图。路还得自己走，但你不会再迷路。' },
+      { t: 'quiz', q: '全部学完后最大的改变应该是什么？', a: '波动来时不再靠感觉，而是按系统执行——这才是真正的改变。' },
+      { t: 'mnemonic', text: '口诀：控局者不预测，只执行；底线流程档案，三件带终身。' },
+      { t: 'action', text: '今天：写下你的结业感言，并把体系讲给一个人听。' },
+      { t: 'disclaimer', text: '全部课程为通用风控教学，不构成任何投资建议或收益承诺。' }
+    ]
+  },
+];
+
 const STUB_LESSONS_FULL = STUB_LESSONS.map(([id, moduleId, title, subtitle, unlock]) => ({
   id, moduleId, title, subtitle, duration: 4, unlock, schemaVersion: SCHEMA_VERSION, blocks: null
 }));
 
-const LESSONS = A_LESSONS.concat(B_LESSONS).concat(C_LESSONS).concat(D_LESSONS).concat(STUB_LESSONS_FULL);
+const LESSONS = A_LESSONS.concat(B_LESSONS).concat(C_LESSONS).concat(D_LESSONS).concat(E_LESSONS).concat(F_LESSONS).concat(STUB_LESSONS_FULL);
 
 function getModule(id) {
   return MODULES.find((m) => m.id === id) || null;
@@ -872,6 +1239,28 @@ function unlockLabel(unlock) {
   return '免费';
 }
 
+// ====== [58 号方案 波次2] 实操引导：学完课 → 立刻去用计算器 ======
+// 这是最强的转化位：课里教了方法，用户正想试，顺势把他带进计算器；
+// 用完免费次数自然弹出会员引导（见 riskCalculator.chooseNextStep）。
+// 只给"能落地到计算器"的课精确配文案，其余用默认。
+const PRACTICE_DEFAULT = { label: '算一算你这笔的仓位', planType: 'steady' };
+
+const PRACTICE_MAP = {
+  B1: { label: '算算你这笔该把止损放哪', planType: 'steady' },
+  B2: { label: '算算你这笔该开多少股', planType: 'steady' },
+  B3: { label: '用计算器排一版分批计划', planType: 'steady' },
+  B4: { label: '一键生成你的开仓计划单', planType: 'steady' },
+  B5: { label: '算算移动止损该跟到哪', planType: 'steady' },
+  B6: { label: '算算回撤到多少该减仓', planType: 'steady' },
+  C5: { label: '做一张本周计划单', planType: 'steady' },
+  C7: { label: '测测这个仓位睡得着吗', planType: 'steady' },
+  C11: { label: '给你的计划做个压力测试', planType: 'steady' }
+};
+
+function practiceOf(lessonId) {
+  return PRACTICE_MAP[lessonId] || PRACTICE_DEFAULT;
+}
+
 module.exports = {
   SCHEMA_VERSION,
   MODULES,
@@ -880,5 +1269,6 @@ module.exports = {
   getModule,
   getLesson,
   lessonsOfModule,
-  unlockLabel
+  unlockLabel,
+  practiceOf
 };

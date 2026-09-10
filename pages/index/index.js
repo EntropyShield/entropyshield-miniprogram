@@ -146,8 +146,25 @@ Page({
       verdict: '开盘前更新中',
       verdictSub: '数据生成后这里会显示今日市场风险温度。',
       updTime: '',
+      // [2026-09-09] 数据归属：标题/时间戳/上一交易日对比（避免把昨日收盘当成今日）
+      titleText: '今日市场风险温度',
+      stampText: '开盘前更新中',
+      prevText: '',
       color: 'var(--es-amber, #FFB020)',
       ringDash: 0
+    },
+    // [2026-09-09] 每日温度提醒（服务号模板消息，默认关闭，需用户主动开启）
+    oaPush: { loaded: false, enabled: false, followed: false, hasOaOpenid: false, busy: false, tip: '' },
+
+    // [2026-09-09] 温度分享卡入参（Canvas 组件 components/shareCard）
+    tempCard: {
+      visible: false,
+      value: 0,
+      tag: '',
+      title: '今日市场风险温度',
+      desc: '',
+      qrcodeUrl: '',
+      accent: '#FFB020'
     },
 
     // B3 每日打卡
@@ -155,6 +172,7 @@ Page({
 
     // B4 持仓诊断（纯数据陈述；"距止损边界%"需行情源 B6 补全）
     holdings: [],
+    holdingsTotal: 0,
     holdingsHint: '你还没有录入持仓记录',
 
     monitorCount: 0,
@@ -163,7 +181,10 @@ Page({
     dailyQuote: DAILY_QUOTES[new Date().getDate() % DAILY_QUOTES.length],
 
     // C1/C3 测试入口
-    riskTests: RISK_TESTS
+    riskTests: RISK_TESTS,
+
+    // ③ 活动入口 Banner：来自 /api/activity/config（enabled 的活动才展示）
+    activities: []
   },
 
   onLoad(options) {
@@ -177,7 +198,8 @@ Page({
 
     this.refreshHomeSnapshot();
     handleInviteFromOptions(opts);
-    this.loadDashboard();
+    // [2026-09-09 修正] 去掉此处的 loadDashboard：onLoad 后必然触发 onShow，
+    //   两处都调会导致首屏对 /api/daily/digest 发两次重复请求。统一由 onShow 加载。
   },
 
   onShow() {
@@ -195,10 +217,12 @@ Page({
   // ===== 仪表盘数据加载（B1/B3/B4）=====
   loadDashboard() {
     // async 方法：显式吞掉 rejection，避免未捕获异常
+    // [2026-09-09 修正] 打卡权威态与监控池数量已并入 loadRiskDigest（同一接口 /api/daily/digest），
+    //   此前 loadCheckIn→pullCheckInFromServer 与 loadRiskDigest 会对同一接口发 2 次请求。
+    this.loadCheckIn(); // 本地先渲染，网络回来后被权威值覆盖
     this.loadRiskDigest().catch(() => {});
-    this.loadCheckIn();
     this.loadHoldings();
-    this.loadMonitorCount();
+    this.loadOaPushStatus().catch(() => {});
   },
 
   // B1 风险温度：优先后端 /api/daily/digest，失败显示兜底（不阻塞渲染）
@@ -219,13 +243,28 @@ Page({
       success(res) {
         // 响应壳已统一为扁平 { ok, ...字段 }；保留 data 兼容仅作历史兜底
         const d = (res && res.data && res.data.data) ? res.data.data : (res && res.data) || {};
+
+        // [2026-09-09] 同一响应里的打卡权威态与监控池数量一并消费（原为独立请求）
+        self.applyCheckInFromDigest(d.checkin);
+        const mc = Number(d.monitorCount);
+        if (Number.isFinite(mc)) self.setData({ monitorCount: mc });
+
         const score = Number(d.marketRiskScore != null ? d.marketRiskScore : d.riskScore);
         if (!Number.isFinite(score)) {
           self.setData({ riskTemp: self.buildTemp(false, 0, '开盘前更新中', '数据生成后这里会显示今日市场风险温度。', '') });
           return;
         }
         self.setData({
-          riskTemp: self.buildTemp(true, score, d.verdict || '', d.verdictSub || '今日温度已更新，按规则执行即可。', d.updTime || '')
+          riskTemp: self.buildTemp(
+            true,
+            score,
+            // 后端 2026-09-09 起由温度引擎返回：riskVerdict(陈述文案) / riskLevel(五档) / updTime
+            d.riskVerdict || '今日温度已更新',
+            self.buildFundSub(d),
+            d.updTime || '',
+            d.riskLevel || '',
+            self.buildTempMeta(d)
+          )
         });
         messages.refreshBadge();
       },
@@ -236,21 +275,251 @@ Page({
     });
   },
 
-  buildTemp(ready, score, verdict, verdictSub, updTime) {
+  // [2026-09-09] 温度归属元信息
+  //   背景：盘前（原 8:50 定时任务）拉到的是上一交易日收盘快照，用户看到的是历史值却以为是今天。
+  //   现后端把「今日实时」与「上一交易日收盘」分开返回（tempIsLive / tempDate / prevCloseTemp），
+  //   前端必须在标题和时间戳上写明归属，禁止把收盘值伪装成实时值。
+  buildTempMeta(d) {
+    const live = !!d.tempIsLive;
+    const date = d.tempDate || '';
+    const mmdd = date.length >= 10 ? date.slice(5).replace('-', '/') : '';
+    const time = d.updTime || '';
+    const stampText = live
+      ? (mmdd ? mmdd + ' ' + time + ' 实时' : (time ? time + ' 实时' : '实时'))
+      : (mmdd ? mmdd + ' ' + (time || '15:00') + ' 收盘' : '上一交易日收盘');
+    const titleText = live
+      ? '今日市场风险温度'
+      : (mmdd ? mmdd + ' 收盘市场风险温度' : '上一交易日收盘温度');
+    // 只有在显示今日实时值时，才额外给出上一交易日收盘做对比
+    let prevText = '';
+    if (live && d.prevCloseTemp != null) {
+      const pd = d.prevCloseDate && d.prevCloseDate.length >= 10
+        ? d.prevCloseDate.slice(5).replace('-', '/') : '上一交易日';
+      prevText = pd + ' 收盘 ' + Number(d.prevCloseTemp) + '°' +
+        (d.prevCloseLevel ? ' · ' + d.prevCloseLevel : '');
+    }
+    return { stampText, titleText, prevText };
+  },
+
+  buildTemp(ready, score, verdict, verdictSub, updTime, level, meta) {
     const s = Math.max(0, Math.min(100, Number(score) || 0));
     const obj = {
       ready,
       score: s,
-      level: tempLevel(s),
+      // [2026-09-09 修正] 未就绪时 level 应为占位 '—'：此前恒定返回「偏低·平稳」，
+      //   导致分数显示 '--' 却判定为"偏低"，语义自相矛盾。
+      // level 为后端五档（低/中/偏高…），优先于本地算法口径。
+      level: ready ? (level || tempLevel(s)) : '—',
       verdict: verdict || (ready ? '今日温度已更新' : '开盘前更新中'),
       verdictSub: verdictSub || '',
       updTime: updTime || '',
       color: tempColor(s),
-      ringDash: Math.round(289 * s / 100)
+      ringDash: Math.round(289 * s / 100),
+      titleText: (meta && meta.titleText) || (ready ? '今日市场风险温度' : '今日市场风险温度'),
+      stampText: (meta && meta.stampText) ||
+        (updTime ? updTime + ' 更新' : (ready ? '今日温度已更新' : '开盘前更新中')),
+      prevText: (meta && meta.prevText) || ''
     };
     // [V2.0-A] 持久化温度快照，供消息中心生成本地"温度更新"提醒（不依赖额外后端调用）
     try { wx.setStorageSync('riskTempSnapshot', { ready: obj.ready, score: obj.score, level: obj.level, updTime: obj.updTime }); } catch (e) {}
     return obj;
+  },
+
+  // [2026-09-09] 温度副标题：优先展示资金类实时数据（涨停家数 / 主力净额）
+  //   ★ 合规红线：免费源只能拿到「超大单」，无法区分游资/机构/量化，
+  //     故对外一律称「主力资金」，禁止出现"游资"字样（虚假宣传 + 合规风险）
+  buildFundSub(d) {
+    const parts = [];
+    if (d.limitUp != null) parts.push('涨停 ' + Number(d.limitUp) + ' 家');
+    if (d.limitDown != null && Number(d.limitDown) > 0) parts.push('跌停 ' + Number(d.limitDown) + ' 家');
+    if (d.netInflowYi != null) {
+      const v = Number(d.netInflowYi);
+      const abs = Math.abs(v).toFixed(2).replace(/\.00$/, '');
+      parts.push((v >= 0 ? '主力净流入 ' : '主力净流出 ') + abs + ' 亿');
+    }
+    return parts.length ? parts.join(' · ') : '涨跌幅 · 振幅 · 量能 · 资金流 多维测算';
+  },
+
+  // ====== [2026-09-09] 温度分享卡：生成 → 预览 → 保存相册 ======
+  // 复用主包 components/shareCard（Canvas 2D），小程序码走 /api/fission/qrcode。
+  // 卡片只承载「市场状态陈述」，不含任何买卖建议（12 号合规报告红线）。
+  onMakeTempCard() {
+    const t = this.data.riskTemp || {};
+    if (!t.ready) {
+      wx.showToast({ title: '今日温度还没生成', icon: 'none' });
+      return;
+    }
+    const desc = [t.stampText, t.verdictSub, t.prevText].filter(Boolean).join(' · ');
+    this.setData({
+      tempCard: {
+        visible: true,
+        value: t.score,
+        tag: t.level || '',
+        title: t.titleText || '今日市场风险温度',
+        desc: desc,
+        qrcodeUrl: this._buildTempCardQrUrl(),
+        accent: this._tempAccentHex(t.score)
+      }
+    });
+    safeTrack('HOME_TEMP_CARD_OPEN', { score: t.score, level: t.level || '' });
+  },
+
+  onTempCardClose() {
+    this.setData({ 'tempCard.visible': false });
+  },
+
+  onTempCardSaved() {
+    safeTrack('HOME_TEMP_CARD_SAVE', { score: (this.data.riskTemp || {}).score });
+  },
+
+  onTempCardError(e) {
+    safeTrack('HOME_TEMP_CARD_FAIL', { reason: (e && e.detail && e.detail.err) || '' });
+  },
+
+  // Canvas 不认 var()，必须给十六进制；阈值与 tempColor() 保持一致（70 / 40）
+  _tempAccentHex(score) {
+    const s = Number(score) || 0;
+    if (s >= 70) return '#FF4D5E';
+    if (s >= 40) return '#FFB020';
+    return '#00E5A0';
+  },
+
+  // 小程序码：复用既有 /api/fission/qrcode（不另造轮子）。
+  // 官方规则（已核 wxacode.getUnlimited 文档）：
+  //   · page 不能带参数，参数一律走 scene（后端已把 inviteCode 放进 scene）
+  //   · page 根路径前不加 / ；后端正则只接受 pages/ 开头，分包路径会被拒并回落默认页
+  //   · check_path=false，故体验版也能出码
+  _buildTempCardQrUrl() {
+    const base = String((CONFIG && CONFIG.API_BASE) || '').replace(/\/+$/, '');
+    if (!base) return '';
+    let code = String(this.data.inviteCode || '').trim();
+    if (!code) {
+      try {
+        const rights = wx.getStorageSync(USER_RIGHTS_KEY) || {};
+        code = String(rights.inviteCode || '').trim();
+      } catch (e) {}
+    }
+    if (!code) return ''; // 无邀请码 → 卡片画占位框，不阻塞出图
+    let env = 'release';
+    try {
+      const ai = wx.getAccountInfoSync && wx.getAccountInfoSync();
+      env = (ai && ai.miniProgram && ai.miniProgram.envVersion) || 'release';
+    } catch (e) {}
+    return base +
+      '/api/fission/qrcode?inviteCode=' + encodeURIComponent(code) +
+      '&env_version=' + encodeURIComponent(env) +
+      '&page=' + encodeURIComponent('pages/index/index') +
+      '&t=' + Date.now();
+  },
+
+  // ====== [2026-09-09] 每日温度提醒（服务号模板消息）======
+  // 合规口径（54 号施工图）：模板消息只能用于「重要服务通知」，日更温度有被判营销的风险
+  // → 默认关闭，必须用户主动开启；且只有已关注服务号的用户才收得到。
+  async loadOaPushStatus() {
+    const base = (CONFIG && CONFIG.API_BASE) ? CONFIG.API_BASE : '';
+    if (!base) return;
+    const cid = await safeClientId();
+    if (!cid) return;
+    const self = this;
+    wx.request({
+      url: base + '/api/oa/push-status?clientId=' + encodeURIComponent(cid),
+      method: 'GET',
+      timeout: 6000,
+      success(res) {
+        const r = (res && res.data) || {};
+        if (!r.ok) return;
+        self.setData({
+          oaPush: {
+            loaded: true,
+            enabled: !!r.pushEnabled,
+            followed: !!r.followed,
+            hasOaOpenid: !!r.hasOaOpenid,
+            busy: false,
+            tip: self._oaPushTip(!!r.pushEnabled, !!r.followed)
+          }
+        });
+      }
+    });
+  },
+
+  _oaPushTip(enabled, followed) {
+    if (enabled && followed) return '已开启 · 每交易日 9:15 推送';
+    if (enabled) return '已开启 · 还需关注服务号才能收到';
+    return '开启后每交易日 9:15 推送今日温度';
+  },
+
+  async onOaPushChange(e) {
+    const enabled = !!(e && e.detail && e.detail.value);
+    const base = (CONFIG && CONFIG.API_BASE) ? CONFIG.API_BASE : '';
+    const prev = this.data.oaPush || {};
+    this.setData({ oaPush: Object.assign({}, prev, { enabled, busy: true }) });
+
+    if (!base) { this.setData({ 'oaPush.busy': false }); return; }
+    const cid = await safeClientId();
+    if (!cid) {
+      this.setData({ 'oaPush.busy': false, 'oaPush.enabled': false });
+      wx.showToast({ title: '登录信息未就绪', icon: 'none' });
+      return;
+    }
+
+    const self = this;
+    wx.request({
+      url: base + '/api/oa/push-toggle',
+      method: 'POST',
+      header: { 'Content-Type': 'application/json' },
+      data: { clientId: cid, enabled },
+      timeout: 6000,
+      success(res) {
+        const r = (res && res.data) || {};
+        const followed = !!r.followed;
+        if (!r.ok) {
+          self.setData({ 'oaPush.enabled': !enabled });
+          wx.showToast({ title: '设置失败，请重试', icon: 'none' });
+          return;
+        }
+        self.setData({
+          'oaPush.followed': followed,
+          'oaPush.tip': self._oaPushTip(enabled, followed)
+        });
+        if (enabled && !followed) {
+          // [2026-09-09] 未关联服务号身份 → 走网页授权静默绑定（不依赖开放平台/unionid）
+          // 用户在 web-view 内静默授权拿到服务号 openid 后自动返回，无需任何操作
+          try {
+            wx.navigateTo({
+              url: '/pages/oaBind/index?url=' + encodeURIComponent(
+                base + '/api/oa/link?c=' + encodeURIComponent(cid))
+            });
+          } catch (err) {
+            wx.showToast({ title: '请再点「去关注服务号」', icon: 'none' });
+          }
+        }
+      },
+      fail() {
+        self.setData({ 'oaPush.enabled': !enabled });
+        wx.showToast({ title: '网络异常', icon: 'none' });
+      },
+      complete() { self.setData({ 'oaPush.busy': false }); }
+    });
+    safeTrack('HOME_OA_PUSH_TOGGLE', { enabled });
+  },
+
+  // 小程序内无法直接跳关注页：有二维码就预览长按识别，没有就给文字引导（不报错）
+  goFollowOa() {
+    safeTrack('HOME_OA_FOLLOW_CLICK', { hasQr: !!CONFIG.OA_QR_URL });
+    const fallback = () => {
+      wx.showModal({
+        title: '关注服务号',
+        content: '请在微信搜索服务号「' + (CONFIG.OA_NAME || '熵盾') + '」并关注，即可收到每日温度提醒。',
+        showCancel: false
+      });
+    };
+    if (!CONFIG.OA_QR_URL) return fallback();
+    wx.previewImage({
+      urls: [CONFIG.OA_QR_URL],
+      current: CONFIG.OA_QR_URL,
+      // 后端还没生成 ticket 时这里是 404，不能让用户点了个寂寞
+      fail: fallback
+    });
   },
 
   // B3 每日打卡：本地先渲染（不阻塞），再用后端权威数据回填
@@ -261,34 +530,19 @@ Page({
     const last = wx.getStorageSync('checkinLastDate') || '';
     const today = todayStr();
     this.setData({ checkIn: { streak, todayDone: last === today } });
-    this.pullCheckInFromServer().catch(() => {});
   },
 
-  // [V2.0-接线] 拉后端权威打卡状态覆盖本地（跨设备一致、防本地篡改）
-  async pullCheckInFromServer() {
-    const base = (CONFIG && CONFIG.API_BASE) ? CONFIG.API_BASE : '';
-    if (!base) return;
-    const cid = await safeClientId();
-    if (!cid) return; // 未登录 → 保留本地数据，不打扰用户
-    const self = this;
-    wx.request({
-      url: base + '/api/daily/digest?clientId=' + encodeURIComponent(cid),
-      method: 'GET',
-      timeout: 6000,
-      success(res) {
-        const d = (res && res.data) || {};
-        if (!d.ok || !d.checkin) return; // 后端无此用户记录 → 保留本地
-        const ci = d.checkin;
-        const s = Number(ci.streak) || 0;
-        self.setData({ checkIn: { streak: s, todayDone: !!ci.today } });
-        // 回写本地，使下次冷启动更快、离线时也有值
-        try {
-          wx.setStorageSync('checkinStreak', s);
-          if (ci.today) wx.setStorageSync('checkinLastDate', todayStr());
-        } catch (e) {}
-      }
-      // fail 静默：后端不可达时本地数据已渲染，无需提示
-    });
+  // [2026-09-09] 用 /api/daily/digest 同一响应里的 checkin 覆盖本地（跨设备一致、防本地篡改）
+  //   取代原 pullCheckInFromServer：不再为此单独发一次网络请求。
+  applyCheckInFromDigest(ci) {
+    if (!ci) return; // 后端无此用户记录 → 保留本地值
+    const s = Number(ci.streak) || 0;
+    this.setData({ checkIn: { streak: s, todayDone: !!ci.today } });
+    // 回写本地，使下次冷启动更快、离线时也有值
+    try {
+      wx.setStorageSync('checkinStreak', s);
+      if (ci.today) wx.setStorageSync('checkinLastDate', todayStr());
+    } catch (e) {}
   },
 
   async doCheckIn() {
@@ -311,8 +565,8 @@ Page({
     // [A方案·召回通道] 打卡成功 = 用户意愿最高点，调起订阅授权攒发送机会
     // 已授权"总是保持"则不再弹框；未配置模板 ID 时 sub.request 自动跳过
     sub.request(['daily_temperature', 'evening_checkin', 'position_alert', 'grade_upgrade']).catch(() => {});
-    // TODO(B3): 连续 3/7/21 天触发 rights 奖励（测算次数）—— 奖励规则未定义，
-    //   后端只返回 rewardMilestone 标记不发放，前端同理不做任何发放动作。
+    // [2026-09-10] 连续 3/7/21 天奖励由服务端在 /api/daily/checkin 发放（freeCalcTimes），
+    // 客户端在 pushCheckInToServer 成功回调里同步本地缓存并刷新展示；本地离线态无 clientId 时不发。
     wx.showToast({ title: '打卡成功 +1', icon: 'success' });
 
     // [V2.0-接线] best-effort 同步后端：本地已先行渲染，此处失败不影响用户体验
@@ -341,23 +595,45 @@ Page({
           try { wx.setStorageSync('checkinStreak', s); } catch (e) {}
           self.setData({ checkIn: { streak: s, todayDone: true } });
         }
+        // [2026-09-10] 连续 3/7/21 天里程碑：后端已赠送高级测算次数，
+        // 本地同步两份权益缓存并刷新展示，弹窗告知用户。
+        if (r.rewardMilestone) {
+          const ADD = { 3: 1, 7: 3, 21: 7 };
+          const add = ADD[r.rewardMilestone] || 0;
+          if (add > 0) {
+            try {
+              const rights = wx.getStorageSync(USER_RIGHTS_KEY) || {};
+              rights.freeCalcTimes = (Number(rights.freeCalcTimes) || 0) + add;
+              wx.setStorageSync(USER_RIGHTS_KEY, rights);
+              const eff = wx.getStorageSync('effectiveRights') || {};
+              if (eff.task) {
+                eff.task.freeCalcTimes = (Number(eff.task.freeCalcTimes) || 0) + add;
+                wx.setStorageSync('effectiveRights', eff);
+              }
+            } catch (e) {}
+            self.refreshHomeSnapshot();
+            wx.showToast({ title: `连续${r.rewardMilestone}天，赠送${add}次测算`, icon: 'none' });
+          }
+        }
         safeTrack('HOME_CHECKIN_SYNCED', {
           streak: Number.isFinite(s) ? s : localStreak,
           duplicated: !!r.duplicated,
-          // rewardMilestone 仅上报，不弹窗、不发权益（规则未定义，弹了等于误导）
-          milestone: r.rewardMilestone || null
+          milestone: r.rewardMilestone || null,
+          granted: r.rewardGranted || 0
         });
       }
-      // fail 静默：离线也能打卡，下次进首页 pullCheckInFromServer 会补齐
+      // fail 静默：离线也能打卡，下次进首页 loadRiskDigest 会用权威值补齐
     });
   },
 
   // B4 持仓诊断：best-effort 读本地记录，纯数据陈述
   loadHoldings() {
     let list = [];
+    let total = 0;
     try {
       const recs = wx.getStorageSync('tradeRecords');
       if (Array.isArray(recs) && recs.length) {
+        total = recs.length;
         list = recs.slice(0, 5).map((it, i) => {
           const nm = String(it.stockName || it.name || ('标的' + (i + 1)));
           return {
@@ -372,13 +648,11 @@ Page({
     } catch (e) {}
     this.setData({
       holdings: list,
+      // [2026-09-09] holdings 最多只放 5 条(展示用)，总数单独给四宫格，
+      //   否则格子里的 "N 需关注" 恒等于展示条数，与实际持仓数不符。
+      holdingsTotal: total,
       holdingsHint: list.length ? '' : '你还没有录入持仓记录'
     });
-  },
-
-  loadMonitorCount() {
-    // B6 监控池信号数：后端就绪后由 /api/daily/digest 提供，骨架先置 0
-    this.setData({ monitorCount: 0 });
   },
 
   // ===== 权益快照（保留）=====
@@ -481,6 +755,35 @@ Page({
       });
   },
 
+  // ③ 活动入口 Banner：读 /api/activity/config，仅展示 enabled 的活动
+  //   运营在 DB 翻 enabled 即可显隐 A-1 统考 / A-2 守纪挑战赛，无需重新发版
+  loadActivityConfig() {
+    const META = {
+      exam:   { title: '散户风控力大考', sub: '20 题测你的风控段位', path: '/pkgChallenge/exam/intro/index', tag: '万人统考' },
+      season: { title: '30 天守纪挑战赛', sub: '打满 30 天，看你的守纪榜', path: '/pkgChallenge/seasonRank/index', tag: '第一赛季' },
+      annual: { title: '我的风控年报', sub: '一图看懂你的年度风控', path: '/pkgService/annualReport/index', tag: '晒图节' }
+    };
+    activityApi.getConfig().then((list) => {
+      const arr = (list || []).filter((a) => a && a.enabled && META[a.key]);
+      if (!arr.length) { this.setData({ activities: [] }); return; }
+      this.setData({
+        activities: arr.map((a) => Object.assign({}, META[a.key], {
+          key: a.key,
+          rewardText: a.rewardText || ''
+        }))
+      });
+    }).catch(() => { this.setData({ activities: [] }); });
+  },
+
+  goActivity(e) {
+    const ds = (e && e.currentTarget && e.currentTarget.dataset) || {};
+    const path = ds.path;
+    const key = ds.key;
+    if (!path) return;
+    safeTrack('HOME_GO_ACTIVITY', { activity: key || 'unknown' });
+    wx.navigateTo({ url: path, fail: (err) => console.error('[index] navigateTo activity fail:', err) });
+  },
+
   // ===== 跳转（保留全部既有入口）=====
   goCalc(e) {
     const source = getTapSource(e, 'unknown');
@@ -494,6 +797,16 @@ Page({
     wx.navigateTo({ url: '/pkgChallenge/campIntro/index' });
   },
 
+
+  // [2026-09-09] 学院入口（首页补）：此前全库仅风控工作台可进入，72 课无首页可达路径
+  goAcademy(e) {
+    const source = getTapSource(e, 'unknown');
+    safeTrack(stepWithSource('HOME_CTA_GO_ACADEMY', source), { source });
+    wx.navigateTo({
+      url: '/pkgAcademy/pages/index?from=home',
+      fail: (err) => console.error('[index] navigateTo 学院 fail:', err)
+    });
+  },
 
   goController(e) {
     const source = getTapSource(e, 'unknown');
@@ -545,13 +858,30 @@ Page({
   onShareAppMessage() {
     const rights = wx.getStorageSync(USER_RIGHTS_KEY) || {};
     const inviteCode = rights.inviteCode || this.data.inviteCode || '';
-    safeTrack('HOME_SHARE_APP_MESSAGE', { hasInviteCode: !!inviteCode });
+    // [2026-09-09] 页面内有两个分享按钮，此前共用同一份文案；
+    //   按 data-share 区分：temp=今日温度卡 / streak=我的战绩 / 其余=右上角转发
+    const kind = (res && res.target && res.target.dataset && res.target.dataset.share) || '';
+    safeTrack('HOME_SHARE_APP_MESSAGE', { hasInviteCode: !!inviteCode, kind: kind || 'menu' });
 
-    const st = (self && self.data && self.data.checkIn) || {};
-    const rt = this.data.riskTemp;
-    const title = (rt && rt.ready)
-      ? `连续守纪 ${st.streak || 0} 天 · 今日风险温度 ${rt.score}，先看风险再交易`
-      : `我已连续守纪 ${st.streak || 0} 天 · 熵盾帮你管住交易纪律`;
+    // [2026-09-09 修正] 原为 `self && self.data` —— self 在此作用域未定义，
+    //   严格模式下会抛 ReferenceError 导致分享面板拉不起来。
+    const st = this.data.checkIn || {};
+    const rt = this.data.riskTemp || {};
+    const streak = st.streak || 0;
+
+    let title;
+    if (kind === 'temp') {
+      title = rt.ready
+        ? `今日风险温度 ${rt.score}（${rt.level}）· 先看风险，再谈交易`
+        : '熵盾每日风险温度 · 先看风险，再谈交易';
+    } else if (kind === 'streak') {
+      title = `我已连续守纪 ${streak} 天 · 熵盾帮我管住交易纪律`;
+    } else if (rt.ready) {
+      title = `连续守纪 ${streak} 天 · 今日风险温度 ${rt.score}（${rt.level}）`;
+    } else {
+      title = `我已连续守纪 ${streak} 天 · 熵盾帮我管住交易纪律`;
+    }
+
     const path = inviteCode
       ? `/pages/index/index?inviteCode=${encodeURIComponent(inviteCode)}`
       : '/pages/index/index';
@@ -573,7 +903,15 @@ function ensureInviteCode() {
 }
 
 function handleInviteFromOptions(options = {}) {
-  const inviteCode = options.inviteCode || options.invite || '';
+  let inviteCode = options.inviteCode || options.invite || '';
+  // [2026-09-09 补] 小程序码（wxacode.getUnlimited）的参数不落在 inviteCode 上：
+  //   官方规则是「page 不能带参数，参数走 scene」，后端 /api/fission/qrcode 也确实把
+  //   邀请码塞进了 scene。此前只读 inviteCode → 扫码进来的邀请关系全部丢失，裂变归因失效。
+  //   scene 由微信原样回传，需 decodeURIComponent 还原。
+  if (!inviteCode && options.scene) {
+    try { inviteCode = decodeURIComponent(String(options.scene)); }
+    catch (e) { inviteCode = String(options.scene); }
+  }
   if (!inviteCode) return;
   try {
     const rights = wx.getStorageSync(USER_RIGHTS_KEY) || {};

@@ -1,0 +1,60 @@
+.page { padding: 24rpx; background: #03060C; min-height: 100vh; box-sizing: border-box; }
+.hero { display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg,#0E1620,#111A24); border:1rpx solid #1C2733; border-radius: 20rpx; padding: 28rpx; }
+.hero-l { display:flex; flex-direction:column; }
+.hk { color:#7B8591; font-size: 24rpx; }
+.hk-row { display:flex; align-items:center; }
+.help-icon {
+  margin-left: 12rpx;
+  width: 32rpx; height: 32rpx;
+  line-height: 32rpx; text-align:center;
+  border: 1rpx solid #1C2733; border-radius: 50%;
+  color: #7B8591; font-size: 22rpx;
+}
+
+/* 战力值说明弹窗 */
+.modal-mask {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.7);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 50;
+}
+.modal {
+  width: 600rpx; max-height: 70vh;
+  background: #0E1620; border: 1rpx solid #1C2733;
+  border-radius: 24rpx; padding: 36rpx 32rpx;
+  display: flex; flex-direction: column;
+}
+.modal-title { color: #E6EDF3; font-size: 32rpx; font-weight: 700; margin-bottom: 20rpx; }
+.modal-body { flex: 1; max-height: 46vh; }
+.hl-item { margin-bottom: 22rpx; }
+.hl-h {
+  display: inline-block; font-size: 22rpx; font-weight: 700;
+  color: #00BFFF; background: #06223a; border-radius: 6rpx; padding: 2rpx 12rpx;
+  margin-bottom: 8rpx;
+}
+.hl-t { display: block; font-size: 26rpx; color: #B9C4D0; line-height: 1.5; }
+.hl-red .hl-h { color: #FF6B6B; background: #2a1414; }
+.hl-red .hl-t { color: #F0A0A0; }
+.modal-close { text-align:center; color:#7B8591; font-size: 26rpx; margin-top: 22rpx; }
+.hv { color:#00BFFF; font-size: 56rpx; font-weight: 700; margin-top: 8rpx; }
+.hero-r { display:flex; flex-direction:column; align-items:flex-end; background:#00BFFF; border-radius: 16rpx; padding: 16rpx 24rpx; }
+.hr-t { color:#04121D; font-size: 28rpx; font-weight:700; }
+.hr-s { color:#04121D; font-size: 20rpx; opacity:.8; }
+.rank-entry { display:flex; justify-content:space-between; align-items:center; margin-top:20rpx; background:#0E1620; border:1rpx solid #1C2733; border-radius:16rpx; padding:24rpx; color:#E6EDF3; font-size:28rpx; }
+.rank-entry .arr { color:#00BFFF; font-size:36rpx; }
+.sec { margin-top:20rpx; }
+.sec-h { color:#E6EDF3; font-size:30rpx; font-weight:600; margin: 12rpx 4rpx; }
+.hint { color:#7B8591; font-size:26rpx; padding: 40rpx 8rpx; text-align:center; }
+.pcard { background:#0E1620; border:1rpx solid #1C2733; border-radius:16rpx; padding:24rpx; margin-bottom:16rpx; }
+.pc-head { display:flex; justify-content:space-between; align-items:center; }
+.pc-name { color:#E6EDF3; font-size:30rpx; font-weight:600; }
+.pc-status { color:#00BFFF; font-size:22rpx; }
+.pc-status.done { color:#7B8591; }
+.pc-odds { display:flex; gap:16rpx; margin-top:16rpx; }
+.odd { flex:1; background:#0A1118; border:1rpx solid #1C2733; border-radius:12rpx; padding:16rpx; display:flex; flex-direction:column; }
+.odd.mine { border-color:#00BFFF; }
+.ok { color:#7B8591; font-size:22rpx; }
+.ov { color:#E6EDF3; font-size:28rpx; margin-top:4rpx; }
+.oo { color:#00BFFF; font-size:22rpx; margin-top:4rpx; }
+.pc-foot { color:#7B8591; font-size:22rpx; margin-top:12rpx; }
+.tip { color:#5A6672; font-size:22rpx; margin-top:24rpx; line-height:1.6; }

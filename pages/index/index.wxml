@@ -13,14 +13,17 @@
     <view class="member-chip" bindtap="goMembership">
       <text class="member-label">{{homeMembershipLabel}}</text>
       <text class="member-exp">{{homeMembershipExpireText}}</text>
+      <text class="member-quota">剩余测算 {{homeTaskRightsText || '0次'}}</text>
     </view>
   </view>
 
   <!-- 今日市场风险温度大卡（B1/B2） -->
   <view class="temp-card es-card">
+    <!-- 核心口号（ESOS-01 1.4.9 冻结标准表达，禁止改写/简写） -->
+    <view class="temp-brand">交易之前，先用熵盾看风险</view>
     <view class="temp-head">
-      <text class="temp-title">今日市场风险温度</text>
-      <text class="temp-upd">{{riskTemp.updTime ? riskTemp.updTime + ' 更新' : '开盘前更新中'}}</text>
+      <text class="temp-title">{{riskTemp.titleText || '今日市场风险温度'}}</text>
+      <text class="temp-upd">{{riskTemp.stampText || (riskTemp.updTime ? riskTemp.updTime + ' 更新' : '开盘前更新中')}}</text>
     </view>
     <view class="temp-body">
       <view class="gauge">
@@ -37,9 +40,31 @@
         <view class="level-tag" style="color:{{riskTemp.color}};border-color:{{riskTemp.color}}">{{riskTemp.level}}</view>
         <view class="verdict">{{riskTemp.verdict}}</view>
         <view class="verdict-sub">{{riskTemp.verdictSub}}</view>
+        <view class="temp-prev" wx:if="{{riskTemp.prevText}}">对比：{{riskTemp.prevText}}</view>
       </view>
     </view>
-    <button class="share-temp" open-type="share">分享今日温度卡</button>
+    <view class="temp-actions">
+      <button class="share-temp" open-type="share" data-share="temp">转发给好友</button>
+      <button class="share-temp share-temp-ghost" bindtap="onMakeTempCard">生成温度卡图片</button>
+    </view>
+
+    <!-- 每日温度提醒（服务号推送）
+         默认关闭 —— 模板消息官方仅限「重要服务通知」，日更内容必须由用户主动开启 -->
+    <view class="oa-push" wx:if="{{oaPush.loaded}}">
+      <view class="oa-push-main">
+        <text class="oa-push-k">每日温度提醒</text>
+        <text class="oa-push-s">{{oaPush.tip}}</text>
+      </view>
+      <switch
+        checked="{{oaPush.enabled}}"
+        disabled="{{oaPush.busy}}"
+        color="#00BFFF"
+        bindchange="onOaPushChange"
+      />
+    </view>
+    <button class="oa-follow" wx:if="{{oaPush.loaded && oaPush.enabled && !oaPush.followed}}" bindtap="goFollowOa">
+      去关注服务号（不关注收不到）
+    </button>
   </view>
 
   <!-- 每日打卡条（B3） -->
@@ -53,7 +78,7 @@
       <button class="checkin-btn {{checkIn.todayDone ? 'is-done' : ''}}" bindtap="doCheckIn" disabled="{{checkIn.todayDone}}">
         {{checkIn.todayDone ? '今日已打卡 ✓' : '立即打卡'}}
       </button>
-      <button class="es-share-btn" open-type="share">分享我的战绩</button>
+      <button class="es-share-btn" open-type="share" data-share="streak">分享我的战绩</button>
     </view>
   </view>
 
@@ -71,13 +96,30 @@
     </view>
     <view class="tile es-card" bindtap="goTradeRecord">
       <text class="tile-k">持仓诊断</text>
-      <text class="tile-v" style="color:var(--es-amber, #FFB020)">{{holdings.length}} <text class="tile-vs">需关注</text></text>
-      <text class="tile-m">距止损边界</text>
+      <!-- [2026-09-09] 修正语义：holdings 最多 5 条(展示用)，且"距止损边界%"需行情源 B6，目前无数据 -->
+      <text class="tile-v" style="color:var(--es-amber, #FFB020)">{{holdingsTotal}} <text class="tile-vs">个持仓</text></text>
+      <text class="tile-m">已录入记录</text>
     </view>
     <view class="tile es-card" bindtap="goCamp">
       <text class="tile-k">连续打卡</text>
       <text class="tile-v" style="color:var(--es-green, #00BFFF)">{{checkIn.streak}} <text class="tile-vs">天</text></text>
       <text class="tile-m">纪律在养成</text>
+    </view>
+  </view>
+
+  <!-- 活动入口 Banner（③ 读 /api/activity/config 开关显隐） -->
+  <view class="section act-banner" wx:if="{{activities.length}}">
+    <view class="sec-head">
+      <text class="sec-title">近期活动</text>
+    </view>
+    <view class="act-card es-card" wx:for="{{activities}}" wx:key="key" bindtap="goActivity" data-key="{{item.key}}" data-path="{{item.path}}">
+      <view class="act-tag">{{item.tag}}</view>
+      <view class="act-body">
+        <view class="act-title">{{item.title}}</view>
+        <view class="act-sub">{{item.sub}}</view>
+        <view class="act-reward" wx:if="{{item.rewardText}}">奖励 {{item.rewardText}}</view>
+      </view>
+      <text class="act-go">去参与 ›</text>
     </view>
   </view>
 
@@ -141,6 +183,8 @@
     <view class="more-item" bindtap="goLongArchive"><text>长期档案</text><text class="more-arrow">›</text></view>
     <view class="more-item" bindtap="goMainchainOverview"><text>主链总览</text><text class="more-arrow">›</text></view>
     <view class="more-item" bindtap="goCamp"><text>7 天风控训练营</text><text class="more-arrow">›</text></view>
+    <!-- [2026-09-09] 补学院入口：72 课此前全库无任何首页入口，只在风控工作台有 -->
+    <view class="more-item" bindtap="goAcademy"><text>控局者学院 · 72 课</text><text class="more-arrow">›</text></view>
     <view class="more-item" bindtap="goController"><text>进入风控工作台</text><text class="more-arrow">›</text></view>
   </view>
 
@@ -150,3 +194,20 @@
   </view>
 
 </view>
+
+<!-- [2026-09-09] 温度分享卡浮层（组件在主包 components/shareCard）
+     生成 → 预览 → 保存相册；小程序码复用 /api/fission/qrcode -->
+<share-card
+  card-type="temperature"
+  value="{{tempCard.value}}"
+  value-unit="°"
+  tag="{{tempCard.tag}}"
+  title="{{tempCard.title}}"
+  desc="{{tempCard.desc}}"
+  qrcode-url="{{tempCard.qrcodeUrl}}"
+  accent-color="{{tempCard.accent}}"
+  visible="{{tempCard.visible}}"
+  bind:close="onTempCardClose"
+  bind:saved="onTempCardSaved"
+  bind:error="onTempCardError"
+/>

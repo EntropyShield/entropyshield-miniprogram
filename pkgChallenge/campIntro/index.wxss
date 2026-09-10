@@ -401,3 +401,29 @@
   color: var(--es-txt-3, #8E98A3);
   line-height: 1.6;
 }
+
+/* [2026-09-10] 赛季状态条（仅 30 天守纪挑战赛模式显示） */
+.season-bar {
+  margin-top: 16rpx;
+  padding: 16rpx 20rpx;
+  border-radius: 12rpx;
+  background: rgba(0, 191, 255, 0.08);
+  border: 1rpx solid rgba(0, 191, 255, 0.25);
+}
+.season-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8rpx;
+}
+.season-no { font-size: 26rpx; font-weight: 600; color: var(--es-txt-1, #E6EDF3); }
+.season-rate { font-size: 26rpx; color: var(--es-green, #00BFFF); font-weight: 600; }
+.season-pm { font-size: 24rpx; color: var(--es-txt-2, #AAB4BE); }
+.season-switch { font-size: 24rpx; color: var(--es-green, #00BFFF); padding: 0 8rpx; }
+.season-tip { font-size: 22rpx; color: var(--es-txt-3, #8E98A3); line-height: 1.5; }
+.mode-switch {
+  margin-top: 12rpx;
+  font-size: 24rpx;
+  color: var(--es-green, #00BFFF);
+  text-decoration: underline;
+}

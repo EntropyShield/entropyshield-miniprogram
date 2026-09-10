@@ -202,6 +202,8 @@ Page({
       const wbReports = [
         { name: '风控报告', desc: '风险重点、纪律提醒与待复核事项', path: '/pkgReport/riskReport/index' },
         { name: '长期档案', desc: '持续沉淀的风险管理记录与执行表现', path: '/pkgReport/longArchive/index' },
+        { name: '守护者俱乐部', desc: '会员权益与近期活动 / 沙龙', path: '/pkgChallenge/club/index' },
+        { name: '方案存续跟踪', desc: '已落地方案对照当前参考价', path: '/pkgReport/planTrack/index' },
         { name: '亏损人格档案', desc: '亏损时更接近规则执行还是情绪驱动', path: '/pkgTest/testLossPersonality/index' }
       ];
 
@@ -351,6 +353,25 @@ Page({
         wx.showToast({ title: '暂时无法打开控局者学院', icon: 'none' });
       }
     });
+  },
+
+  // [68 号] 战力值 PK 对战入口
+  goPk() {
+    wx.navigateTo({ url: '/pkgChallenge/pkLobby/index' });
+  },
+
+  goExchange() {
+    wx.navigateTo({ url: '/pkgService/exchange/index' });
+  },
+
+  // [L3] 荣誉墙（赛季前 N 名 / 守护者名人堂，纯展示）
+  goHonor() {
+    wx.navigateTo({ url: '/pkgService/honorWall/index' });
+  },
+
+  // [A-3] 年度风控报告（年报晒图节）
+  goAnnual() {
+    wx.navigateTo({ url: '/pkgService/annualReport/index' });
   },
 
 

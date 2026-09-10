@@ -1,0 +1,50 @@
+<view class="page">
+  <view class="card my-card" wx:if="{{myCard}}">
+    <view class="card-title">我的守纪名片</view>
+    <view class="card-row"><text class="label">段位</text><text class="value">{{myCard.gradeText}}</text></view>
+    <view class="card-row"><text class="label">连续打卡</text><text class="value">{{myCard.streakDays}} 天</text></view>
+    <view class="card-row"><text class="label">累计守纪</text><text class="value">{{myCard.totalDays}} 天</text></view>
+    <view class="card-row"><text class="label">见证人</text><text class="value">{{myCard.supervisorCount}} 位</text></view>
+  </view>
+
+  <view class="card invite-card">
+    <view class="card-title">邀请守纪督察官</view>
+    <view class="tip">把邀请码发给好友，TA 可成为你的守纪见证人，监督你每日守纪</view>
+    <view class="code-box">{{inviteCode || '生成中…'}}</view>
+    <view class="btn-row">
+      <button class="btn" bindtap="copyCode">复制邀请码</button>
+      <button class="btn ghost" open-type="share">转发邀请</button>
+    </view>
+  </view>
+
+  <view class="card join-card">
+    <view class="card-title">凭码成为好友的督察官</view>
+    <view class="join-input-wrap">
+      <input class="join-input" placeholder="粘贴好友的邀请码" value="{{joinCode}}" bindinput="joinInput" />
+      <button class="btn small" loading="{{joining}}" bindtap="doJoin">加入见证</button>
+    </view>
+  </view>
+
+  <view class="tabs">
+    <view class="tab {{activeTab === 'witness' ? 'active' : ''}}" data-tab="witness" bindtap="switchTab">我的见证人</view>
+    <view class="tab {{activeTab === 'ward' ? 'active' : ''}}" data-tab="ward" bindtap="switchTab">我正在见证</view>
+  </view>
+
+  <view class="list" wx:if="{{activeTab === 'witness'}}">
+    <view class="empty" wx:if="{{!hasWitness}}">还没有见证人，把邀请码发出去吧</view>
+    <view class="item" wx:for="{{witnessList}}" wx:key="id">
+      <view class="item-id">{{item.id}}</view>
+      <view class="item-meta">{{item.gradeText}} · 连续 {{item.streakDays}} 天 · 守纪 {{item.totalDays}} 天</view>
+    </view>
+  </view>
+
+  <view class="list" wx:if="{{activeTab === 'ward'}}">
+    <view class="empty" wx:if="{{!hasWard}}">还没有在见证的好友</view>
+    <view class="item" wx:for="{{wardList}}" wx:key="id">
+      <view class="item-id">{{item.id}}</view>
+      <view class="item-meta">{{item.gradeText}} · 连续 {{item.streakDays}} 天 · 守纪 {{item.totalDays}} 天</view>
+    </view>
+  </view>
+
+  <view class="wall-entry" bindtap="goWall">查看守纪公开围观墙 ›</view>
+</view>

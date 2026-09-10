@@ -43,6 +43,42 @@
       {
         "value": "project.private.config.json",
         "type": "file"
+      },
+      {
+        "value": "check-refs.js",
+        "type": "file"
+      },
+      {
+        "value": "check-pages.js",
+        "type": "file"
+      },
+      {
+        "value": "analyze_size.py",
+        "type": "file"
+      },
+      {
+        "value": "api.is",
+        "type": "file"
+      },
+      {
+        "value": "check-pages.js.bak_bom_20260907",
+        "type": "file"
+      },
+      {
+        "value": "check_syntax.sh",
+        "type": "file"
+      },
+      {
+        "value": "compress_badges.py",
+        "type": "file"
+      },
+      {
+        "value": "tools",
+        "type": "folder"
+      },
+      {
+        "value": "docs",
+        "type": "folder"
       }
     ],
     "include": []

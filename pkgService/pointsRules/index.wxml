@@ -1,0 +1,65 @@
+<!-- pkgService/pointsRules/index.wxml —— 积分规则公示页 -->
+<view class="rules">
+  <view class="banner">
+    <view class="banner-title">积分规则公示</view>
+    <view class="banner-sub">只赚不买 · 合规留痕 · 段位与荣誉来源清晰可查</view>
+  </view>
+
+  <view class="block">
+    <view class="block-h">我们的承诺</view>
+    <view class="pledge">
+      熵盾积分通过<text class="hl">守纪 / 学习 / 里程碑</text>免费获得，<text class="hl-red">不可购买、不可提现、不可转赠、不可交易</text>。积分不是虚拟货币、也不是预付卡，仅为对守纪行为的忠诚度回馈。
+    </view>
+  </view>
+
+  <view class="block">
+    <view class="block-h">双轨体系</view>
+    <view class="track">
+      <view class="track-name a">A 轨 · 纪律分（段位 / 荣誉）</view>
+      <view class="track-desc">只赚不扣，按累计总分确定段位与名人堂名次，永久记录你的守纪信用。</view>
+    </view>
+    <view class="track">
+      <view class="track-name b">B 轨 · 战力值（PK 筹码）</view>
+      <view class="track-desc">每日免费发放，仅用于 PK 对局押注；不可兑换会员或测算次数，只能换荣誉。</view>
+    </view>
+  </view>
+
+  <view class="block">
+    <view class="block-h">段位阶梯（按累计纪律分）</view>
+    <view class="lv-row" wx:for="{{levels}}" wx:key="lv">
+      <view class="lv-dot lv-{{item.lv}}">{{item.lv}}</view>
+      <view class="lv-text">
+        <text class="lv-name">{{item.name}}</text>
+        <text class="lv-th">{{item.threshold}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="block">
+    <view class="block-h">怎么获得积分</view>
+    <view class="gain-row" wx:for="{{gains}}" wx:key="k">
+      <text class="gain-k">{{item.k}}</text>
+      <text class="gain-v">+{{item.v}} 分</text>
+    </view>
+  </view>
+
+  <view class="block">
+    <view class="block-h">兑换怎么用</view>
+    <view class="layer">
+      <view class="layer-tag l1">L1 权益层</view>
+      <view class="layer-desc">会员时长 / 测算次数 / 单课解锁 / 深度报告，兑换后即时发放，循环增强你的风控能力。</view>
+    </view>
+    <view class="layer">
+      <view class="layer-tag l2">L2 知识层</view>
+      <view class="layer-desc">微信读书礼品卡、守护者电子书房，积分达标即可兑换（第三方官方码二次发放，非发行方）。</view>
+    </view>
+    <view class="layer">
+      <view class="layer-tag l3">L3 荣誉层</view>
+      <view class="layer-desc">定制周边 / 限定荣誉，仅赛季前 N 名、年度名人堂由平台主动赠予，<text class="hl-red">不开放用户主动兑换</text>。</view>
+    </view>
+  </view>
+
+  <view class="compliance">
+    合规边界：积分体系坚持「只赚不买」。若未来放开人民币购分，将重新评估并接入对应资质（虚拟支付 / 类目），届时另行明示。平台不开展任何涉及人民币的积分交易。
+  </view>
+</view>

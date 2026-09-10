@@ -10,6 +10,31 @@
   </view>
   <view class="unlock-note" wx:if="{{unlockNote}}">{{unlockNote}}</view>
 
+  <!-- 权益拉取中：先不渲染正文，避免"先看到内容又被锁"的闪现 -->
+  <view class="lk-loading" wx:if="{{!checked}}">加载中…</view>
+
+  <!-- 未解锁：真门禁，不放正文（58 号方案） -->
+  <view class="lock-card" wx:if="{{locked && checked}}">
+    <view class="lk-title">🔒 本节尚未解锁</view>
+    <view class="lk-note" wx:if="{{unlockNote}}">{{unlockNote}}</view>
+
+    <view class="btn primary" wx:if="{{!ent.firstOfferUsed}}"
+          bindtap="onUnlockByPaid" data-code="course_first">
+      {{unlocking ? '处理中…' : '1 元解锁首课'}}
+    </view>
+    <view class="btn primary" wx:else
+          bindtap="onUnlockByPaid" data-code="course_one">
+      {{unlocking ? '处理中…' : '19.9 元解锁本课'}}
+    </view>
+
+    <view class="btn ghost" bindtap="onUnlockByPoints">
+      用 {{ent.pointCost || 80}} 积分解锁（现有 {{ent.points || 0}}）
+    </view>
+
+    <view class="vip-line" bindtap="onGoMember">{{memberPitch}} ›</view>
+    <view class="p-tip">虚拟内容，一经解锁不支持退款</view>
+  </view>
+
   <block wx:for="{{blocks}}" wx:key="t" wx:for-item="b" wx:for-index="i">
     <view class="blk b-hero" wx:if="{{b.t === 'hero'}}">{{b.text}}</view>
     <view class="blk b-hook" wx:elif="{{b.t === 'hook'}}">{{b.text}}</view>
@@ -42,11 +67,20 @@
     <view class="blk b-disclaimer" wx:elif="{{b.t === 'disclaimer'}}">{{b.text}}</view>
   </block>
 
-  <view class="done-bar" wx:if="{{!done}}">
+  <view class="done-bar" wx:if="{{!locked && !done && checked}}">
     <button class="done-btn" bindtap="onMarkDone">标记学完 · 得积分</button>
   </view>
-  <view class="done-bar" wx:else>
+  <view class="done-bar" wx:elif="{{!locked && done}}">
     <view class="done-flag">✓ 已完成本节</view>
+  </view>
+
+  <!-- [波次2] 实操引导卡：学完立刻去用一次，用完免费次数即触发会员引导 -->
+  <view class="practice-card" wx:if="{{!locked && done && practice}}">
+    <view class="pc-left">
+      <text class="pc-t">现在就用一次</text>
+      <text class="pc-s">{{practice.label}}</text>
+    </view>
+    <button class="pc-btn" bindtap="onGoPractice">去算</button>
   </view>
 
 </view>

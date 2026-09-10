@@ -23,6 +23,11 @@ Page({
     const day = options.day || 'D1';
     const dayName = options.dayName || '';
 
+    // [Phase 2] 周末降级为复盘日：隐藏实盘演练，只做 daily/review/homework
+    let sc = null;
+    try { sc = require('../../utils/seasonConfig.js'); } catch (e) { sc = null; }
+    const isRestDay = !!(sc && sc.isWeekend(sc.dateStr()));
+
     this.ensureClientIdAndInit();
 
     const logs = wx.getStorageSync('campDailyLogs') || {};
@@ -33,6 +38,8 @@ Page({
     this.setData({
       day,
       dayName,
+      dayLabel: dayName ? (day + ' · ' + dayName) : day,
+      isRestDay,
       dailyNote: log.dailyNote || '',
       practiceNote: log.practiceNote || '',
       reviewNote: log.reviewNote || '',
@@ -80,9 +87,83 @@ Page({
     this.setData({ [field]: value });
   },
 
-  calcScore(dailyNote, practiceNote, reviewNote, homeworkNote) {
-    const notes = [dailyNote || '', practiceNote || '', reviewNote || '', homeworkNote || ''];
+  // -------------------------------------------------------------------------
+  // [Phase 2] 赛季守纪自评 + 豁免日
+  //
+  // 设计：赛季成绩不能只靠"打了卡就算守纪"。提交后询问当日是否守住承诺；
+  //       未守住时若还有豁免日，可消耗一个 —— 不达成、也不算破戒（借鉴达目标休假天）。
+  //       周末/休市由后端直接 skipped，此处不打扰用户。
+  // -------------------------------------------------------------------------
+  askSeasonCheck() {
+    try {
+      if (wx.getStorageSync('campMode') !== 'season') return;
+      let seasonApi = null;
+      let sc = null;
+      try { seasonApi = require('../../utils/seasonApi.js'); } catch (e) { return; }
+      try { sc = require('../../utils/seasonConfig.js'); } catch (e) { sc = null; }
+
+      // 休市日：后端会自动 skipped，静默上报即可，不弹窗打扰
+      if (sc && sc.isWeekend && sc.isWeekend(sc.dateStr())) {
+        seasonApi.check(true, '', false).then(() => {});
+        return;
+      }
+
+      const P = { A: '不留裸单', B: '止损 48 小时内记录', C: '单笔风险不超过 2%' };
+      const pid = wx.getStorageSync('seasonPromise') || '';
+      const pname = P[pid] || '今天的守纪承诺';
+
+      wx.showModal({
+        title: '今日守纪确认',
+        content: '今天你做到了「' + pname + '」吗？',
+        confirmText: '守住了',
+        cancelText: '没守住',
+        success: (res) => {
+          if (res.confirm) {
+            seasonApi.check(true, '', false).then((r) => this.onSeasonChecked(r));
+          } else {
+            this.askUseExempt(seasonApi);
+          }
+        }
+      });
+    } catch (e) { /* 赛季接口不可用时不影响打卡 */ }
+  },
+
+  /** 未守住 → 询问是否消耗豁免日（仅在仍有余额时询问） */
+  askUseExempt(seasonApi) {
+    seasonApi.progress().then((p) => {
+      const left = p && p.exemptLeft != null ? Number(p.exemptLeft) : 0;
+      if (!left) {
+        seasonApi.check(false, '', false).then((r) => this.onSeasonChecked(r));
+        return;
+      }
+      wx.showModal({
+        title: '使用豁免日？',
+        content: '本赛季还剩 ' + left + ' 个豁免日。使用豁免日：今天不计达成，也不算破戒，不影响执行率。',
+        confirmText: '用掉 1 个',
+        cancelText: '记为未守纪',
+        success: (r2) => {
+          seasonApi.check(false, '', !!r2.confirm).then((r) => this.onSeasonChecked(r));
+        }
+      });
+    });
+  },
+
+  onSeasonChecked(r) {
+    if (!r || r.skipped) return;   // 休市日静默
+    const txt = r.passed
+      ? '已记录：今日守纪达成'
+      : (r.exemptUsed ? '已记录：使用豁免日' : '已记录：今日未守纪');
+    wx.showToast({ title: txt, icon: 'none', duration: 1500 });
+  },
+
+  calcScore(dailyNote, practiceNote, reviewNote, homeworkNote, isRestDay) {
+    // [Phase 2] 周末复盘日只有 3 项（无实盘演练），3 项全填同样计满分
+    const notes = isRestDay
+      ? [dailyNote || '', reviewNote || '', homeworkNote || '']
+      : [dailyNote || '', practiceNote || '', reviewNote || '', homeworkNote || ''];
     const filledCount = notes.filter((n) => n.trim().length > 0).length;
+
+    if (isRestDay) return [0, 60, 78, 90][filledCount] || 0;
 
     if (filledCount === 0) return 0;
     if (filledCount === 1) return 60;
@@ -99,7 +180,7 @@ Page({
 
     const alreadyFinished = !!finishedMap[day];
 
-    const score = this.calcScore(dailyNote, practiceNote, reviewNote, homeworkNote);
+    const score = this.calcScore(dailyNote, practiceNote, reviewNote, homeworkNote, this.data.isRestDay);
 
     const tags = [];
     const textAll = (dailyNote || '') + (practiceNote || '') + (reviewNote || '') + (homeworkNote || '');
@@ -199,6 +280,9 @@ Page({
     }
 
     const { finishedDays, alreadyFinished } = this.saveLog(true);
+
+    // [Phase 2] 赛季模式：提交后做当日守纪自评（后端未上线时静默跳过）
+    this.askSeasonCheck();
 
     if (day === 'D1' && !alreadyFinished) {
       this.notifyCampD1Reward();

@@ -32,9 +32,13 @@
 }
 .member-label { font-size: var(--fs-xs, 20rpx); color: var(--es-green, #00BFFF); font-weight: 600; }
 .member-exp { font-size: 18rpx; color: var(--es-txt-3, #8E98A3); margin-top: 2rpx; }
+/* [2026-09-10] 首页露出剩余测算次数（homeTaskRightsText 此前已计算但未渲染） */
+.member-quota { font-size: 18rpx; color: var(--es-green, #00BFFF); margin-top: 2rpx; font-weight: 500; }
 
 /* 风险温度大卡 */
 .temp-card { position: relative; overflow: hidden; }
+/* [ESOS-01] 核心口号（冻结标准表达）· 温度卡顶部品牌条 */
+.temp-brand { font-size: var(--fs-xs, 20rpx); color: var(--es-txt-3, #8E98A3); letter-spacing: 1rpx; margin-bottom: 12rpx; }
 .temp-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--sp-2, 16rpx); }
 .temp-title { font-size: var(--fs-md, 32rpx); font-weight: 600; }
 .temp-upd { font-size: var(--fs-xs, 20rpx); color: var(--es-txt-3, #8E98A3); }
@@ -55,6 +59,8 @@
 }
 .verdict { font-size: var(--fs-md, 32rpx); font-weight: 700; }
 .verdict-sub { font-size: var(--fs-sm, 24rpx); color: var(--es-txt-2, #AAB4BE); line-height: 1.5; margin-top: 4rpx; }
+/* [2026-09-09] 上一交易日收盘对比行：与今日实时值并排，供用户判断温度走向 */
+.temp-prev { font-size: var(--fs-xs, 22rpx); color: var(--es-txt-3, #7A8794); line-height: 1.5; margin-top: 8rpx; }
 .share-temp {
   margin-top: var(--sp-3, 24rpx);
   width: 100%; height: 76rpx;
@@ -66,6 +72,34 @@
   border-radius: var(--radius-sm, 12rpx);
 }
 .share-temp:active { opacity: .7; }
+/* [2026-09-09] 温度卡两个动作并排：转发小程序卡片 / 生成图片存相册 */
+.temp-actions { display: flex; gap: var(--sp-2, 16rpx); }
+.temp-actions .share-temp { flex: 1; }
+.share-temp-ghost {
+  color: var(--es-txt-1, #F4F7FA);
+  background: var(--es-elevated, #151F2C);
+  border: 1rpx solid var(--es-line, #4B5663);
+}
+/* [2026-09-09] 每日温度提醒开关（服务号推送，默认关，需用户主动开启） */
+.oa-push {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: var(--sp-3, 24rpx);
+  padding-top: var(--sp-3, 24rpx);
+  border-top: 1rpx solid rgba(75, 86, 99, .4);
+}
+.oa-push-main { display: flex; flex-direction: column; }
+.oa-push-k { font-size: var(--fs-base, 28rpx); font-weight: 600; color: var(--es-txt-1, #F4F7FA); }
+.oa-push-s { font-size: var(--fs-xs, 22rpx); color: var(--es-txt-3, #7A8794); margin-top: 4rpx; }
+.oa-follow {
+  margin-top: var(--sp-2, 16rpx);
+  width: 100%; height: 72rpx;
+  display: flex; align-items: center; justify-content: center;
+  font-size: var(--fs-sm, 24rpx); font-weight: 600;
+  color: var(--es-amber, #FFB020);
+  background: rgba(255, 176, 32, .1);
+  border: 1rpx solid rgba(255, 176, 32, .4);
+  border-radius: var(--radius-sm, 12rpx);
+}
 
 /* 打卡条 */
 .checkin { display: flex; align-items: center; justify-content: space-between; }
@@ -152,3 +186,27 @@
 /* 责任边界 */
 .notice { padding: var(--sp-2, 16rpx) 4rpx 0; }
 .notice-txt { font-size: 18rpx; color: var(--es-txt-3, #8E98A3); line-height: 1.6; }
+
+/* ③ 活动入口 Banner（读服务器开关显隐） */
+.act-banner { margin-bottom: var(--sp-2, 16rpx); }
+.act-card {
+  position: relative;
+  display: flex; align-items: center; gap: 18rpx;
+  padding: var(--sp-2, 18rpx) 20rpx;
+  margin-bottom: 12rpx;
+  overflow: hidden;
+}
+.act-card:active { opacity: .75; }
+.act-tag {
+  flex-shrink: 0;
+  font-size: var(--fs-xs, 20rpx); font-weight: 600;
+  color: var(--es-amber, #FFB020);
+  background: rgba(255, 176, 32, .12);
+  border: 1rpx solid rgba(255, 176, 32, .35);
+  padding: 6rpx 14rpx; border-radius: 8rpx;
+}
+.act-body { flex: 1; min-width: 0; }
+.act-title { font-size: var(--fs-base, 28rpx); font-weight: 600; }
+.act-sub { font-size: var(--fs-xs, 20rpx); color: var(--es-txt-2, #AAB4BE); margin-top: 4rpx; }
+.act-reward { font-size: var(--fs-xs, 20rpx); color: var(--es-green, #00BFFF); margin-top: 6rpx; }
+.act-go { flex-shrink: 0; font-size: var(--fs-sm, 24rpx); color: var(--es-green, #00BFFF); font-weight: 600; }

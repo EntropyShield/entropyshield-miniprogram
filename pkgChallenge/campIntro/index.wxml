@@ -2,12 +2,12 @@
 
 <!-- 顶部介绍卡片 -->
 <view class="card intro-card">
-  <view class="badge">7 天风控训练营</view>
+  <view class="badge">{{campTitle}}</view>
 
   <view class="intro-title">从 “会亏钱” 到 “会控亏” 的第一堂课</view>
   <view class="intro-sub">
-    通过 7 天系统训练，帮你搭建一套「先控亏，再谈收益」的风控底座。
-    每天只做一件小事，用 7 天建立全新的交易思维。
+    通过 {{campDays}} 天系统训练，帮你搭建一套「{{campSubtitle}}」的风控底座。
+    每天只做一件小事，用 {{campDays}} 天建立全新的交易思维。
   </view>
 
   <view class="intro-chips">
@@ -19,7 +19,29 @@
 
   <view class="intro-progress">
     <text>训练进度：</text>
-    <text class="strong">{{finishedDays}} / 7 天</text>
+    <text class="strong">{{finishedDays}} / {{campDays}} 天</text>
+  </view>
+
+  <!-- [2026-09-10] 模式切换入口：7 天训练营 ⇄ 30 天守纪挑战赛 -->
+  <view class="mode-switch" bindtap="switchMode">切换训练模式（当前：{{campTitle}}）</view>
+
+  <!-- [2026-09-10] 赛季状态条：仅赛季模式显示 -->
+  <view class="season-bar" wx:if="{{campMode === 'season'}}">
+    <view class="season-row">
+      <text class="season-no">{{seasonNo}} 守纪进度</text>
+      <text class="season-rate">执行率 {{seasonRate}}%</text>
+    </view>
+    <view class="season-row">
+      <text class="season-pm">守纪承诺：{{seasonPromiseName}}</text>
+      <text class="season-switch" bindtap="switchPromise">更换</text>
+    </view>
+    <view class="season-row">
+      <text class="season-pm">豁免日 {{seasonExemptLeft}}/{{seasonExemptTotal}} · 赛季剩余 {{seasonDaysLeft}} 天</text>
+    </view>
+    <view class="season-tip">
+      已守纪 {{seasonPassed}} / 约 {{seasonTradingTarget}} 个交易日 · 最长连续 {{seasonStreak}} 天 · 完成加赠 {{seasonBonus}}%
+    </view>
+    <view class="season-tip">周末与休市日不判定、不计入成绩；当天没守住，可消耗一个豁免日。</view>
   </view>
 </view>
 
@@ -28,10 +50,10 @@
   <view class="notice-title">关于邀请码与奖励</view>
   <view class="notice-text">
     <text class="camp-invite-tip-line">
-      · 如果你是通过好友的邀请码进来的：每完整完成一轮 7 天训练营，你自己可获得 4 次完整风控方案使用次数（最多 3 轮，共 12 次）；
+      · 如果你是通过好友的邀请码进来的：每完整完成一轮 {{campDays}} 天训练，你自己可获得 {{campRewardTimes}} 次完整风控方案使用次数<block wx:if="{{campMode === 'training'}}">（最多 {{campMaxRounds}} 轮，共 {{campRewardTotal}} 次）</block><block wx:else>（每完整完成一个赛季即可获得）</block>；
     </text>
     <text class="camp-invite-tip-line">
-      · 同时，你也会帮邀请你的好友，再额外获得 4 次完整方案使用次数（绑定邀请码 + 完成 D1 + 完成 7/7 训练营）。
+      · 同时，你也会帮邀请你的好友，再额外获得 4 次完整方案使用次数（绑定邀请码 + 完成 D1 + 完成 {{campDays}}/{{campDays}} 训练）。
     </text>
   </view>
 </view>
@@ -49,7 +71,7 @@
     </view>
     <view class="invite-status-sub">
       <text>
-        你完成本轮 7 天训练营后，Ta 将获得对应的裂变奖励次数。
+        你完成本轮 {{campDays}} 天训练后，Ta 将获得对应的裂变奖励次数。
       </text>
     </view>
   </view>
@@ -82,7 +104,7 @@
     </view>
     <view class="invite-status-sub">
       <text>
-        可以先完整体验 7 天训练营，再邀请好友一起来「控亏」。
+        可以先完整体验 {{campDays}} 天训练，再邀请好友一起来「控亏」。
       </text>
     </view>
   </view>

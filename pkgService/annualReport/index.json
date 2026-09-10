@@ -1,0 +1,6 @@
+{
+  "usingComponents": {
+    "shareCard": "/components/shareCard/index"
+  },
+  "navigationBarTitleText": "我的年度风控报告"
+}

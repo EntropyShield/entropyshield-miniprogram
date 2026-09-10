@@ -1,0 +1,50 @@
+<view class="page">
+
+  <view class="loading" wx:if="{{loading}}">
+    <text class="loading-text">加载中…</text>
+  </view>
+
+  <view class="empty" wx:elif="{{!act}}">
+    <text class="empty-text">活动不存在或已下线</text>
+  </view>
+
+  <block wx:else>
+    <view class="hero t-{{act.tone}}">
+      <text class="tag">{{act.typeLabel}}</text>
+      <text class="title">{{act.title}}</text>
+      <text class="sub" wx:if="{{act.sub}}">{{act.sub}}</text>
+      <text class="time">🕒 {{timeText}}</text>
+      <text class="phase p-{{act.phase}}">{{act.phase === 'live' ? '进行中' : (act.phase === 'upcoming' ? '即将开始' : (act.phase === 'replay' ? '可看回放' : '已结束'))}}</text>
+    </view>
+
+    <view class="card" wx:if="{{act.rewardText}}">
+      <text class="card-k">活动奖励</text>
+      <text class="card-v">{{act.rewardText}}</text>
+    </view>
+
+    <view class="card" wx:if="{{act.summary}}">
+      <text class="card-k">活动详情</text>
+      <text class="card-body">{{act.summary}}</text>
+    </view>
+
+    <view class="card gift" wx:if="{{showGift}}">
+      <text class="card-k">已到账</text>
+      <text class="card-v">《{{giftLesson}}》单课解锁券已存入你的学院</text>
+    </view>
+
+    <view class="cta-bar">
+      <button class="cta {{ctaDisabled ? 'off' : ''}}" bindtap="onJoin">{{ctaText}}</button>
+      <view class="cta-tip" wx:if="{{act.phase === 'live'}}">报名后可在学院继续学习</view>
+    </view>
+
+    <!-- 闭环：活动 → 学院 -->
+    <view class="foot-card" bindtap="goAcademy">
+      <view class="foot-l">
+        <text class="foot-t">没赶上也别空手走</text>
+        <text class="foot-s">72 节风控课，12 节免费开看</text>
+      </view>
+      <text class="foot-arrow">›</text>
+    </view>
+  </block>
+
+</view>

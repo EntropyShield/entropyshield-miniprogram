@@ -8,7 +8,7 @@
 const DEV_API_BASE = 'http://127.0.0.1:3001';
 const PROD_API_BASE = 'https://api.entropyshield.com';
 
-// 本地调试时若需连生产后端，临时改为 true；该开关在 release 环境自动失效
+// 本地调试时若需连生产后端，临时改为 true；该开关在 release/trial 环境自动失效
 const FORCE_PROD = false;
 
 function currentEnv() {
@@ -28,4 +28,12 @@ const IS_PROD = ENV === 'release' || ENV === 'trial';
 // 正式版强制生产，不受 FORCE_PROD 影响 —— 这是本文件唯一不可绕过的规则
 const API_BASE = IS_PROD ? PROD_API_BASE : (FORCE_PROD ? PROD_API_BASE : DEV_API_BASE);
 
-module.exports = { API_BASE, DEV_API_BASE, PROD_API_BASE, ENV, IS_PROD };
+// 服务号引导素材（54 号施工图 Phase 3：不引导关注，前面整条触达链路都白搭）
+// OA_QR_URL 走自家域名代理（/api/oa/qrcode），不直连 mp.weixin.qq.com：
+//   · 省掉小程序 downloadFile 合法域名配置
+//   · 后端用 OA_QR_TICKET 向微信取图；ticket 未生成时返回 404，前端降级文字引导
+// 生成 ticket：node scripts/gen_oa_qrcode.js（需先配好 OA_APPID/OA_SECRET）
+const OA_QR_URL = API_BASE + '/api/oa/qrcode';
+const OA_NAME = '熵盾';
+
+module.exports = { API_BASE, DEV_API_BASE, PROD_API_BASE, ENV, IS_PROD, OA_QR_URL, OA_NAME };

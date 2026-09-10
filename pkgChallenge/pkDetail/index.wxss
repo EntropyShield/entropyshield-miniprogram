@@ -1,0 +1,24 @@
+.page { padding:24rpx; background:#03060C; min-height:100vh; box-sizing:border-box; }
+.head { display:flex; align-items:center; gap:12rpx; }
+.h-name { color:#E6EDF3; font-size:34rpx; font-weight:700; }
+.h-tag { color:#00BFFF; font-size:22rpx; border:1rpx solid #00BFFF; border-radius:8rpx; padding:2rpx 10rpx; }
+.h-tag.grey { color:#7B8591; border-color:#2A3540; }
+.balance { display:flex; justify-content:space-between; align-items:baseline; background:#0E1620; border:1rpx solid #1C2733; border-radius:16rpx; padding:20rpx 24rpx; margin-top:20rpx; color:#7B8591; font-size:26rpx; }
+.bv { color:#00BFFF; font-size:40rpx; font-weight:700; }
+.pool { display:flex; gap:16rpx; margin-top:20rpx; }
+.side { flex:1; background:#0E1620; border:1rpx solid #1C2733; border-radius:16rpx; padding:24rpx; display:flex; flex-direction:column; }
+.side.mine { border-color:#00BFFF; }
+.sk { color:#7B8591; font-size:24rpx; }
+.sv { color:#E6EDF3; font-size:44rpx; font-weight:700; margin:8rpx 0; }
+.so { color:#00BFFF; font-size:24rpx; }
+.mybet { color:#E6EDF3; font-size:26rpx; margin-top:20rpx; background:#0A1118; border:1rpx solid #1C2733; border-radius:12rpx; padding:16rpx; }
+.bet { margin-top:24rpx; background:#0E1620; border:1rpx solid #1C2733; border-radius:16rpx; padding:24rpx; }
+.bet-side { display:flex; gap:16rpx; }
+.bs { flex:1; text-align:center; padding:20rpx; border-radius:12rpx; border:1rpx solid #2A3540; color:#7B8591; font-size:28rpx; }
+.bs.on { background:#00BFFF; color:#04121D; font-weight:700; border-color:#00BFFF; }
+.bet-amt { margin-top:20rpx; }
+.amt-input { background:#0A1118; border:1rpx solid #2A3540; border-radius:12rpx; padding:20rpx; color:#E6EDF3; font-size:30rpx; }
+.quick { display:flex; gap:12rpx; margin-top:16rpx; }
+.q { flex:1; text-align:center; padding:14rpx; border:1rpx solid #2A3540; border-radius:10rpx; color:#7B8591; font-size:26rpx; }
+.btn { margin-top:24rpx; text-align:center; padding:24rpx; background:#00BFFF; color:#04121D; font-weight:700; border-radius:14rpx; font-size:30rpx; }
+.tip { color:#5A6672; font-size:22rpx; margin-top:24rpx; line-height:1.6; }

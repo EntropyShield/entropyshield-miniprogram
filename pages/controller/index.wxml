@@ -18,10 +18,17 @@
   <!-- ② 本周纪律执行率 -->
   <view class="rate-card">
     <view class="rate-top">
-      <text class="rate-k">本周纪律执行率</text>
-      <text class="rate-v" wx:if="{{wbRateReady}}">{{wbRate}}% · 高于你的均值</text>
-      <!-- 后端 /api/discipline/weekly 未就绪：诚实占位，不编造百分比 -->
-      <text class="rate-v rate-v-idle" wx:else>数据积累中</text>
+      <!-- [熵盾 V2.1 · 技能:S07_UI设计系统与三方案] 方案B 进度环令牌 .es-ring（--p 传 0-100 纯数字）
+           兜底：基础库不支持 CSS 变量时显示轨道色，中心文字仍可读进度 -->
+      <view class="es-ring rate-ring" style="--p:{{wbRateReady ? wbRate : 0}}">
+        <text class="es-ring__txt rate-ring-txt">{{wbRateReady ? wbRate : '--'}}<text class="rate-ring-unit" wx:if="{{wbRateReady}}">%</text></text>
+      </view>
+      <view class="rate-top-main">
+        <text class="rate-k">本周纪律执行率</text>
+        <text class="rate-v" wx:if="{{wbRateReady}}">连续守纪 {{wbStreak}} 天 · 高于你的均值</text>
+        <!-- 后端 /api/discipline/weekly 未就绪：诚实占位，不编造百分比 -->
+        <text class="rate-v rate-v-idle" wx:else>数据积累中</text>
+      </view>
     </view>
 
     <view class="rate-row">
@@ -79,6 +86,52 @@
       <text class="q-t">写复盘</text>
       <text class="q-s">沉淀档案</text>
     </view>
+  </view>
+
+  <!-- ④-2 控局者学院入口 · [熵盾 V2.1 · 技能:S07] 方案B 强调色令牌 --es-academy
+       ⚠️ 2026-09-08 补：24 号原型改造删区块时误删入口，导致学院 72 课无入口可达，此处重建 -->
+  <view class="academy-entry" bindtap="goToCourseList">
+    <view class="ae-l">
+      <view class="ae-title">控局者学院</view>
+      <view class="ae-sub">72 节体系课 · 从守门人走到守护者</view>
+    </view>
+    <text class="ae-arrow">›</text>
+  </view>
+
+  <!-- ④-3 战力值 PK 对战入口（68 号）· 用免费战力值押注守纪者能否守住赛季 -->
+  <view class="pk-entry" bindtap="goPk">
+    <view class="pk-l">
+      <view class="pk-title">战力值 PK 对战</view>
+      <view class="pk-sub">用免费战力值押注守纪者能否守住赛季 · 神算子榜按命中率排名</view>
+    </view>
+    <text class="pk-arrow">›</text>
+  </view>
+
+  <!-- ④-4 积分兑换入口（69 号 L1 权益层）· 守纪积累的积分兑会员/测算次数/课程/报告 -->
+  <view class="pk-entry" bindtap="goExchange">
+    <view class="pk-l">
+      <view class="pk-title">积分兑换</view>
+      <view class="pk-sub">用守纪积累的积分兑换会员时长 / 测算次数 / 课程 / 报告</view>
+    </view>
+    <text class="pk-arrow">›</text>
+  </view>
+
+  <!-- ④-5 荣誉墙入口（L3 纯展示）· 赛季前 N 名 + 守护者名人堂 -->
+  <view class="pk-entry" bindtap="goHonor">
+    <view class="pk-l">
+      <view class="pk-title">荣誉墙</view>
+      <view class="pk-sub">赛季前 N 名与守护者名人堂 · 守纪攒分即上榜</view>
+    </view>
+    <text class="pk-arrow">›</text>
+  </view>
+
+  <!-- ④-6 年度风控报告入口（A-3 年报晒图节） -->
+  <view class="pk-entry" bindtap="goAnnual">
+    <view class="pk-l">
+      <view class="pk-title">我的年度风控报告</view>
+      <view class="pk-sub">只记守纪痕迹 · 一键生成可晒卡片，不涉收益数据</view>
+    </view>
+    <text class="pk-arrow">›</text>
   </view>
 
   <!-- ⑤ 内部分段：存续方案 / 执行记录 / 报告 -->

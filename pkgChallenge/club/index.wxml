@@ -1,6 +1,80 @@
-<view class="page" style="padding:16px;">
-  <view class="card">
-    <text class="h2">守护者俱乐部</text>
-    <view class="p text-secondary" style="margin-top:8px;">活动 / 沙龙 / 训练营</view>
+<view class="page">
+  <view class="hero">
+    <text class="hero-title">守护者俱乐部</text>
+    <text class="hero-sub">会员权益 · 专属活动</text>
+  </view>
+
+  <!-- 会员状态卡 -->
+  <view class="card member {{isMember ? 'on' : ''}}" bindtap="goVip">
+    <view class="member-row">
+      <text class="member-name">{{membershipName}}</text>
+      <text class="member-expire" wx:if="{{isMember}}">有效期至 {{expireText}}</text>
+      <text class="member-expire" wx:else>点击开通会员</text>
+    </view>
+    <view class="member-rights">
+      <text class="rights-num">{{freeCalcTimes}}</text>
+      <text class="rights-label">次高级测算可用</text>
+    </view>
+  </view>
+
+  <!-- 会员权益 -->
+  <view class="section">
+    <view class="section-title">会员权益</view>
+    <view class="benefit">
+      <text class="benefit-name">体验会员</text>
+      <text class="benefit-desc">基础风控测算 + 守纪挑战赛参与资格</text>
+    </view>
+    <view class="benefit">
+      <text class="benefit-name">季会员</text>
+      <text class="benefit-desc">全部测算工具 + 统考 / 挑战赛加成权益</text>
+    </view>
+    <view class="benefit">
+      <text class="benefit-name">年会员</text>
+      <text class="benefit-desc">全年权益 + 数字勋章 + 优先新品体验</text>
+    </view>
+  </view>
+
+  <!-- 统一活动：公开课 / 体验课 / 沙龙 / 训练营 / 统考 / 挑战赛 / 晒图节 -->
+  <view class="section">
+    <view class="section-title">活动</view>
+    <view wx:if="{{!hasAct}}" class="empty">近期暂无活动</view>
+
+    <block wx:if="{{liveList.length}}">
+      <view class="group-k">进行中</view>
+      <view wx:for="{{liveList}}" wx:key="key" class="act" bindtap="goActivity" data-path="{{item.path}}">
+        <view class="act-tag t-{{item.tone}}">{{item.typeLabel}}</view>
+        <view class="act-body">
+          <text class="act-title">{{item.title}}</text>
+          <text class="act-sub" wx:if="{{item.sub}}">{{item.sub}}</text>
+          <text wx:if="{{item.rewardText}}" class="act-reward">奖励：{{item.rewardText}}</text>
+        </view>
+        <text class="act-go">›</text>
+      </view>
+    </block>
+
+    <block wx:if="{{upcomingList.length}}">
+      <view class="group-k">即将开始</view>
+      <view wx:for="{{upcomingList}}" wx:key="key" class="act" bindtap="goActivity" data-path="{{item.path}}">
+        <view class="act-tag t-{{item.tone}}">{{item.typeLabel}}</view>
+        <view class="act-body">
+          <text class="act-title">{{item.title}}</text>
+          <text class="act-sub" wx:if="{{item.sub}}">{{item.sub}}</text>
+        </view>
+        <text class="act-go">›</text>
+      </view>
+    </block>
+
+    <block wx:if="{{pastList.length}}">
+      <view class="group-k">往期（搞完就过）</view>
+      <view wx:for="{{pastList}}" wx:key="key" class="act past" bindtap="goActivity" data-path="{{item.path}}">
+        <view class="act-tag t-gray">{{item.typeLabel}}</view>
+        <view class="act-body">
+          <text class="act-title">{{item.title}}</text>
+          <text class="act-sub" wx:if="{{item.phase === 'replay'}}">可看回放</text>
+          <text class="act-sub" wx:else>已结束</text>
+        </view>
+        <text class="act-go">›</text>
+      </view>
+    </block>
   </view>
 </view>

@@ -1,0 +1,78 @@
+<!-- pkgService/exchange/index.wxml —— 积分商城 -->
+<view class="exchange">
+  <view class="balance-bar">
+    <view class="balance-label">我的熵盾积分</view>
+    <view class="balance-value">{{balance}}</view>
+    <view class="balance-tip">积分通过守纪 / 学习 / 里程碑免费获得，不可购买、不可提现</view>
+  </view>
+
+  <view class="quick-row">
+    <view class="quick-item" bindtap="goOrders">
+      <view class="quick-title">我的订单</view>
+      <view class="quick-sub">兑换记录与发码状态</view>
+      <text class="quick-arrow">›</text>
+    </view>
+    <view class="quick-item room" bindtap="goRoom">
+      <view class="quick-title">电子书房</view>
+      <view class="quick-sub">已解锁书目</view>
+      <text class="quick-arrow">›</text>
+    </view>
+  </view>
+
+  <view wx:if="{{loading}}" class="state">加载中…</view>
+  <view wx:elif="{{errMsg}}" class="state">{{errMsg}}</view>
+  <view wx:elif="{{list.length === 0}}" class="state">暂无可用兑换</view>
+
+  <view wx:else class="list">
+    <view class="card" wx:for="{{list}}" wx:key="sku">
+      <view class="card-main">
+        <view class="card-name">{{item.name}}</view>
+        <view class="card-desc">{{item.desc}}</view>
+        <view wx:if="{{item.layer === 'L2'}}" class="tag-l2 {{item.kind === 'ebook' ? 'tag-room' : ''}}">{{item.kind === 'ebook' ? '电子书房' : '读书权益'}}</view>
+      </view>
+      <view class="card-side">
+        <view class="card-cost">{{item.cost}} 积分</view>
+        <button
+          class="redeem-btn {{item.open ? (balance >= item.cost ? '' : 'disabled') : 'locked'}}"
+          size="mini"
+          data-sku="{{item.sku}}"
+          data-cost="{{item.cost}}"
+          bindtap="onRedeem"
+        >{{item.open ? '兑换' : '敬请期待'}}</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 我的兑换码（L2 微信读书礼品卡） -->
+  <view wx:if="{{myCodes.length > 0}}" class="codes-block">
+    <view class="codes-title">我的读书卡兑换码</view>
+    <view class="code-row" wx:for="{{myCodes}}" wx:key="code">
+      <view class="code-info">
+        <view class="code-name">{{item.name}}</view>
+        <view class="code-val">{{item.code}}</view>
+      </view>
+      <button class="copy-btn" size="mini" data-code="{{item.code}}" bindtap="copyCode">复制</button>
+    </view>
+  </view>
+
+  <view class="compliance-tip">
+    兑换为确定性权益（明码标价、积分足够即可兑换）。L3 荣誉层（定制周边）为赛季奖励，不开放主动兑换。
+  </view>
+
+  <view class="rules-entry" bindtap="goRules">
+    <text class="rules-entry-t">积分规则公示</text>
+    <text class="rules-entry-s">只赚不买 · 段位与荣誉来源可查</text>
+    <text class="rules-entry-a">›</text>
+  </view>
+
+  <!-- 兑换成功弹码 -->
+  <view wx:if="{{codeModal.show}}" class="modal-mask" bindtap="closeCodeModal">
+    <view class="modal" catchtap="noop">
+      <view class="modal-title">{{codeModal.name}}</view>
+      <view class="modal-sub">兑换成功 · 在微信读书「我-兑换礼品卡」中输入以下兑换码</view>
+      <view class="modal-code">{{codeModal.code}}</view>
+      <button class="modal-copy" bindtap="copyCode" data-code="{{codeModal.code}}">复制兑换码</button>
+      <view class="modal-close" bindtap="closeCodeModal">关闭</view>
+    </view>
+  </view>
+</view>

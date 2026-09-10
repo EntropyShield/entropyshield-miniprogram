@@ -6,6 +6,6 @@
   "backgroundColor": "#000000",
   "usingComponents": {
     "disclaimer": "/components/disclaimer/disclaimer",
-    "share-card": "/pkgTest/components/shareCard/index"
+    "share-card": "/components/shareCard/index"
   }
 }

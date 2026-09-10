@@ -1,0 +1,61 @@
+<!-- pkgService/honorWall/index.wxml —— L3 荣誉墙 -->
+<view class="hw">
+
+  <!-- 我的段位卡 -->
+  <view wx:if="{{me}}" class="me-card">
+    <view class="me-l">
+      <view class="me-level">{{me.levelName}}</view>
+      <view class="me-sub">我的熵盾积分 {{me.total}} · 当前排名第 {{me.rank}}</view>
+    </view>
+    <view class="me-rank">No.{{me.rank}}</view>
+  </view>
+  <view wx:else class="me-card me-card-empty">
+    <view class="me-l">
+      <view class="me-level">Lv.1 守护者</view>
+      <view class="me-sub">守纪即攒分，段位越走越高</view>
+    </view>
+  </view>
+
+  <!-- 赛季前 N 名 -->
+  <view class="sec">
+    <view class="sec-head">
+      <text class="sec-title">{{seasonNo || '当前赛季'}} · 赛季前 N 名</text>
+      <text class="sec-sub">按守纪天数排名</text>
+    </view>
+
+    <view wx:if="{{loading}}" class="state">加载中…</view>
+    <view wx:elif="{{seasonTopEmpty}}" class="state">本赛季尚未有完赛者，先冲刺守纪天数</view>
+    <view wx:else class="rank-list">
+      <view class="rank-row" wx:for="{{seasonTop}}" wx:key="rank">
+        <view class="rank-no rank-no-{{item.rank <= 3 ? 'top' : 'n'}}">{{item.rank}}</view>
+        <view class="rank-main">
+          <view class="rank-name">{{item.clientId}}</view>
+          <view class="rank-d">守纪 {{item.days}} 天{{item.bonusDays ? ' · 加赠 ' + item.bonusDays + ' 天' : ''}}</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 名人堂 -->
+  <view class="sec">
+    <view class="sec-head">
+      <text class="sec-title">守护者名人堂</text>
+      <text class="sec-sub">按总熵盾积分排名</text>
+    </view>
+
+    <view wx:if="{{hallOfFame.length === 0 && !loading}}" class="state">还没有人攒下积分，做任务就能上榜</view>
+    <view wx:else class="rank-list">
+      <view class="rank-row" wx:for="{{hallOfFame}}" wx:key="rank">
+        <view class="rank-no rank-no-{{item.rank <= 3 ? 'top' : 'n'}}">{{item.rank}}</view>
+        <view class="rank-main">
+          <view class="rank-name">{{item.clientId}} <text class="rank-lv">{{item.levelName}}</text></view>
+          <view class="rank-d">{{item.score}} 积分</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="compliance-tip">
+    荣誉墙为赛季 / 年度荣誉展示，非兑换入口。L3 定制周边为赛季奖励，由后台授予，不开放主动兑换。
+  </view>
+</view>

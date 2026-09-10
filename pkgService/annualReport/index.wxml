@@ -1,0 +1,55 @@
+<view class="page">
+  <view class="hero">
+    <view class="hero-title">我的年度风控报告</view>
+    <view class="hero-sub">只记你的守纪痕迹，不碰任何收益数据</view>
+  </view>
+
+  <view wx:if="{{errMsg}}" class="err">{{errMsg}}</view>
+
+  <view wx:if="{{loading}}" class="loading">报告生成中…</view>
+
+  <block wx:elif="{{!loading}}">
+    <view class="stat-grid">
+      <view class="stat">
+        <view class="stat-v">{{total}}</view>
+        <view class="stat-k">纪律分总额</view>
+      </view>
+      <view class="stat">
+        <view class="stat-v">{{seasonDays}}</view>
+        <view class="stat-k">累计守纪天数</view>
+      </view>
+      <view class="stat">
+        <view class="stat-v">{{seasons}}</view>
+        <view class="stat-k">参与赛季</view>
+      </view>
+      <view class="stat">
+        <view class="stat-v">{{redeemCount}}</view>
+        <view class="stat-k">兑换次数</view>
+      </view>
+    </view>
+
+    <view class="level-bar">
+      <text class="level-tag">{{levelName || 'Lv.1 守护者'}}</text>
+      <text class="level-tip">守纪攒分，段位自然生长</text>
+    </view>
+
+    <button class="gen-btn" bindtap="onGenerate">生成我的年度风控报告</button>
+    <view class="compliance-tip">本页仅统计本人风控行为数据，不含收益/盈亏信息，符合合规要求。</view>
+  </block>
+
+  <!-- 分享卡（复用主包 shareCard 组件，annual 模板） -->
+  <shareCard
+    wx:if="{{cardVisible}}"
+    card-type="annual"
+    value="{{cardValue}}"
+    value-unit="分"
+    tag="{{cardTag}}"
+    title="{{cardTitle}}"
+    desc="{{cardDesc}}"
+    qrcode-url="{{cardQrcodeUrl}}"
+    visible="{{cardVisible}}"
+    bind:generated="onCardGenerated"
+    bind:error="onCardError"
+    bind:close="onCardClose"
+  />
+</view>

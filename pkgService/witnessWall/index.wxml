@@ -1,0 +1,17 @@
+<view class="page">
+  <view class="header">
+    <view class="title">守纪公开围观墙</view>
+    <view class="sub">被见证的守纪者（段位 / 守纪天数 / 连续打卡，不含收益）</view>
+  </view>
+
+  <view class="list">
+    <view class="empty" wx:if="{{list.length === 0 && !loading}}">暂无被见证的守纪者</view>
+    <view class="item" wx:for="{{list}}" wx:key="id">
+      <view class="item-id">{{item.id}}</view>
+      <view class="item-grade">{{item.gradeText}}</view>
+      <view class="item-stats">守纪 {{item.totalDays}} 天 · 连续 {{item.streakDays}} 天 · {{item.supervisorCount}} 位见证人</view>
+    </view>
+    <view class="loading" wx:if="{{loading}}">加载中…</view>
+    <view class="finished" wx:if="{{finished && list.length > 0}}">没有更多了</view>
+  </view>
+</view>

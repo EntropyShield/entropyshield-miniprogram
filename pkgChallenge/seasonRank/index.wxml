@@ -1,0 +1,66 @@
+<view class="page">
+
+  <view class="head">
+    <view class="head-title">守纪挑战赛榜单 · {{seasonNo}}</view>
+    <view class="head-sub">按纪律数据排名，不展示任何收益或盈亏</view>
+  </view>
+
+  <!-- 范围切换：全国 / 本省 -->
+  <view class="tabs scope">
+    <view class="tab {{scope === 'global' ? 'active' : ''}}" bindtap="switchScope" data-scope="global">全国榜</view>
+    <view class="tab {{scope === 'region' ? 'active' : ''}}" bindtap="switchScope" data-scope="region">本省榜</view>
+  </view>
+
+  <!-- Tab -->
+  <view class="tabs">
+    <view class="tab {{tab === 'rate' ? 'active' : ''}}" bindtap="switchTab" data-tab="rate">达标率榜</view>
+    <view class="tab {{tab === 'streak' ? 'active' : ''}}" bindtap="switchTab" data-tab="streak">连续守纪榜</view>
+  </view>
+
+  <view wx:if="{{loading}}" class="hint">加载中…</view>
+
+  <!-- 达标率榜 -->
+  <block wx:elif="{{tab === 'rate'}}">
+    <view wx:if="{{!rateList.length}}" class="hint">还没有人完成赛季结算，先去坚持 30 天守纪吧</view>
+    <block wx:else>
+      <view class="row {{item.rank <= 3 ? 'top' : ''}} {{meRate && meRate.clientId === item.clientId ? 'me' : ''}}"
+            wx:for="{{rateList}}" wx:key="clientId">
+        <view class="rk">{{item.rank}}</view>
+        <view class="info">
+          <view class="nm">{{item.nickname}}</view>
+          <view class="meta">{{item.levelTag || '守纪者'}}</view>
+        </view>
+        <view class="val">{{item.score}}%</view>
+      </view>
+    </block>
+    <view wx:if="{{meRate}}" class="my-rank">
+      我的排名：第 {{meRate.rank}} 名 · 达标率 {{meRate.score}}%
+    </view>
+  </block>
+
+  <!-- 连续守纪榜 -->
+  <block wx:else>
+    <view wx:if="{{!streakList.length}}" class="hint">还没有连续守纪记录，从今天开始打卡</view>
+    <block wx:else>
+      <view class="row {{item.rank <= 3 ? 'top' : ''}} {{meStreak && meStreak.clientId === item.clientId ? 'me' : ''}}"
+            wx:for="{{streakList}}" wx:key="clientId">
+        <view class="rk">{{item.rank}}</view>
+        <view class="info">
+          <view class="nm">{{item.nickname}}</view>
+          <view class="meta">{{item.levelTag || '守纪者'}}</view>
+        </view>
+        <view class="val">{{item.score}} 天</view>
+      </view>
+    </block>
+    <view wx:if="{{meStreak}}" class="my-rank">
+      我的排名：第 {{meStreak.rank}} 名 · 最长连续 {{meStreak.score}} 天
+    </view>
+  </block>
+
+  <view class="tip">仅按守纪纪律数据排序，符合合规要求，不展示收益率或盈亏。</view>
+
+  <view class="action-bar">
+    <button class="btn-ghost" bindtap="goExam">去参加风控力统考</button>
+  </view>
+
+</view>

@@ -20,6 +20,15 @@ function ensureClientId() {
   return cid;
 }
 
+// 省级行政区（用于地区榜采集，用户自主选择、不强采集）
+const PROVINCES = [
+  '北京', '天津', '河北', '山西', '内蒙古', '辽宁', '吉林', '黑龙江',
+  '上海', '江苏', '浙江', '安徽', '福建', '江西', '山东', '河南',
+  '湖北', '湖南', '广东', '广西', '海南', '重庆', '四川', '贵州',
+  '云南', '西藏', '陕西', '甘肃', '青海', '宁夏', '新疆',
+  '香港', '澳门', '台湾'
+];
+
 function getBaseUrl() {
   return String(API_BASE || '').replace(/\/$/, '');
 }
@@ -136,6 +145,14 @@ Page({
     levelText: 'V1 见习控局者',
     streakDays: 0,
 
+    // 熵盾积分 / 段位（A 轨纪律分，与后端 /api/points/me 单一真源一致）
+    esPoints: 0,
+    esLevel: 1,
+    esLevelName: 'Lv.1 守护者',
+    esNextLevelAt: 200,
+    esNextLevelName: 'Lv.2 守护者',
+    esProgress: 0,
+
     // L2 资产账本
     isMember: false,
     membershipName: '未开通',
@@ -149,6 +166,11 @@ Page({
     witnessCount: 0,
     myInviteCode: '',
     invitedCountText: '—',
+
+    // 地区榜采集（用户自主选择，不强采集）
+    provinces: PROVINCES,
+    regionName: '',
+    regionSet: false,
 
     // L4 服务台
     isVisitAdmin: false,
@@ -184,12 +206,14 @@ Page({
     this.fetchFissionProfile();
     this.fetchLatestVisit();
     this.fetchAdminAccess();
+    this.fetchEsPoints();
   },
 
   onShow() {
     // 返回页面：仅本地快照 + 节流差量同步，不再重复全量请求（去重 C1）
     this.refreshLocalSnapshot();
     this.throttledSyncFission();
+    this.fetchEsPoints();
   },
 
   throttledSyncFission() {
@@ -274,32 +298,61 @@ Page({
       streakDays,
       levelText
     });
+
+    // 地区榜：读取用户已设地区（用户自主选择、不强采集）
+    let regionName = '';
+    let regionSet = false;
+    try {
+      regionName = wx.getStorageSync('userRegion') || '';
+      regionSet = !!regionName;
+    } catch (e) {}
+    this.setData({ regionName, regionSet });
   },
 
   fetchEsPoints() {
     const points = require('../../utils/points.js');
     const cid = this.clientId || ensureClientId();
     if (!cid) return;
+    // 段位阈值（与后端 pointsLevel 单一真源一致：Lv1-5 = 0/200/800/2500/6000）
+    const LV_MIN = { 1: 0, 2: 200, 3: 800, 4: 2500, 5: 6000 };
     points.getMe(cid).then((d) => {
       if (!d || !d.ok) return;
-      const rewards = (d.pendingRewards || []).map((r) => ({ id: r.id, label: r.label, claimed: false }));
+      const lv = Number(d.level) || 1;
+      const total = Number(d.total) || 0;
+      const nextAt = Number(d.nextLevelAt) || 0;
+      const curMin = LV_MIN[lv] || 0;
+      let progress = 100;
+      if (nextAt > curMin) {
+        progress = Math.min(100, Math.max(0, Math.round(((total - curMin) / (nextAt - curMin)) * 100)));
+      }
+      // [2026-09-10 全链路审计] 移除 esPendingRewards：后端 /api/points/me 不返回
+      // pendingRewards 字段，该值恒为空数组，UI 区块 wx:if 恒假，属死链路，已一并清理。
       this.setData({
-        esPoints: Number(d.points) || 0,
-        esLevel: Number(d.level) || 0,
-        esLevelName: d.levelName || '入门守护者',
-        esNextLevelAt: Number(d.nextLevelAt) || 0,
-        esPendingRewards: rewards,
+        esPoints: total,
+        esLevel: lv,
+        esLevelName: d.levelName || 'Lv.1 守护者',
+        esNextLevelAt: nextAt,
+        esNextLevelName: d.nextLevelName || '',
+        esProgress: progress,
       });
     });
   },
 
-  onClaimReward(e) {
-    const id = (e && e.currentTarget && e.currentTarget.dataset && e.currentTarget.dataset.id) || '';
-    if (!id) return;
-    const points = require('../../utils/points.js');
+  // [2026-09-10 全链路审计] 删除 onClaimReward：对应后端接口 /api/points/claim 不存在，
+  // 且无 pending 数据可领，保留会误导后续开发（详见 utils/points.js 注释）。
+
+  // 地区榜采集：picker 选择省份后上报（用户自主选择，不强采集）
+  onPickRegion(e) {
+    const name = this.data.provinces[e.detail.value];
+    if (!name) return;
     const cid = this.clientId || ensureClientId();
-    points.claimReward(cid, id).then((d) => {
-      if (d && d.ok) { wx.showToast({ title: '已领取', icon: 'success' }); this.fetchEsPoints(); }
+    const rankApi = require('../../utils/rankApi.js');
+    rankApi.setRegion(cid, name).then(() => {
+      wx.setStorageSync('userRegion', name);
+      this.setData({ regionName: name, regionSet: true });
+      wx.showToast({ title: '已设置：' + name, icon: 'none' });
+    }).catch(() => {
+      wx.showToast({ title: '设置失败，请重试', icon: 'none' });
     });
   },
 
@@ -437,9 +490,19 @@ Page({
     wx.navigateTo({ url: '/pkgChallenge/campIntro/index' });
   },
 
-  // L3 → 见证人
+  // A-1 → 散户风控力大考
+  goExam() {
+    wx.navigateTo({ url: '/pkgChallenge/exam/intro/index' });
+  },
+
+  // A-2 → 守纪挑战赛榜单
+  goSeasonRank() {
+    wx.navigateTo({ url: '/pkgChallenge/seasonRank/index' });
+  },
+
+  // L3 → 见证人（守纪督察官）
   goWitness() {
-    wx.navigateTo({ url: '/pkgService/myInvite/index' });
+    wx.navigateTo({ url: '/pkgService/myWitness/index' });
   },
 
 

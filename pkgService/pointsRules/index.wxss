@@ -1,0 +1,75 @@
+/* pkgService/pointsRules/index.wxss —— 积分规则公示页 */
+.rules {
+  min-height: 100vh;
+  background: #03060C;
+  padding: 24rpx 24rpx 60rpx;
+  box-sizing: border-box;
+}
+
+.banner {
+  background: linear-gradient(135deg, #0a2a1a 0%, #031a12 100%);
+  border: 1rpx solid #0e3a28;
+  border-radius: 20rpx;
+  padding: 32rpx 28rpx;
+  margin-bottom: 28rpx;
+}
+.banner-title { font-size: 40rpx; font-weight: 700; color: #EAF2FF; }
+.banner-sub { font-size: 22rpx; color: #7B8591; margin-top: 10rpx; line-height: 1.5; }
+
+.block { margin-bottom: 28rpx; }
+.block-h {
+  font-size: 28rpx;
+  color: #00E0A1;
+  font-weight: 600;
+  margin-bottom: 16rpx;
+  padding-left: 16rpx;
+  border-left: 4rpx solid #00E0A1;
+}
+
+.pledge {
+  font-size: 26rpx;
+  color: #C7D2DD;
+  line-height: 1.7;
+  background: #0a0f17;
+  border: 1rpx solid #16202c;
+  border-radius: 16rpx;
+  padding: 24rpx;
+}
+.hl { color: #00BFFF; font-weight: 600; }
+.hl-red { color: #FF6B6B; font-weight: 600; }
+
+.track { background: #0a0f17; border: 1rpx solid #16202c; border-radius: 16rpx; padding: 22rpx 24rpx; margin-bottom: 14rpx; }
+.track-name { font-size: 28rpx; font-weight: 600; }
+.track-name.a { color: #00E0A1; }
+.track-name.b { color: #00BFFF; }
+.track-desc { font-size: 23rpx; color: #9fb0c0; margin-top: 8rpx; line-height: 1.5; }
+
+.lv-row { display: flex; align-items: center; background: #0a0f17; border: 1rpx solid #16202c; border-radius: 14rpx; padding: 18rpx 22rpx; margin-bottom: 12rpx; }
+.lv-dot { width: 48rpx; height: 48rpx; border-radius: 50%; text-align: center; line-height: 48rpx; font-size: 26rpx; font-weight: 700; color: #03101c; margin-right: 20rpx; }
+.lv-1 { background: #7B8591; }
+.lv-2 { background: #00BFFF; }
+.lv-3 { background: #00E0A1; }
+.lv-4 { background: #FFC857; }
+.lv-5 { background: #FF6B6B; }
+.lv-text { display: flex; flex-direction: column; }
+.lv-name { font-size: 27rpx; color: #EAF2FF; }
+.lv-th { font-size: 21rpx; color: #7B8591; margin-top: 4rpx; }
+
+.gain-row { display: flex; justify-content: space-between; align-items: center; background: #0a0f17; border: 1rpx solid #16202c; border-radius: 14rpx; padding: 18rpx 22rpx; margin-bottom: 12rpx; }
+.gain-k { font-size: 26rpx; color: #C7D2DD; }
+.gain-v { font-size: 26rpx; color: #00E0A1; font-weight: 600; }
+
+.layer { background: #0a0f17; border: 1rpx solid #16202c; border-radius: 16rpx; padding: 22rpx 24rpx; margin-bottom: 14rpx; }
+.layer-tag { display: inline-block; font-size: 22rpx; font-weight: 700; border-radius: 6rpx; padding: 4rpx 14rpx; margin-bottom: 10rpx; }
+.layer-tag.l1 { color: #00E0A1; background: #0a2a1a; }
+.layer-tag.l2 { color: #00BFFF; background: #06223a; }
+.layer-tag.l3 { color: #FFC857; background: #2a2314; }
+.layer-desc { font-size: 23rpx; color: #9fb0c0; line-height: 1.6; }
+
+.compliance {
+  margin-top: 12rpx;
+  font-size: 21rpx;
+  color: #5d6b78;
+  line-height: 1.7;
+  padding: 0 8rpx;
+}

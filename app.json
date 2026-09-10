@@ -11,10 +11,11 @@
     "pages/agreementPrivacy/index",
     "pages/agreementGate/index",
     "pages/membership/index",
-    "pages/message/index"
+    "pages/message/index",
+    "pages/oaBind/index"
   ],
   "window": {
-    "navigationBarTitleText": "熵盾研究院",
+    "navigationBarTitleText": "熵盾风控管理工具",
     "navigationBarBackgroundColor": "#03060C",
     "navigationBarTextStyle": "white",
     "backgroundColor": "#03060C",
@@ -54,7 +55,6 @@
         "testRiskScore/index",
         "testEmotionIndex/index",
         "testDangerLevel/index",
-        "sentiment/sentiment",
         "resultCommon/index"
       ]
     },
@@ -65,7 +65,14 @@
         "campIntro/index",
         "campReport/index",
         "club/index",
-        "fissionTask/index"
+        "fissionTask/index",
+        "pkLobby/index",
+        "pkDetail/index",
+        "pkRank/index",
+        "exam/intro/index",
+        "exam/doing/index",
+        "exam/result/index",
+        "seasonRank/index"
       ]
     },
     {
@@ -75,26 +82,33 @@
         "riskReport/index",
         "tradeRecord/index",
         "planAdvanced/index",
-        "planSteady/index"
+        "planSteady/index",
+        "planTrack/index"
       ]
     },
     {
       "root": "pkgService",
       "pages": [
-        "course/index",
-        "course/detail",
-        "course/progress",
-        "courses/index",
+        "activity/index",
         "visitAdmin/index",
         "visitBooking/index",
         "visitMyList/index",
         "myInvite/index",
+        "myWitness/index",
+        "witnessWall/index",
         "inviteLookup/index",
         "inviteTracker/index",
         "commissionCenter/index",
         "upsell/index",
         "mainchainOverview/index",
-        "settings/recall/index"
+        "settings/recall/index",
+        "exchange/index",
+        "redeemOrders/index",
+        "pointsRules/index",
+        "ebookRoom/index",
+        "ebookReader/index",
+        "honorWall/index",
+        "annualReport/index"
       ]
     },
     {

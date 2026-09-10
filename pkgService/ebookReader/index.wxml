@@ -1,0 +1,9 @@
+<!-- pkgService/ebookReader/index.wxml —— 电子书阅读器 -->
+<view wx:if="{{url}}" class="reader">
+  <web-view src="{{url}}"></web-view>
+</view>
+<view wx:else class="reader-empty">
+  <view class="re-emoji">📖</view>
+  <view class="re-title">暂无阅读内容</view>
+  <view class="re-sub">该书内容正在筹备中，请稍后再来</view>
+</view>

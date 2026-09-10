@@ -1,0 +1,35 @@
+<view class="page">
+  <view class="hero">
+    <text class="hero-title">方案存续跟踪</text>
+    <text class="hero-sub">已落地方案 · 对照当前参考价（公开行情，仅供参考）</text>
+  </view>
+
+  <view wx:if="{{loading}}" class="empty">加载中…</view>
+  <view wx:elif="{{plans.length === 0}}" class="empty">还没有已落地的方案。先做一次风控测算并保存方案，这里会跟踪它的执行表现。</view>
+
+  <view wx:for="{{plans}}" wx:key="key" class="card" bindtap="goPlan" data-draft="{{item.key}}">
+    <view class="card-head">
+      <text class="stock">{{item.stockName || item.code}}</text>
+      <text class="code">{{item.code}}</text>
+    </view>
+    <view class="row">
+      <view class="cell">
+        <text class="label">建仓价</text>
+        <text class="value">{{item.entryPrice}}</text>
+      </view>
+      <view class="cell">
+        <text class="label">当前参考价</text>
+        <text class="value" wx:if="{{!item.loading && item.price != null}}">{{item.price}}</text>
+        <text class="value muted" wx:else>…</text>
+      </view>
+      <view class="cell">
+        <text class="label">价格偏离</text>
+        <text class="value {{item.devPct > 0 ? 'up' : (item.devPct < 0 ? 'down' : '')}}" wx:if="{{item.devPct != null}}">{{item.devPct > 0 ? '+' : ''}}{{item.devPct}}%</text>
+        <text class="value muted" wx:else>…</text>
+      </view>
+    </view>
+    <text wx:if="{{item.err}}" class="err">{{item.err}}</text>
+  </view>
+
+  <view class="foot">说明：当前参考价取自公开行情接口，仅作对照参考，不构成任何买卖建议；本页不展示收益率或盈亏。</view>
+</view>

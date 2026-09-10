@@ -1,0 +1,38 @@
+<!-- pkgService/redeemOrders/index.wxml —— 我的兑换订单 -->
+<view class="orders">
+  <view class="header">
+    <view class="title">我的兑换订单</view>
+    <view class="sub">虚拟已发放 · 实物待发货 · 都在这里查</view>
+  </view>
+
+  <view wx:if="{{loading}}" class="state">加载中…</view>
+  <view wx:elif="{{errMsg}}" class="state">{{errMsg}}</view>
+  <view wx:elif="{{list.length === 0}}" class="state">还没有兑换记录</view>
+
+  <view wx:else class="list">
+    <view class="order-card" wx:for="{{list}}" wx:key="id">
+      <view class="order-hd">
+        <view class="order-name">{{item.name}}</view>
+        <view class="order-status {{item.status}}">{{item.statusText}}</view>
+      </view>
+      <view class="order-meta">
+        <text>{{item.createdAt}}</text>
+        <text class="cost">-{{item.costPoints}} 积分</text>
+      </view>
+      <view class="order-mode">
+        <text class="mode-tag">{{item.modeText}}</text>
+        <text wx:if="{{item.layer === 'L2'}}" class="layer-tag l2">L2</text>
+        <text wx:elif="{{item.layer === 'L1'}}" class="layer-tag l1">L1</text>
+      </view>
+
+      <view wx:if="{{item.code}}" class="code-row">
+        <view class="code-val">{{item.code}}</view>
+        <button class="copy-btn" size="mini" data-code="{{item.code}}" bindtap="copyCode">复制</button>
+      </view>
+
+      <view wx:if="{{item.canRead}}" class="action-row">
+        <button class="read-btn" bindtap="goRoom">去电子书房阅读</button>
+      </view>
+    </view>
+  </view>
+</view>

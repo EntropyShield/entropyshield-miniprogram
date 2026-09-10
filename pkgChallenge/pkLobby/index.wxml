@@ -1,0 +1,76 @@
+<view class="page">
+  <view class="hero">
+    <view class="hero-l">
+      <view class="hk-row">
+        <text class="hk">我的战力值（PK 筹码）</text>
+        <text class="help-icon" bindtap="showPowerHelp">?</text>
+      </view>
+      <view class="hv">{{powerReady ? power : '--'}}</view>
+    </view>
+    <view class="hero-r" bindtap="onMyPool">
+      <text class="hr-t">{{myPool ? '我的盘口' : '开盘'}}</text>
+      <text class="hr-s">{{myPool ? '查看' : '成为守纪者'}}</text>
+    </view>
+  </view>
+
+  <view class="rank-entry" bindtap="goRank">
+    <text>神算子榜 · 按命中率排名</text>
+    <text class="arr">›</text>
+  </view>
+
+  <view class="sec">
+    <view class="sec-h">本赛季盘口（围观押注）</view>
+    <view wx:if="{{loading}}" class="hint">加载中…</view>
+    <view wx:elif="{{!pools.length}}" class="hint">暂无盘口，去上方“开盘”成为第一个守纪者</view>
+    <block wx:else>
+      <view class="pcard" wx:for="{{pools}}" wx:key="poolId" bindtap="onPoolTap" data-ward-id="{{item.wardId}}">
+        <view class="pc-head">
+          <text class="pc-name">{{item.wardMask}}</text>
+          <text class="pc-status {{item.status === 'settled' ? 'done' : ''}}">{{item.status === 'settled' ? '已结算' : '进行中'}}</text>
+        </view>
+        <view class="pc-odds">
+          <view class="odd {{item.myBet && item.myBet.side === 'Y' ? 'mine' : ''}}">
+            <text class="ok">守(Y)</text>
+            <text class="ov">{{item.poolYes}} 战力值</text>
+            <text class="oo" wx:if="{{item.oddsY}}">赔率 {{item.oddsY}}</text>
+          </view>
+          <view class="odd {{item.myBet && item.myBet.side === 'N' ? 'mine' : ''}}">
+            <text class="ok">否(N)</text>
+            <text class="ov">{{item.poolNo}} 战力值</text>
+            <text class="oo" wx:if="{{item.oddsN}}">赔率 {{item.oddsN}}</text>
+          </view>
+        </view>
+        <view class="pc-foot" wx:if="{{item.myBet}}">我已押 {{item.myBet.side === 'Y' ? '守' : '否'}} · {{item.myBet.amount}} 战力值</view>
+        <view class="pc-foot" wx:elif="{{item.wardId === myWardId}}">这是我的盘口</view>
+      </view>
+    </block>
+  </view>
+
+  <view class="tip">同注分彩 · 平台不抽水 · 仅用免费战力值，不涉及人民币</view>
+
+  <!-- 战力值说明弹窗 -->
+  <view wx:if="{{showHelp}}" class="modal-mask" bindtap="closePowerHelp">
+    <view class="modal" catchtap="noop">
+      <view class="modal-title">什么是「战力值」？</view>
+      <scroll-view scroll-y class="modal-body">
+        <view class="hl-item">
+          <text class="hl-h">双轨独立</text>
+          <text class="hl-t">战力值是 PK 专用筹码（B 轨），与决定段位 / 荣誉的纪律积分（A 轨）相互独立，互不兑换。</text>
+        </view>
+        <view class="hl-item">
+          <text class="hl-h">免费获取</text>
+          <text class="hl-t">每天免费领一次：基础 +100，叠加会员 / 段位 / 连续打卡 / 赛季 / 督导加成，每日封顶 500。</text>
+        </view>
+        <view class="hl-item">
+          <text class="hl-h">怎么用</text>
+          <text class="hl-t">在 PK 盘口作为押注筹码：同注分彩、平台不抽水、不涉及人民币。</text>
+        </view>
+        <view class="hl-item hl-red">
+          <text class="hl-h">红线</text>
+          <text class="hl-t">不可购买 / 提现 / 转赠，也不能直接兑换会员或测算次数——只能换荣誉（榜单 / 徽章 / 抽奖资格）。</text>
+        </view>
+      </scroll-view>
+      <view class="modal-close" bindtap="closePowerHelp">知道了</view>
+    </view>
+  </view>
+</view>

@@ -4,6 +4,7 @@ const { mergeUserRights } = require('../../utils/userRights')
 // pages/campIntro/index.js
 const { getLevelInfo } = require('../../utils/grade.js');
 const { API_BASE } = require('../../config.js'); // ✅ 统一从 config 读取
+const seasonConfig = require('../../utils/seasonConfig.js'); // [2026-09-10] 赛季化配置层
 
 // ✅ 完成一轮 7 天训练营，赠送的完整风控方案使用次数
 const CAMP_REWARD_TIMES = 4;
@@ -13,6 +14,13 @@ const MAX_REWARD_ROUNDS = 3;
 
 // 本地存放“待绑定邀请码”的 key
 const PENDING_INVITE_KEY = 'pendingInviteCode';
+
+// [2026-09-10 Phase 1] 守纪承诺展示名（与 utils/seasonConfig.js 的 promises 一致）
+const PROMISE_NAME = {
+  A: '不留裸单',
+  B: '止损 48 小时内记录',
+  C: '单笔风险不超过 2%'
+};
 
 Page({
   data: {
@@ -38,7 +46,29 @@ Page({
     hasInviter: false,      // 是否已经绑定过邀请人
     invitedByCode: '',      // 绑定的邀请人邀请码（如 TEST01）
     myInviteCode: '',       // 我自己的专属邀请码（用于分享带码）
-    entryInviteCode: ''     // 入口带来的邀请码（仅展示用）
+    entryInviteCode: '',    // 入口带来的邀请码（仅展示用）
+
+    // [2026-09-10 Phase 1] 赛季化：模式与天数由配置驱动（默认 training = 原 7 天）
+    campMode: 'training',
+    campDays: 7,
+    campTitle: '7 天风控训练营',
+    campSubtitle: '先控亏，再谈收益',
+
+    // [2026-09-10 Phase 1] 赛季状态（后端不可用时全部保持默认值，页面正常显示）
+    seasonNo: 'S1',
+    seasonDays: 30,
+    seasonBonus: 50,
+    seasonPassed: 0,
+    seasonStreak: 0,
+    seasonRate: 0,
+    seasonPromise: '',
+    seasonPromiseName: '不留裸单',
+
+    // [Phase 2] 训练日历：30 自然日 ≈ 22 个交易日参与判定；每季 2 个豁免日
+    seasonTradingTarget: 22,
+    seasonExemptTotal: 2,
+    seasonExemptLeft: 2,
+    seasonDaysLeft: 0
   },
 
   /**
@@ -46,6 +76,39 @@ Page({
    * /pkgChallenge/campIntro/index?inviteCode=TEST01
    */
   onLoad(options) {
+    // [2026-09-10 Phase 1] 解析模式：?mode=season → 30 天守纪挑战赛；缺省保持原 7 天
+    // 模式写入 storage，保证从打卡页返回（跳转不带参）时不会退回 7 天模式
+    let _cfg = seasonConfig.getMode(options);
+    try {
+      if (_cfg.key === 'season') {
+        wx.setStorageSync('campMode', 'season');
+      } else {
+        const _saved = wx.getStorageSync('campMode');
+        if (_saved === 'season') _cfg = seasonConfig.MODES.season;
+      }
+    } catch (e) { /* storage 不可用时按入参走 */ }
+
+    this.campCfg = _cfg;
+    // 赛季不限轮次时，总数文案走 wxml 的 wx:else 分支
+    const _total = (_cfg.maxRewardRounds >= 99)
+      ? 0
+      : (_cfg.rewardTimes * _cfg.maxRewardRounds);
+
+    this.setData({
+      campMode: _cfg.key,
+      campDays: _cfg.days,
+      campTitle: _cfg.title,
+      campSubtitle: _cfg.subtitle,
+      campRewardTimes: _cfg.rewardTimes,
+      campMaxRounds: _cfg.maxRewardRounds,
+      campRewardTotal: _total
+    });
+
+    // 静态 json 的导航标题是「7 天风控训练营」，赛季模式下动态改写
+    if (_cfg.key === 'season') {
+      wx.setNavigationBarTitle({ title: _cfg.title });
+    }
+
     try {
       const raw = (options && options.inviteCode) || '';
       const inviteCode = raw.toUpperCase().trim();
@@ -85,6 +148,7 @@ Page({
   onShow() {
     // 这里只做“刷新”，避免重复调用 /api/fission/init 导致 Duplicate entry 报错
     this.initCampAndGrade();
+    this.initSeason(); // [2026-09-10 Phase 1] 赛季模式：配置/报名/进度（接口不可用时静默）
 
     const clientId = this.ensureClientId();
     if (!clientId) return;
@@ -127,7 +191,10 @@ Page({
 
     // ---------- 计算 7 日等级信息（基于 campDailyLogs） ----------
     const logs = wx.getStorageSync('campDailyLogs') || {};
-    const dayKeys = ['D1', 'D2', 'D3', 'D4', 'D5', 'D6', 'D7'];
+    // [2026-09-10 Phase 1] 天数由配置驱动（7 天 / 30 天）
+    const dayKeys = seasonConfig.dayKeysOf(
+      this.campCfg || seasonConfig.MODES[this.data.campMode]
+    );
 
     let totalScore = 0;
     let effectiveDays = 0;
@@ -210,8 +277,14 @@ Page({
 
       let rewardRounds = Number(userRights.campRewardCount || 0);
 
-      if (finishedDays === 7 && !hasRewarded && rewardRounds < MAX_REWARD_ROUNDS) {
-        const newTimes = oldTimes + CAMP_REWARD_TIMES;
+      // [2026-09-10 Phase 1] 完成天数与奖励次数由模式配置决定
+      const _cfg = this.campCfg || seasonConfig.MODES[this.data.campMode] || seasonConfig.MODES.training;
+      const _needDays = _cfg.days;
+      const _rewardTimes = _cfg.rewardTimes || CAMP_REWARD_TIMES;
+      const _maxRounds = _cfg.maxRewardRounds || MAX_REWARD_ROUNDS;
+
+      if (finishedDays === _needDays && !hasRewarded && rewardRounds < _maxRounds) {
+        const newTimes = oldTimes + _rewardTimes;
         rewardRounds += 1;
 
         userRights.freeCalcTimes = newTimes;
@@ -220,7 +293,7 @@ Page({
         mergeUserRights(userRights); // [CHANGE] unify write
 
         wx.showToast({
-          title: `恭喜完成第 ${rewardRounds} 轮训练，获赠 ${CAMP_REWARD_TIMES} 次完整方案`,
+          title: `恭喜完成第 ${rewardRounds} 轮训练，获赠 ${_rewardTimes} 次完整方案`,
           icon: 'none',
           duration: 2500
         });
@@ -244,7 +317,130 @@ Page({
   /**
    * 构造 7 天训练营脚本
    */
+  /**
+   * [2026-09-10 Phase 1] 赛季初始化：拉配置 → 确保已报名 → 拉进度
+   * 后端未上线时每个接口都返回 null，页面保持默认显示，不影响训练流程。
+   */
+  initSeason() {
+    if (this.data.campMode !== 'season') return;
+
+    let seasonApi = null;
+    try { seasonApi = require('../../utils/seasonApi.js'); } catch (e) { return; }
+
+    seasonApi.current().then((cfg) => {
+      if (cfg && cfg.season) {
+        const days = cfg.season.days || 30;
+        const et = cfg.season.exempt_days != null ? Number(cfg.season.exempt_days) : 2;
+        this.setData({
+          seasonNo: cfg.season.season_no || 'S1',
+          seasonDays: days,
+          seasonBonus: cfg.season.bonus_pct || 0,
+          seasonExemptTotal: et,
+          seasonTradingTarget:
+            cfg.season.tradingTarget || seasonConfig.estimateTradingDays(days)
+        });
+      }
+    });
+
+    let saved = '';
+    try { saved = wx.getStorageSync('seasonPromise') || ''; } catch (e) {}
+
+    if (!saved) {
+      seasonApi.join('A');
+      try { wx.setStorageSync('seasonPromise', 'A'); } catch (e) {}
+      this.setData({ seasonPromise: 'A', seasonPromiseName: '不留裸单' });
+    } else {
+      this.setData({ seasonPromise: saved, seasonPromiseName: PROMISE_NAME[saved] || '不留裸单' });
+    }
+
+    seasonApi.progress().then((p) => {
+      if (p) {
+        this.setData({
+          seasonPassed: p.passedDays || 0,
+          seasonStreak: p.streak || 0,
+          seasonRate: p.execRate || 0,
+          seasonExemptLeft: p.exemptLeft != null ? p.exemptLeft : this.data.seasonExemptTotal,
+          seasonDaysLeft: p.daysLeft != null ? p.daysLeft : 0
+        });
+      }
+    });
+  },
+
+  /**
+   * 切换训练模式：7 天训练营 ⇄ 30 天守纪挑战赛
+   * 用 ActionSheet 实现，不新增页面布局；模式写入 storage，后续进入保持。
+   * 注：两种模式的完成记录共用 campFinishedMap，切换后按新模式天数重新统计（不清除历史数据）。
+   */
+  switchMode() {
+    wx.showActionSheet({
+      itemList: ['7 天风控训练营', '30 天守纪挑战赛'],
+      success: (res) => {
+        const key = res.tapIndex === 1 ? 'season' : 'training';
+        const cfg = seasonConfig.MODES[key];
+        if (!cfg) return;
+
+        try { wx.setStorageSync('campMode', key); } catch (e) {}
+        this.campCfg = cfg;
+
+        const tasks = this.buildTasks();
+        const finishedMap = wx.getStorageSync('campFinishedMap') || {};
+        const days = tasks.map((t) => ({
+          day: t.day,
+          name: t.name,
+          finished: !!finishedMap[t.day]
+        }));
+
+        this.setData({
+          campMode: key,
+          campDays: cfg.days,
+          campTitle: cfg.title,
+          campSubtitle: cfg.subtitle,
+          campRewardTimes: cfg.rewardTimes,
+          campMaxRounds: cfg.maxRewardRounds,
+          campRewardTotal: cfg.maxRewardRounds >= 99 ? 0 : cfg.rewardTimes * cfg.maxRewardRounds,
+          days,
+          activeDay: tasks[0].day,
+          currentTask: tasks[0],
+          currentFinished: !!finishedMap[tasks[0].day],
+          finishedDays: tasks.filter((t) => finishedMap[t.day]).length
+        });
+
+        wx.setNavigationBarTitle({ title: cfg.title });
+        if (key === 'season') this.initSeason();
+        wx.showToast({ title: '已切换为 ' + cfg.title, icon: 'none', duration: 1500 });
+      },
+      fail: () => {}
+    });
+  },
+
+  /** 切换守纪承诺（用 ActionSheet，不新增页面布局） */
+  switchPromise() {
+    const keys = ['A', 'B', 'C'];
+    const names = ['A · 不留裸单', 'B · 止损 48 小时内记录', 'C · 单笔风险不超过 2%'];
+
+    wx.showActionSheet({
+      itemList: names,
+      success: (res) => {
+        const k = keys[res.tapIndex];
+        if (!k) return;
+        try { wx.setStorageSync('seasonPromise', k); } catch (e) {}
+        this.setData({
+          seasonPromise: k,
+          seasonPromiseName: names[res.tapIndex].split(' · ')[1] || '不留裸单'
+        });
+        try { require('../../utils/seasonApi.js').join(k); } catch (e) {}
+        wx.showToast({ title: '已切换守纪承诺', icon: 'none', duration: 1200 });
+      },
+      fail: () => {}
+    });
+  },
+
   buildTasks() {
+    // [2026-09-10 Phase 1] 赛季模式走 30 天周期化脚本；训练模式保持原 7 天内容不变
+    const _cfg = this.campCfg || seasonConfig.MODES[this.data.campMode] || seasonConfig.MODES.training;
+    this.campCfg = _cfg;
+    if (_cfg.key === 'season') return seasonConfig.buildSeasonTasks(_cfg);
+
     return [
       {
         day: 'D1',
@@ -409,7 +605,8 @@ Page({
     let targetDay = '';
     let targetName = '';
 
-    if (finishedDays >= 7) {
+    // [2026-09-10 Phase 1] 完成一轮的阈值由模式天数决定（7 天 / 30 天）
+    if (finishedDays >= (this.campCfg ? this.campCfg.days : 7)) {
       // 👉 已完成一轮训练 → 清空本轮日志 & 完成标记，从 D1 重新开始
       wx.removeStorageSync('campDailyLogs');
       wx.removeStorageSync('campFinishedMap');
@@ -629,12 +826,20 @@ Page({
       (app && app.globalData && app.globalData.myInviteCode) || '';
     const code = (this.data.myInviteCode || fromGlobal || '').toUpperCase();
 
+    // [2026-09-10 Phase 1] 赛季模式下分享路径带 mode，落地仍是赛季页
+    const isSeason = this.data.campMode === 'season';
+    const modeQs = isSeason ? '&mode=season' : '';
+    const modeFirst = isSeason ? '?mode=season' : '';
+
     const path = code
-      ? `/pkgChallenge/campIntro/index?inviteCode=${code}`
-      : '/pkgChallenge/campIntro/index';
+      ? `/pkgChallenge/campIntro/index?inviteCode=${code}${modeQs}`
+      : `/pkgChallenge/campIntro/index${modeFirst}`;
+
+    const _t = this.data.campTitle || '7 天风控训练营';
+    const _s = this.data.campSubtitle || '先控亏，再谈收益';
 
     return {
-      title: '7 天风控训练营｜先控亏，再谈收益',
+      title: `${_t}｜${_s}`,
       path
     };
   },

@@ -1,0 +1,22 @@
+/* pkgService/ebookReader/index.wxss —— 电子书阅读器 */
+.reader { width: 100%; height: 100vh; }
+.reader-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: #03060C;
+}
+.re-emoji { font-size: 80rpx; }
+.re-title {
+  font-size: 32rpx;
+  color: #EAF2FF;
+  font-weight: 700;
+  margin-top: 20rpx;
+}
+.re-sub {
+  font-size: 24rpx;
+  color: #7B8591;
+  margin-top: 12rpx;
+}

@@ -1,0 +1,16 @@
+<view class="page">
+  <view class="head">神算子榜 · 按命中率排名</view>
+  <view wx:if="{{loading}}" class="hint">加载中…</view>
+  <view wx:elif="{{!list.length}}" class="hint">还没有预测记录，先去成为守纪督察官下注吧</view>
+  <block wx:else>
+    <view class="row {{index < 3 ? 'top' : ''}}" wx:for="{{list}}" wx:key="clientId" wx:for-index="index">
+      <view class="rk">{{index + 1}}</view>
+      <view class="info">
+        <view class="nm">{{item.name}}</view>
+        <view class="meta">{{item.gradeText}} · 命中 {{item.forecastHit}}/{{item.forecastTotal}}</view>
+      </view>
+      <view class="rate">{{item.hitRate}}%</view>
+    </view>
+  </block>
+  <view class="tip">仅按预测命中率排序，不展示战力值余额或赢额，符合合规要求。</view>
+</view>

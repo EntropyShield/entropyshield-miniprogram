@@ -1,5 +1,7 @@
 const { syncServerRights } = require('../../utils/rightsSync');
 const { API_BASE } = require('../../config');
+const funnel = require('../../utils/funnel');
+const academyApi = require('../../utils/academyApi');
 
 const PAY_SUCCESS_CONTEXT_KEYS = [
   'lastPaySuccessInfo',
@@ -483,6 +485,16 @@ Page({
   onLoad(options) {
     const resolved = resolvePayContext(options || {});
     const meta = getPlanMeta(resolved.planKey, resolved.amountFen);
+
+    // [58 号 波次2] 成交归因：这次会员是哪门课带来的？（读后即清，避免重复归因）
+    try {
+      const attrLesson = academyApi.consumeLessonAttr();
+      funnel.log('CONVERT_MEMBER', {
+        planKey: resolved.planKey,
+        amountFen: resolved.amountFen,
+        attrLesson: attrLesson || '' // 空=非课程路径带来的成交
+      });
+    } catch (e) {}
 
     this.setData({
       title: meta.title,

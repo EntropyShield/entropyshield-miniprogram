@@ -53,3 +53,40 @@
 
 .empty { display: flex; align-items: center; justify-content: center; }
 .empty-text { color: var(--es-txt-3, #8E98A3); font-size: var(--fs-base, 28rpx); }
+
+/* ===== 单课解锁门禁（58 号方案 波次1）===== */
+.lk-loading { padding: 60rpx 0; text-align: center; color: var(--es-txt-3, #8E98A3); font-size: var(--fs-sm, 24rpx); }
+.lock-card { margin: 28rpx 0; padding: 36rpx 28rpx; background: var(--es-bg-2, #14181D); border-radius: 20rpx; }
+.lk-title { font-size: 30rpx; font-weight: 700; color: var(--es-txt, #E6EDF3); }
+.lk-note { margin-top: 10rpx; font-size: 22rpx; color: var(--es-txt-3, #8E98A3); }
+.btn { margin-top: 24rpx; height: 88rpx; line-height: 88rpx; text-align: center; border-radius: 999rpx; font-size: 28rpx; font-weight: 600; }
+.btn.primary { background: linear-gradient(90deg, #00BFFF, #006CFF); color: #fff; }
+.btn.ghost { background: transparent; border: 1rpx solid rgba(0,191,255,.45); color: var(--es-green, #00BFFF); }
+.vip-line { margin-top: 26rpx; text-align: center; font-size: 22rpx; color: var(--es-amber, #FFB020); }
+.p-tip { margin-top: 16rpx; text-align: center; font-size: 20rpx; color: var(--es-txt-3, #8E98A3); }
+
+/* [波次2] 实操引导卡 */
+.practice-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 24rpx 0 8rpx;
+  padding: 24rpx 28rpx;
+  border-radius: var(--radius-md, 16rpx);
+  background: linear-gradient(90deg, rgba(0,191,255,.14), rgba(0,108,255,.08));
+  border: 1rpx solid rgba(0,191,255,.32);
+}
+.pc-left { flex: 1; display: flex; flex-direction: column; }
+.pc-t { font-size: var(--fs-sm, 24rpx); color: var(--es-green, #00BFFF); font-weight: 600; }
+.pc-s { margin-top: 8rpx; font-size: var(--fs-base, 28rpx); color: var(--es-txt-1, #E8EDF2); }
+.pc-btn {
+  margin: 0 0 0 20rpx;
+  padding: 0 32rpx;
+  height: 72rpx;
+  line-height: 72rpx;
+  border-radius: 999rpx;
+  background: linear-gradient(90deg, #00BFFF, #006CFF);
+  color: #fff;
+  font-size: var(--fs-sm, 24rpx);
+  font-weight: 600;
+}

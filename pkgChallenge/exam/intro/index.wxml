@@ -1,0 +1,71 @@
+<view class="page">
+
+  <!-- 主视觉 -->
+  <view class="hero">
+    <view class="hero-badge">A-1 · 万人统考</view>
+    <view class="hero-title">散户风控力大考</view>
+    <view class="hero-sub">20 题，测出你的「控亏段位」</view>
+    <view class="hero-chips">
+      <text class="chip">止损纪律</text>
+      <text class="chip">仓位管理</text>
+      <text class="chip">情绪控制</text>
+      <text class="chip">复盘习惯</text>
+    </view>
+  </view>
+
+  <!-- 已参与提示 -->
+  <view wx:if="{{hasTaken && !loading}}" class="card taken-card">
+    <view class="taken-title">你已参与过本次统考</view>
+    <view class="taken-row">
+      <view class="taken-metric">
+        <text class="taken-num">{{bestScore}}</text>
+        <text class="taken-label">最高分</text>
+      </view>
+      <view class="taken-metric">
+        <text class="taken-num">{{bestLevel}}</text>
+        <text class="taken-label">段位</text>
+      </view>
+      <view class="taken-metric">
+        <text class="taken-num">{{beatPct != null ? beatPct + '%' : '—'}}</text>
+        <text class="taken-label">击败考生</text>
+      </view>
+    </view>
+    <view class="taken-tip">已考 {{attempts}} 次 · 每日仅首次有效成绩计入榜单</view>
+  </view>
+
+  <!-- 说明 -->
+  <view class="card desc-card">
+    <view class="desc-title">这套大考考什么</view>
+    <view class="desc-text">围绕「先控亏，再谈收益」的四条纪律，用情景选择题考察你的真实风控认知——不靠运气，不靠行情。</view>
+    <view class="desc-list">
+      <view class="desc-item"><text class="di-key">止损纪律</text><text class="di-val">该不该止损、怎么止损</text></view>
+      <view class="desc-item"><text class="di-key">仓位管理</text><text class="di-val">单笔风险与仓位上限</text></view>
+      <view class="desc-item"><text class="di-key">情绪控制</text><text class="di-val">面对浮亏与踏空的定力</text></view>
+      <view class="desc-item"><text class="di-key">复盘习惯</text><text class="di-val">从亏损中提炼规则</text></view>
+    </view>
+  </view>
+
+  <!-- 规则 -->
+  <view class="card rule-card">
+    <view class="rule-title">参与规则</view>
+    <view class="rule-text">· 共 20 题，不限对错，重在认识自己的盲区。</view>
+    <view class="rule-text">· 作答满全卷且不少于 60 秒，成绩才计入「统考榜」。</view>
+    <view class="rule-text">· 同一考生每日仅首次有效成绩入榜（取最高分）。</view>
+    <view class="rule-text">· 未注册也可直接开考，成绩先记在本地，注册后自动归属。</view>
+  </view>
+
+  <!-- 合规 -->
+  <view class="card notice-card">
+    <view class="notice-title">说明</view>
+    <view class="notice-text">本题考仅用于交易风控认知自查，不构成任何投资建议或收益承诺。请结合自身情况独立决策。</view>
+  </view>
+
+  <!-- 底部按钮 -->
+  <view class="action-bar">
+    <button class="btn-primary" bindtap="goStart">
+      {{hasTaken ? '再考一次' : '直接开考'}}
+    </button>
+    <button class="btn-ghost" bindtap="goRank">查看守纪榜</button>
+  </view>
+
+</view>
