@@ -9,7 +9,7 @@ const DEV_API_BASE = 'http://127.0.0.1:3001';
 const PROD_API_BASE = 'https://api.entropyshield.com';
 
 // 本地调试时若需连生产后端，临时改为 true；该开关在 release/trial 环境自动失效
-const FORCE_PROD = false;
+const FORCE_PROD = true;
 
 function currentEnv() {
   try {
