@@ -28,6 +28,7 @@ Page({
     checked: false, // 权益拉取是否完成（未完成不渲染正文，防闪现）
     unlocking: false,
     memberPitch: academyApi.MEMBER_PITCH,
+    iosCashHidden: academyApi.iosCashFrozen(), // [合规·iOS] true 时隐藏现金购买按钮
 
     // [58 号方案 波次2] 实操引导：学完即引导去用计算器（转化最强位）
     practice: null
@@ -71,8 +72,9 @@ Page({
       const ok = academyApi.canRead(lesson, ent);
       let unlockNote = '';
       if (!ok) {
+        const cashOff = academyApi.iosCashFrozen() || (ent && ent.firstOfferEnabled === false);
         if (unlock === 'points') unlockNote = `可用 ${(ent && ent.pointCost) || 80} 积分解锁`;
-        else if (unlock === 'paid') unlockNote = '1 元解锁首课，或 19.9 元解锁本课';
+        else if (unlock === 'paid') unlockNote = cashOff ? `可用 ${(ent && ent.pointCost) || 80} 积分解锁` : '1 元解锁首课，或 19.9 元解锁本课';
         else if (unlock === 'member') unlockNote = '会员免费看全部 72 课';
       }
       this.setData({

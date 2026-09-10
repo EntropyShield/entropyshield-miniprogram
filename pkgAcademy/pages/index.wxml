@@ -53,15 +53,17 @@
       <view class="p-title">{{unlockLesson.title}}</view>
       <view class="p-sub">解锁后可永久回看</view>
 
-      <!-- 主 CTA：首课 1 元（每人限一次）；用过则显示正价 -->
-      <view class="btn primary" wx:if="{{!ent.firstOfferUsed}}"
-            bindtap="onUnlockByPaid" data-code="course_first">
-        {{unlocking ? '处理中…' : '1 元解锁首课'}}
-      </view>
-      <view class="btn primary" wx:else
-            bindtap="onUnlockByPaid" data-code="course_one">
-        {{unlocking ? '处理中…' : '19.9 元解锁本课'}}
-      </view>
+      <!-- 主 CTA：首课 1 元（每人限一次）；用过则显示正价。iOS 合规冻结期不展示现金购买；firstOfferEnabled=false 时 1 元首课下架（后台开关） -->
+      <block wx:if="{{!iosCashHidden}}">
+        <view class="btn primary" wx:if="{{!ent.firstOfferUsed && ent.firstOfferEnabled !== false}}"
+              bindtap="onUnlockByPaid" data-code="course_first">
+          {{unlocking ? '处理中…' : '1 元解锁首课'}}
+        </view>
+        <view class="btn primary" wx:else
+              bindtap="onUnlockByPaid" data-code="course_one">
+          {{unlocking ? '处理中…' : '19.9 元解锁本课'}}
+        </view>
+      </block>
 
       <!-- 次要：积分解锁（显示余额，让用户知道"走得动"） -->
       <view class="btn ghost" bindtap="onUnlockByPoints">
@@ -71,7 +73,8 @@
       <!-- 会员引导：课程只当赠品讲，主价值是测算次数 -->
       <view class="vip-line" bindtap="onGoMember">{{memberPitch}} ›</view>
 
-      <view class="p-tip">虚拟内容，一经解锁不支持退款</view>
+      <view class="p-tip" wx:if="{{iosCashHidden}}">苹果用户可使用积分解锁，或在安卓设备上购买</view>
+      <view class="p-tip" wx:else>虚拟内容，一经解锁不支持退款</view>
       <view class="p-close" bindtap="onCloseUnlock">暂不解锁</view>
     </view>
   </view>

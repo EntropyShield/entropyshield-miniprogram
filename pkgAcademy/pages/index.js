@@ -29,6 +29,7 @@ Page({
     unlockLesson: null, // { id, title }
     unlocking: false,
     memberPitch: academyApi.MEMBER_PITCH,
+    iosCashHidden: academyApi.iosCashFrozen(), // [合规·iOS] true 时隐藏现金购买按钮
 
     // 仅体验版/开发版可见的联调开关：把当前账号当成非会员，用于验证解锁与支付链路
     isTrialEnv: false,

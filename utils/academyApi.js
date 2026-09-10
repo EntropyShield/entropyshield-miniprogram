@@ -112,6 +112,31 @@ function canRead(lesson, ent) {
 }
 
 // 会员话术红线：课程只当赠品讲，主价值永远是测算次数
+// ====== [合规·iOS 现金冻结] 备用方案：审核驳回即启用 ======
+// 背景：微信要求虚拟商品（课程/会员）购买接入「小程序虚拟支付」，
+// 未接入前 iOS 端一律隐藏/拦截现金购买入口；安卓完全不受影响。
+// 正式接入虚拟支付后，把 IOS_CASH_FREEZE 改为 false 即可恢复。
+const IOS_CASH_FREEZE = true;
+
+function isIos() {
+  try {
+    if (typeof wx.getDeviceInfo === 'function') {
+      const d = wx.getDeviceInfo() || {};
+      if (d.os) return String(d.os).toLowerCase() === 'ios';
+    }
+  } catch (e) {}
+  try {
+    const s = wx.getSystemInfoSync() || {};
+    return String(s.platform || '').toLowerCase() === 'ios';
+  } catch (e2) {}
+  return false;
+}
+
+// iOS 现金购买是否冻结（UI 隐藏 + 支付拦截共用一个判断）
+function iosCashFrozen() {
+  return IOS_CASH_FREEZE && isIos();
+}
+
 const MEMBER_PITCH = '开会员，每月享高级测算次数，72 门风控课免费看';
 
 // ====== [波次2] 归因：记录"最近学过的课"，会员成交时回读 ======
@@ -140,6 +165,8 @@ module.exports = {
   PAID_AMOUNT,
   PAID_LABEL,
   MEMBER_PITCH,
+  isIos,
+  iosCashFrozen,
   ensureClientId,
   getEntitlements,
   unlockByPoints,

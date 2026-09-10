@@ -1,6 +1,7 @@
 // pages/pay/index.js
 const { API_BASE } = require('../../config');
 const { PLAN_LIST, getPlanByKey, buildOrderTitle, getPayChannel } = require('../../utils/plans'); // [熵盾 V2.1 · 技能:双通道支付]
+const { iosCashFrozen } = require('../../utils/academyApi'); // [合规·iOS] 现金购买冻结判断
 
 function getApiBase() {
   try {
@@ -329,6 +330,17 @@ Page({
 
   async onPayTap() {
     if (this.data.paying) return;
+
+    // [合规·iOS] 虚拟商品未接入小程序虚拟支付前，iOS 拦截一切现金购买（含虚拟支付/JSAPI 降级）
+    if (iosCashFrozen()) {
+      wx.showModal({
+        title: '暂不支持',
+        content: '苹果设备暂不支持在线购买，请使用安卓设备购买，或联系客服开通。',
+        showCancel: false,
+        confirmText: '知道了'
+      });
+      return;
+    }
 
     if (this.data.upgradeMode) {
       this.onUpgradeConfirm();

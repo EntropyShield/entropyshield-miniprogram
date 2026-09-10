@@ -18,21 +18,24 @@
     <view class="lk-title">🔒 本节尚未解锁</view>
     <view class="lk-note" wx:if="{{unlockNote}}">{{unlockNote}}</view>
 
-    <view class="btn primary" wx:if="{{!ent.firstOfferUsed}}"
-          bindtap="onUnlockByPaid" data-code="course_first">
-      {{unlocking ? '处理中…' : '1 元解锁首课'}}
-    </view>
-    <view class="btn primary" wx:else
-          bindtap="onUnlockByPaid" data-code="course_one">
-      {{unlocking ? '处理中…' : '19.9 元解锁本课'}}
-    </view>
+    <block wx:if="{{!iosCashHidden}}">
+      <view class="btn primary" wx:if="{{!ent.firstOfferUsed && ent.firstOfferEnabled !== false}}"
+            bindtap="onUnlockByPaid" data-code="course_first">
+        {{unlocking ? '处理中…' : '1 元解锁首课'}}
+      </view>
+      <view class="btn primary" wx:else
+            bindtap="onUnlockByPaid" data-code="course_one">
+        {{unlocking ? '处理中…' : '19.9 元解锁本课'}}
+      </view>
+    </block>
 
     <view class="btn ghost" bindtap="onUnlockByPoints">
       用 {{ent.pointCost || 80}} 积分解锁（现有 {{ent.points || 0}}）
     </view>
 
     <view class="vip-line" bindtap="onGoMember">{{memberPitch}} ›</view>
-    <view class="p-tip">虚拟内容，一经解锁不支持退款</view>
+    <view class="p-tip" wx:if="{{iosCashHidden}}">苹果用户可使用积分解锁，或在安卓设备上购买</view>
+    <view class="p-tip" wx:else>虚拟内容，一经解锁不支持退款</view>
   </view>
 
   <block wx:for="{{blocks}}" wx:key="t" wx:for-item="b" wx:for-index="i">
