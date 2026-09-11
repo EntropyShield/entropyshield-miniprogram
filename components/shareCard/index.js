@@ -138,7 +138,8 @@ Component({
     },
 
     _render(canvas, ctx, qrImg) {
-      const dpr = (wx.getSystemInfoSync && wx.getSystemInfoSync().pixelRatio) || 2;
+      // [2026-09-11] getSystemInfoSync 已废弃（控制台告警）→ 优先 getWindowInfo
+      const dpr = (wx.getWindowInfo && wx.getWindowInfo().pixelRatio) || 2;
       const ratio = Math.min(dpr, 3); // 上限 3，避免超大图内存爆
       canvas.width = DESIGN_W * ratio;
       canvas.height = DESIGN_H * ratio;

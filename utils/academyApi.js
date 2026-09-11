@@ -126,8 +126,9 @@ function isIos() {
     }
   } catch (e) {}
   try {
-    const s = wx.getSystemInfoSync() || {};
-    return String(s.platform || '').toLowerCase() === 'ios';
+    // getSystemInfoSync 已废弃 → 兜底改用 getDeviceInfo/getAppBaseInfo
+    const d2 = (wx.getDeviceInfo && wx.getDeviceInfo()) || (wx.getAppBaseInfo && wx.getAppBaseInfo()) || {};
+    return String(d2.platform || '').toLowerCase() === 'ios';
   } catch (e2) {}
   return false;
 }
