@@ -12,6 +12,7 @@ const CONFIG = require('../../config.js');
 // [V2.0-接线] 打卡服务端权威化：本地 Storage 可篡改、不跨设备，后端是唯一权威源。
 //   ensureClientId 命中缓存时零成本返回；未命中才走 wx.login，失败一律降级（见各调用处 try/catch）。
 const clientIdUtil = require('../../utils/clientId.js');
+const activityApi = require('../../utils/activityApi.js'); // [2026-09-11] 首页活动 Banner 数据源
 const USER_RIGHTS_KEY = 'userRights';
 
 // [V2.0-接线] 取 clientId，取不到返回空串（不抛错、不阻塞渲染）
@@ -223,6 +224,7 @@ Page({
     this.loadRiskDigest().catch(() => {});
     this.loadHoldings();
     this.loadOaPushStatus().catch(() => {});
+    this.loadActivityConfig(); // [2026-09-11] 活动 Banner：此前从未调用，首页活动区恒为空
   },
 
   // B1 风险温度：优先后端 /api/daily/digest，失败显示兜底（不阻塞渲染）
@@ -755,23 +757,24 @@ Page({
       });
   },
 
-  // ③ 活动入口 Banner：读 /api/activity/config，仅展示 enabled 的活动
-  //   运营在 DB 翻 enabled 即可显隐 A-1 统考 / A-2 守纪挑战赛，无需重新发版
+  // ③ 活动入口 Banner：读 /api/activity/list（activity_config 表），只展示 live 分组
+  //   运营在 DB 加一条记录即可上下线首页活动，无需重新发版
+  //   [2026-09-11 修复] 旧实现读已废弃的 /api/activity/config，且本函数从未被调用 → 首页活动区恒为空
   loadActivityConfig() {
-    const META = {
-      exam:   { title: '散户风控力大考', sub: '20 题测你的风控段位', path: '/pkgChallenge/exam/intro/index', tag: '万人统考' },
-      season: { title: '30 天守纪挑战赛', sub: '打满 30 天，看你的守纪榜', path: '/pkgChallenge/seasonRank/index', tag: '第一赛季' },
-      annual: { title: '我的风控年报', sub: '一图看懂你的年度风控', path: '/pkgService/annualReport/index', tag: '晒图节' }
-    };
-    activityApi.getConfig().then((list) => {
-      const arr = (list || []).filter((a) => a && a.enabled && META[a.key]);
-      if (!arr.length) { this.setData({ activities: [] }); return; }
-      this.setData({
-        activities: arr.map((a) => Object.assign({}, META[a.key], {
+    activityApi.getList().then((g) => {
+      const live = (g && g.live) || [];
+      const arr = live
+        .filter((a) => a && a.key)
+        .map((a) => ({
           key: a.key,
-          rewardText: a.rewardText || ''
-        }))
-      });
+          tag: a.typeLabel || '活动',
+          title: a.title || '风控活动',
+          sub: a.sub || '',
+          rewardText: a.rewardText || '',
+          // 后端 action_path 优先；缺失时兜底到通用活动页
+          path: a.path || ('/pkgService/activity/index?key=' + encodeURIComponent(a.key))
+        }));
+      this.setData({ activities: arr });
     }).catch(() => { this.setData({ activities: [] }); });
   },
 
