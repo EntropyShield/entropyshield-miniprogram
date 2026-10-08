@@ -26,6 +26,10 @@
     <view class="l5-result">{{resultText}}</view>
     <view>可信度：{{result.confidence}}</view>
     <view>次级风险维度：{{result.secondary_driver}}</view>
+    <view class="l5-label">熵盾对应风控规则</view>
+    <view wx:if="{{ruleIds.length === 0}}" class="l5-note">当前回答未触发重点风控规则，请继续按交易计划执行。</view>
+    <block wx:for="{{ruleIds}}" wx:key="*this"><view class="l5-rule">{{item}}</view></block>
+    <view class="l5-note">规则编号源自本次服务端冻结结果。具体执行动作以正式风控规则说明为准。</view>
     <view class="l5-note">{{result.limitations}}</view>
     <button bindtap="onRestart">检查其他领域</button>
   </view>
