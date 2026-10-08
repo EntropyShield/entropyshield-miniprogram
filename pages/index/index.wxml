@@ -227,4 +227,9 @@
     </view>
   </view>
 
+  <!-- ES-BRM-L5 isolated entry: legacy tests and pay flow remain untouched -->
+  <view class="card section-card">
+    <view class="section-header"><view class="section-title">交易行为风险检查 · 正式版</view><view class="section-sub">R1–R5 五个领域，每次8题，由服务器评分</view></view>
+    <navigator class="btn-primary" url="/pages/assessmentL5/index">进入正式风险检查</navigator>
+  </view>
 </view>

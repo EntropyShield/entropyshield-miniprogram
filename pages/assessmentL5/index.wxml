@@ -1,0 +1,33 @@
+<view class="l5-wrap">
+  <view class="l5-header"><view class="l5-title">熵盾 · 交易行为风险检查</view><view class="l5-note">每个领域8题，由熵盾正式算法计算；结果不构成人格诊断或收益预测。</view></view>
+  <view wx:if="{{phase === 'SELECT'}}" class="l5-section">
+    <view class="l5-label">选择测试领域</view>
+    <view class="l5-domains">
+      <block wx:for="{{domains}}" wx:key="*this">
+        <view class="l5-domain {{domain === item ? 'selected' : ''}}" data-domain="{{item}}" bindtap="onChooseDomain">{{item}}</view>
+      </block>
+    </view>
+    <button type="primary" loading="{{loading}}" disabled="{{loading}}" bindtap="onStart">开始正式8题测试</button>
+  </view>
+  <view wx:if="{{phase === 'ANSWER'}}" class="l5-section">
+    <view class="l5-label">{{domain}} · 已完成 {{answeredCount}} / 8</view>
+    <block wx:for="{{questions}}" wx:key="variant_id" wx:for-item="q" wx:for-index="qi">
+      <view class="l5-question">
+        <view class="l5-stem">{{q.ordinal}}. {{q.stem}}</view>
+        <block wx:for="{{q.options}}" wx:key="option_id" wx:for-item="opt">
+          <view class="l5-option {{q.selected_option_id === opt.option_id ? 'selected' : ''}}" data-index="{{qi}}" data-option="{{opt.option_id}}" bindtap="onChooseOption">{{opt.text}}</view>
+        </block>
+      </view>
+    </block>
+    <button type="primary" loading="{{loading}}" disabled="{{loading || answeredCount !== 8}}" bindtap="onSubmit">提交正式评分</button>
+  </view>
+  <view wx:if="{{phase === 'RESULT'}}" class="l5-section">
+    <view class="l5-label">正式风控结果</view>
+    <view class="l5-result">{{resultText}}</view>
+    <view>可信度：{{result.confidence}}</view>
+    <view>次级风险维度：{{result.secondary_driver}}</view>
+    <view class="l5-note">{{result.limitations}}</view>
+    <button bindtap="onRestart">检查其他领域</button>
+  </view>
+  <view wx:if="{{message}}" class="l5-error">{{message}}</view>
+</view>
