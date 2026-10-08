@@ -45,7 +45,7 @@ function exchange() {
 Page({
   data:{
     domains:DOMAIN_IDS, domain:'R1', loading:false, phase:'SELECT', message:'',
-    attemptId:'', questions:[], answeredCount:0, result:null, resultText:''
+    attemptId:'', questions:[], answeredCount:0, result:null, resultText:'', ruleIds:[], ruleEvidence:[]
   },
   onUnload(){ this._token = null; },
   onChooseDomain(e){
@@ -90,9 +90,11 @@ Page({
       const finalized=await request('/attempts/'+encodeURIComponent(this.data.attemptId)+'/finalize','POST',this._token,{});
       const result=await request('/attempts/'+encodeURIComponent(this.data.attemptId)+'/result','GET',this._token);
       if (!finalized.result_id || result.result_id!==finalized.result_id) fail('RESULT_ID_MISMATCH');
-      this.setData({phase:'RESULT',result,resultText:'风险指数 '+result.domain_risk+'% · 主要风险维度 '+result.top_driver});
+      const rules = await request('/attempts/'+encodeURIComponent(this.data.attemptId)+'/rules','GET',this._token);
+      if (rules.result_id !== result.result_id || !Array.isArray(rules.rule_ids)) fail('RULE_EVIDENCE_MISMATCH');
+      this.setData({phase:'RESULT',result,resultText:'风险指数 '+result.domain_risk+'% · 主要风险维度 '+result.top_driver,ruleIds:rules.rule_ids,ruleEvidence:rules.evidence || []});
     }catch(e){this.setData({message:(e && e.message)||'结果提交失败，可重试提交'});}
     finally{this.setData({loading:false});}
   },
-  onRestart(){this.setData({phase:'SELECT',attemptId:'',questions:[],answeredCount:0,result:null,resultText:'',message:''});}
+  onRestart(){this.setData({phase:'SELECT',attemptId:'',questions:[],answeredCount:0,result:null,resultText:'',ruleIds:[],ruleEvidence:[],message:''});}
 });
